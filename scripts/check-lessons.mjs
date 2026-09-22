@@ -55,11 +55,20 @@ for (const file of files) {
 	const tldr = body.indexOf(':::tip[TL;DR]');
 	if (tldr === -1 || (firstH2 !== -1 && tldr > firstH2)) err('must open with a :::tip[TL;DR] block before the first ## heading');
 	if (!body.includes('<Figure')) err('must include at least one <Figure>');
-	if (!body.includes('<KeyTakeaways>')) err('must include <KeyTakeaways>');
+	const keyTakeaways = body.indexOf('<KeyTakeaways>');
+	if (keyTakeaways === -1) err('must include <KeyTakeaways>');
+	const references = body.indexOf('### References');
 	const check = body.indexOf('## Check yourself');
 	if (check === -1) err('must include a "## Check yourself" section');
-	else if ((body.slice(check).match(/<Quiz /g) ?? []).length < 2) err('"## Check yourself" needs at least 2 <Quiz> items');
-	if (/\b(TODO|TBD|lorem ipsum)\b/i.test(body)) err('contains placeholder text');
+	else {
+		const quizCount = (body.slice(check).match(/<Quiz /g) ?? []).length;
+		if (quizCount < 2 || quizCount > 4) err('"## Check yourself" needs 2-4 <Quiz> items');
+		if (keyTakeaways !== -1 && keyTakeaways > check) err('<KeyTakeaways> must come before "## Check yourself"');
+		if (references !== -1 && references > check) err('"### References" must come before "## Check yourself"');
+	}
+	if (references !== -1 && keyTakeaways !== -1 && references < keyTakeaways) err('"### References" must come after <KeyTakeaways>');
+	const bodyWithoutCodeFences = body.replace(/```[\s\S]*?```/g, '');
+	if (/\b(TODO|TBD|lorem ipsum)\b/i.test(bodyWithoutCodeFences)) err('contains placeholder text');
 }
 
 const uncovered = sourceHeadings.filter((h) => !claimed.has(h));
