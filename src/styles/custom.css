@@ -1,0 +1,5 @@
+/* Site-wide tweaks. Diagram styles live in diagrams.css. */
+.sl-markdown-content table {
+	display: block;
+	overflow-x: auto;
+}
