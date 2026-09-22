@@ -134,7 +134,8 @@ Add `src/content/docs/chapter-N/` with the same lesson template, redraw figures 
 ## Deployment
 
 - GitHub Actions workflow using the official `withastro/action` + `actions/deploy-pages`.
-- `astro.config.mjs` sets `site: https://<username>.github.io` and `base: /<repo-name>`; values are filled in once the user provides the GitHub username and repo name.
+- `astro.config.mjs` sets `site: https://n0k0259.github.io` and `base: /learn-ai-agents`.
+- GitHub repo: `n0k0259/learn-ai-agents`. Published URL: https://n0k0259.github.io/learn-ai-agents/
 - Custom domain is out of scope for now (can be added later via `public/CNAME`).
 
 ## Testing & Verification
