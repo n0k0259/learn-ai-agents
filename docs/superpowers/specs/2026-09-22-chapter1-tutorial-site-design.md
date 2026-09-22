@@ -24,8 +24,52 @@ Source is Apache License 2.0. Requirements we satisfy:
 
 - **Astro Starlight** — static docs/tutorial framework (sidebar, search, dark mode, prev/next navigation).
 - **MDX** for lesson content.
-- **Mermaid** for new diagrams (rendered at build time via a remark/rehype Mermaid integration).
+- **Hand-crafted SVG diagrams** (no Mermaid) — see Visual Design below.
 - **GitHub Pages** hosting, deployed by GitHub Actions on push to `main`.
+
+## Visual Design (Diagrams)
+
+All diagrams — the 7 original figures and every new diagram — are redrawn as custom SVGs in a single visual language. The originals are grayscale print figures with overflowing labels; they are not reused as-is.
+
+**Concept color system** (same meaning in every lesson, defined once as CSS variables):
+
+| Concept | Role |
+|---|---|
+| Model (LLM) | Reasoning core — primary accent color |
+| Context | Information / working set |
+| Tools | Action interfaces |
+| Environment | External world, outside the agent boundary |
+| Harness | Dashed container around Model + Context + Tools |
+| Guardrails / human | Safety checkpoints (warning color) |
+
+Exact hex values are chosen during implementation and validated for WCAG AA contrast in both light and dark themes.
+
+**Rules:**
+- **Theme-aware:** SVGs are inlined as Astro components and use `currentColor` + CSS variables, so they switch correctly with Starlight's light/dark mode.
+- **Legible everywhere:** no text overflow; minimum 14px effective label size at a 360px-wide mobile viewport; wide diagrams get a stacked mobile variant or horizontal scroll with a visible hint.
+- **Accessible:** every SVG has `<title>` and `<desc>`; color is never the only carrier of meaning (labels + shapes too).
+- **Purposeful motion only:** flows/loops (ReAct loop, agent execution loop, trajectory rounds) get a step-highlight animation (Thought → Action → Observation) with Play/Step controls; honors `prefers-reduced-motion` (falls back to static). No decorative animation.
+- **Attribution:** redrawn originals are captioned "Redrawn from Figure 1-x, *AI Agent Book* by Bojie Li (Apache 2.0)."
+
+**Diagram inventory (Chapter 1):**
+
+| Diagram | Lesson | Source | Animated |
+|---|---|---|---|
+| Agent–Environment loop, Model–Harness structure | 1 | Fig 1-1 | Yes (observation/action cycle) |
+| Agent = LLM + Context + Tools component view | 1 | New | No |
+| Observation space / action space interface | 2 | New | No |
+| Three levels of capability updates | 3 | Fig 1-2 | No |
+| Context ablation experiment design | 4 | Fig 1-3 | No |
+| ReAct loop (Thought → Action → Observation) | 5 | New | Yes |
+| Multi-currency trajectory, round by round | 5 | Fig 1-4 | Yes (step through rounds) |
+| "Model as Agent" native tool calling | 5 | Fig 1-5 | No |
+| Model vs. harness responsibility split | 6 | New | No |
+| Prompt → context → loop engineering evolution | 6 | New | No |
+| Autonomous agent execution loop | 7 | Fig 1-6 | Yes |
+| Workflow pattern (n8n-style pipeline) | 7 | Fig 1-7 (screenshot → schematic) | No |
+| Workflow vs. autonomous side-by-side | 7 | New | No |
+| Guardrail placement (input / tool / output / human) | 8 | New | No |
+| Five harness elements overview | 8 | New | No |
 
 ## Lesson Breakdown (Chapter 1 → 8 lessons, ~8–12 min each)
 
@@ -64,8 +108,11 @@ ai_agent_book/
 │       └── 01-…08-*.mdx           # Lessons
 ├── src/components/
 │   ├── Quiz.astro                 # Question + <details> reveal answer, no client JS
-│   └── KeyTakeaways.astro         # Styled takeaway box
-├── public/images/chapter-1/       # fig1-1.svg … fig1-6.svg, n8n-workflow.png
+│   ├── KeyTakeaways.astro         # Styled takeaway box
+│   ├── Figure.astro               # Wrapper: caption, credit, responsive sizing
+│   ├── StepAnimator.astro         # Play/Step controls for animated diagrams
+│   └── diagrams/chapter-1/        # One .astro file per inline SVG diagram
+├── src/styles/diagrams.css        # Concept color variables (light + dark)
 ├── LICENSE                        # Apache 2.0 text
 ├── NOTICE                         # Attribution + modification statement
 ├── astro.config.mjs               # Title, sidebar, GitHub Pages `site` + `base`
@@ -76,10 +123,13 @@ ai_agent_book/
 
 - **`Quiz.astro`** — props: `question` (string). Slot: answer content. Renders a styled `<details>`/`<summary>` so it works with zero client-side JavaScript.
 - **`KeyTakeaways.astro`** — slot: bullet list. Renders a bordered, titled box consistent with Starlight theme variables (works in light and dark mode).
+- **`Figure.astro`** — props: `caption`, `credit?`. Slot: a diagram component. Handles caption/credit text and responsive width.
+- **`StepAnimator.astro`** — wraps an animated diagram; diagram elements tagged `data-step="n"` are highlighted in sequence. Provides Play / Step / Reset buttons; small vanilla JS script; static all-steps-visible view under `prefers-reduced-motion`.
+- **Diagram components** — one per diagram in `src/components/diagrams/chapter-1/`, inline SVG using only the concept color variables.
 
 ### Extending to Later Chapters
 
-Add `src/content/docs/chapter-N/` with the same lesson template, copy figures into `public/images/chapter-N/`, and add a sidebar group in `astro.config.mjs` (autogenerated from the directory).
+Add `src/content/docs/chapter-N/` with the same lesson template, redraw figures into `src/components/diagrams/chapter-N/` using the same color system, and add a sidebar group in `astro.config.mjs` (autogenerated from the directory).
 
 ## Deployment
 
@@ -90,8 +140,10 @@ Add `src/content/docs/chapter-N/` with the same lesson template, copy figures in
 ## Testing & Verification
 
 - `npm run build` succeeds with no errors.
-- All internal links and image paths resolve (Starlight build link checks, plus a check that every referenced image exists under `public/`).
-- Each lesson previewed locally (`npm run dev`) in a browser: figures render, Mermaid diagrams render, quizzes expand, light/dark mode both readable.
+- All internal links resolve (Starlight build link checks).
+- **Diagram visual QA:** every diagram screenshotted in a real browser (Playwright) in light mode, dark mode, and at 360px mobile width; each screenshot inspected for text overflow, overlap, clipping, and contrast before the lesson is marked done.
+- Animated diagrams: Play/Step/Reset work; reduced-motion shows the static version.
+- Each lesson previewed locally (`npm run dev`): diagrams render, quizzes expand, light/dark mode both readable.
 - Content check: every original Chapter 1 section heading is covered by one lesson (per mapping table above).
 
 ## Out of Scope
