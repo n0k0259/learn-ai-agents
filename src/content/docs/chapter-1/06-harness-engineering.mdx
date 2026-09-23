@@ -59,7 +59,7 @@ A minimal demo needs only a Model and a Harness that can construct context and e
 
 Harness engineering studies exactly this runtime and governance code, which sits outside the Model but inside the agent boundary.
 
-The Harness is therefore not "everything outside the model". It mediates the interaction between the Model and the Environment, but it does not include the Environment. Tool definitions, call adapters, sandbox permissions, and reset mechanisms belong to the Harness. Files and processes that change inside the sandbox, external databases, web pages, users, and the physical world belong to the Environment. Where each piece is deployed doesn't move this conceptual boundary.
+More precisely, the Harness is not "everything outside the model". It mediates the interaction between the Model and the Environment, but it does not include the Environment. Tool definitions, call adapters, sandbox permissions, and reset mechanisms belong to the Harness. Files and processes that change inside the sandbox, external databases, web pages, users, and the physical world belong to the Environment. Where each piece is deployed doesn't move this conceptual boundary.
 
 <Figure caption="Agent = Model + Harness. A minimal demo needs context and tools; production adds constrain, verify, and correct inside the same boundary.">
 <ModelHarnessSplit />
@@ -108,7 +108,7 @@ def apply_refunds(actions, env, harness):
 ```
 
 :::note[Engineer's note]
-Notice what `verify` reads: the database, not the model's reply. If the check parsed the model's "refund issued" message instead, a hallucination or a prompt injection could pass it. Reading structured state from the environment is the input-isolation principle from the table, applied.
+Notice what `verify` reads: the database, not the model's reply. If the check parsed the model's "refund issued" message instead, a prompt injection could pass it. Reading structured state from the environment is the input-isolation principle from the table, applied.
 :::
 
 ## Where production harness code goes
@@ -163,26 +163,18 @@ A SIM card's notched corner lets it slide into the tray in only one orientation,
 
 A poorly designed tool can make even the strongest model fail repeatedly. The interface is the only channel between model and tool, so a vague interface gets amplified into systemic error.
 
-The next three topics are freestanding but important parts of harness engineering: model selection, orchestration patterns, and guardrails and safety. None of them is one of the five Harness elements proper, but all of them are unavoidable in practice. Model selection follows here; orchestration is covered in lesson 1.7 (Orchestration: Workflow vs. Autonomous).
+The next three topics are freestanding but important parts of harness engineering: model selection, orchestration patterns, and guardrails and safety. None of them is one of the five Harness elements proper, but all of them are unavoidable in practice. Model selection follows here; orchestration is covered in lesson 1.7 (Orchestration: Workflow vs. Autonomous), and guardrails and safety in lesson 1.8 (Guardrails, Safety & the Big Picture).
 
 ## Choosing a model
 
 Before orchestration patterns comes a practical question: what kind of model should drive your agent? The model is the foundation of the agent's intelligence, and choosing the right one often matters more than any amount of prompt tuning. Releases move too fast for specific version recommendations to stay useful, so the book gives directions instead:
 
 - **Evaluate on your own tasks, not leaderboards.** The book covers evaluation in Chapter 7.
-- **Weigh closed against open models.** Closed models, most commonly from OpenAI (GPT/o series) and Anthropic (Claude series), generally lead in capability but cost more and are constrained by the vendor's API policies. At the time of writing, open models lag closed ones by no more than six months and cost substantially less. They support private deployment and fine-tuning, which suits cost-sensitive scenarios and data compliance requirements. DeepSeek, Kimi, and GLM are among the stronger Chinese models for agent capabilities. Tool-calling ability varies widely between models, so test it in your specific scenario before committing.
-- **Check policy boundaries.** On your real tasks, test whether the model is willing to proceed, whether the interface exposes the capability you need, and whether the service terms permit the intended use. For business-critical tasks, prepare a fallback: human handoff or another compliant model.
-- **Use a reasoning model for anything multi-step.** The exceptions are a single simple step, or Computer Use GUI operations that amount to clicking a fixed position.
-- **Measure output token speed.** A 20-round task that runs 2 s slower per round waits an extra 40 s end-to-end.
-- **Confirm multimodal support** if your agent needs to understand images, audio, or video.
-
-**Closed or open.** If your scenario doesn't demand the highest model capability, an open model is a pragmatic choice.
-
-**Policy boundaries.** A model may be technically able to perform a task while the product hosting it doesn't let users invoke that ability. Vendors draw different boundaries around cybersecurity, model distillation, model extraction, private data, and high-risk operations. The same task can also produce different outcomes in a chat product, a coding agent, and an API. Model selection therefore can't compare only accuracy, price, and speed.
-
-**Reasoning.** Agents make complex decisions, such as multi-step reasoning and tool selection, and models without reasoning tend to perform poorly on them. For the few exceptions above, a non-reasoning model may suffice. The moment multi-step reasoning or dynamic decision-making enters, a reasoning model is essential.
-
-**Speed and modality.** Beyond cost, two dimensions are easy to overlook. Agents run many rounds of inference, and each round must finish before the next starts, so output speed directly sets end-to-end latency. If your agent needs images, audio, or video, multimodal capability is a hard requirement, and models differ widely there.
+- **Weigh closed against open models.** Closed models, most commonly from OpenAI (GPT/o series) and Anthropic (Claude series), generally lead in capability but cost more and are constrained by the vendor's API policies. At the time of writing, open models lag closed ones by no more than six months and cost substantially less. They support private deployment and fine-tuning, which suits cost-sensitive scenarios and data compliance requirements, so if your scenario doesn't demand the highest capability, an open model is a pragmatic choice. DeepSeek, Kimi, and GLM are among the stronger Chinese models for agent capabilities; tool-calling ability varies widely, so test it in your specific scenario before committing.
+- **Check policy boundaries.** A model may be technically able to perform a task while the product hosting it doesn't let users invoke that ability. Vendors draw different boundaries around cybersecurity, model distillation, model extraction, private data, and high-risk operations, and the same task can produce different outcomes in a chat product, a coding agent, and an API. So don't compare only accuracy, price, and speed: on your real tasks, test whether the model is willing to proceed, whether the interface exposes the capability you need, and whether the service terms permit the intended use. For business-critical tasks, prepare a fallback: human handoff or another compliant model.
+- **Use a reasoning model for anything multi-step.** Agents make complex decisions, such as multi-step reasoning and tool selection, and models without reasoning tend to perform poorly on them. The exceptions are few: a single simple step, or Computer Use GUI operations that amount to clicking a fixed position, where a non-reasoning model may suffice. The moment multi-step reasoning or dynamic decision-making enters, a reasoning model is essential.
+- **Measure output token speed.** It is easy to overlook. Agents typically run many rounds of inference, and each round must finish before the next starts, so output speed directly sets end-to-end latency: a 20-round task that runs 2 s slower per round waits an extra 40 s.
+- **Confirm multimodal support** if your agent needs to understand images, audio, or video. There it is a hard requirement, and models differ widely.
 
 <KeyTakeaways>
 - Agent = Model + Harness. Harness = context management + tool interfaces + constraints + verification + correction. The agent interacts with the environment.
