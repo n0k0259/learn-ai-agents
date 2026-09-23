@@ -26,7 +26,7 @@ A change at token k propagates through every layer, so the cache is reusable onl
 
 ## What happens without a cache
 
-Suppose an agent has reached its sixth conversation round with 2,000 context tokens. Without caching, each new token requires the model to recalculate the K and V vectors for the entire prefix. The first five rounds haven't changed, yet the sixth round recomputes them, and the longer prefix makes it more expensive than the first. The attention computation in the prefill phase (where the model processes all input tokens before generating a response) grows quadratically with context length, so latency and cost rise rapidly as the conversation deepens. That hurts most in agent tasks that make many tool calls.
+Suppose an agent has reached its sixth conversation round with 2,000 context tokens. Without caching, each new token requires the model to recalculate the K and V vectors for the entire prefix. The first five rounds haven't changed, yet the sixth round recomputes them, and the longer prefix makes it more expensive than the first. The attention computation in the prefill phase (where the model processes all input tokens before generating a response) grows quadratically with context length, so latency and cost rise rapidly as the conversation deepens. That is especially costly for agent tasks that make many tool calls.
 
 Take a context of 4 tokens [A, B, C, D], with the model about to generate the fifth token, E. The Query for this step comes from the last known token, D. It is compared with the Keys of A, B, C and D to get match scores (the dot-product intuition is in [lesson 2.3](/learn-ai-agents/chapter-2/03-attention-kv-cache-chat-template/)). The scores weight a sum of the same four tokens' Values, producing the output at D's position, which is what the model uses to predict E. E's own Q, K and V are computed only after E has been sampled and fed back in.
 
@@ -37,7 +37,7 @@ Take a context of 4 tokens [A, B, C, D], with the model about to generate the fi
 The cache saves the recomputation of K and V projections for historical tokens, not the attention itself. Each new token's attention still traverses all cached K and V values, so computation per step grows linearly with context length. That is why long-context decoding gets slower and slower, and why the KV Cache's memory and bandwidth become the inference bottleneck.
 
 :::note[Engineer's note]
-The stretch quiz in [The ReAct Loop](/learn-ai-agents/chapter-1/05-react-loop/) also finds quadratic growth, but in a different quantity. That quiz counts cumulative *cache-read charges with caching on*: every round re-reads a cached prefix that keeps getting longer. The N² here is *recomputation with no cache at all*: every step recomputes K and V for the whole prefix. Caching removes the second cost; it doesn't remove the first.
+The stretch quiz in [The ReAct Loop](/learn-ai-agents/chapter-1/05-react-loop/) also finds quadratic growth, but in a different quantity. That quiz counts cumulative *cache-read charges with caching on*. The N² here is *recomputation with no cache at all*: every step recomputes K and V for the whole prefix. The first is what you still pay with caching on, at the Prompt Cache level across rounds; the second is what caching avoids, as recompute within generation.
 :::
 
 ## Why a prefix change invalidates everything after it
@@ -95,7 +95,7 @@ In production-grade agent systems, caching is not merely a performance optimizat
 |---|---|---|
 | Runtime conditions (OS type, current mode, user preferences) | Put them before the boundary. Each binary condition doubles the cache-key variants: N conditions give 2^N, so macOS/Linux × normal/debug × Chinese/English gives 2×2×2 = 8 keys. | Put all dynamic elements after the boundary. |
 
-**Sub-agents inherit the parent's bytes.** When the main agent spawns a sub-agent or runs a side query that inherits the parent's context, the sub-agent's prompt, tool definitions, model configuration, message prefix and reasoning configuration must match the parent's byte for byte. That alignment is what earns a Prompt Cache hit, cutting cost and latency. Some frameworks spawn sub-agents with a different context or prompt; then byte-level alignment isn't required.
+**Inheriting sub-agents match the parent byte for byte.** When the main agent spawns a sub-agent or runs a side query that inherits the parent's context, the sub-agent's prompt, tool definitions, model configuration, message prefix and reasoning configuration must match the parent's byte for byte. That alignment is what earns a Prompt Cache hit, cutting cost and latency. Some frameworks spawn sub-agents with a different context or prompt; then byte-level alignment isn't required.
 
 **Replacement strings are frozen on first use.** When a large tool output is replaced with a summary preview, the replacement string is persisted. Even after a session restarts, the system reuses exactly the same string, so the restored message sequence stays byte-identical to the cached stream.
 
@@ -148,7 +148,7 @@ The next question is what goes into the context and how to organize it, along th
 - Without a cache, every new token recomputes K and V for the whole prefix, and cumulative work grows with N². With KV Cache, each token's K and V are computed once, but each decode step still reads all of them, so memory and bandwidth become the bottleneck.
 - Layers feed each other, so a change at token k invalidates every layer's states from k onward. The earlier the change, the more is typically recomputed and rebilled.
 - Experiment 2-3: dynamic system prompts, dynamic user config, reordered tools and sliding windows break the cache; sliding windows also drop tool results and cause loops. Text formatting hurts reasoning, not caching.
-- KV Cache works within one inference pass; Prompt Cache reuses prefix computation across requests, with cache reads for example about one-tenth the price.
+- KV Cache works within one inference pass; Prompt Cache reuses prefix computation across requests, with cache reads for example about one-tenth the price at Anthropic, DeepSeek and GPT-5.
 - Caching is an architectural constraint: dynamic conditions go after the cache boundary, inheriting sub-agents match the parent byte for byte, replacement strings are frozen. With preserved thinking, append-only is a correctness requirement.
 </KeyTakeaways>
 
@@ -172,5 +172,5 @@ First, dropping the earliest message changes the prefix, which breaks prefix con
 </Quiz>
 
 <Quiz question="With preserved thinking, why is 'append only, never rewrite' a correctness issue and not just a cost issue?">
-A prefix change on its own only makes requests slower and more expensive; the results stay correct. Preserved thinking binds each thinking block, by signature, to the prefix it was produced under. If you rewrite anything in that prefix, that block and all later thinking become invalid. Newly registered accounts get a 400 error by default; otherwise the invalid thinking is silently dropped and the model has to reason from scratch that turn. Rewriting the prefix now costs reasoning, not just money.
+A prefix change on its own only makes requests slower and more expensive; the results stay correct. Preserved thinking binds each thinking block, by signature, to the prefix it was produced under. If you rewrite anything in that prefix, that block and all later thinking become invalid. Newly registered accounts get a 400 error by default; alternatively, the invalid thinking can be silently dropped, and the model has to reason from scratch that turn. Rewriting the prefix now costs reasoning, not just money.
 </Quiz>
