@@ -86,7 +86,7 @@ Step 5: Verification
    Ensure integrity of the processed file
 ```
 
-<Figure caption="The same file-handling knowledge as a rule pile (left) and as the five-step SOP (right). The pile leaves open which rule applies when several match; the SOP places each rule in a stage, with the not-found branch at Step 1.">
+<Figure caption="The SOP's file-handling knowledge recast as a rule pile (left), next to the five-step SOP (right). The pile leaves open which rule applies when several match; the SOP places each rule in a stage, with the not-found branch at Step 1.">
 <RulesVsSOP />
 </Figure>
 
@@ -100,7 +100,7 @@ When you build production-grade agent systems, one of the most critical and easi
 
 ### The billing example
 
-Consider an agent that makes phone calls to resolve billing issues. The user says they want to lower a subscription fee or get a refund, and the agent calls customer service to negotiate. The product manager's core requirement is "refund the service fee if the task is unsuccessful", which encourages users to try while preventing abuse. The team designed three billing models: a commission on savings, a fixed service fee and a prepayment for difficult tasks.
+Consider an agent that makes phone calls to resolve billing issues. The user says they want to lower a subscription fee or get a refund, and the agent calls customer service to negotiate. The product manager's core requirement is "refund the service fee if the task is unsuccessful", which encourages users to try while preventing abuse.
 
 Vague rules, such as "choose the appropriate billing type based on the task situation", lead to highly unstable agent behavior. Is "Help me return the clothes I bought last month" saving the user money, or retrieving money that rightfully belongs to them? "Help me cancel my Netflix subscription" does prevent future payments, but does that count as saving money? The same task might be classified completely differently at different times, which makes the business logic unpredictable.
 
@@ -121,11 +121,11 @@ The resulting decision rules, task type to fee model:
 
 Success-rate estimation and amount calculation need the same precision. The success rate should be evaluated step by step according to a fixed process, and the estimated probability should map directly to a billing model. Amount calculation must define the billing granularity, and state explicitly that "savings" are calculated only from the existing bill. The book gives these example values:
 
-| Rule | Example value |
+| Rule (example threshold) | Outcome |
 |---|---|
 | Estimated success probability above 60% | Might use the refundable model |
 | Estimated success probability below 30% | Might be rejected |
-| Phone call billing | $0.05 per minute, total rounded to the nearest whole dollar |
+| Phone calls billed at $0.05 per minute | Total rounded to the nearest whole dollar |
 
 Without the existing-bill rule, the model might reason: "If the price rises to $180 next year without negotiation, and I help maintain it at $150, that saves $30." That counts the avoidance of a future price increase as savings.
 
@@ -144,7 +144,7 @@ Beyond rules and processes, examples (few-shot examples) are another important t
 Conversely, for tasks the model already handles well and whose rules are easy to state, examples waste tokens.
 
 :::note[Engineer's note]
-Lesson 1.7 ([Orchestration Patterns](/learn-ai-agents/chapter-1/07-orchestration-patterns/)) lists few-shot examples among the harness patches that instruction tuning internalized. The two points don't conflict. The book scopes few-shot examples here to outputs that are hard to describe precisely with rules, and says they waste tokens on tasks the model already handles well and whose rules are easy to state. The second case matches what 1.7 describes as internalized; the first is where the book still recommends examples.
+Lesson 1.7 ([Orchestration Patterns](/learn-ai-agents/chapter-1/07-orchestration-patterns/)) lists few-shot examples among the harness patches that instruction tuning and reasoning models internalized. The two points don't conflict. The book scopes few-shot examples here to outputs that are hard to describe precisely with rules, and says they waste tokens on tasks the model already handles well and whose rules are easy to state. The second case is essentially what 1.7 describes as internalized; the first is where the book still recommends examples.
 :::
 
 ### Where to put them, and keeping them stable
@@ -160,13 +160,13 @@ More examples are not always better. Two or three carefully selected examples co
 - Uppercase "NEVER" raises salience more than softer phrasing, but overuse dilutes it; reserve it for truly critical constraints. XML tags carry semantics, and Markdown carries human-readable hierarchy.
 - An SOP lets the model know which stage it's in and handle exceptions from there; a pile of scattered rules leaves it guessing which one applies.
 - Business rules must be executable, down to which task types can be commission-based and how savings are measured. In mature teams, product managers often design them and engineers encode them.
-- Use two or three few-shot examples when the output is hard to describe with rules. Keep them byte-for-byte stable, with a fixed set per task type, not retrieved per request.
+- When the output is hard to describe with rules, two or three few-shot examples are often better than long abstract descriptions. Keep them byte-for-byte stable, with a fixed set per task type, not retrieved per request.
 </KeyTakeaways>
 
 ## Check yourself
 
 <Quiz question="The book's prompt ablation (Experiment 2-4, lesson 2.6) shows that disorganized information lowers the success rate. System prompts are often maintained by several people over time. What engineering practices keep a prompt from growing disorganized?">
-Enforce structure: organize instructions as an SOP rather than a growing pile of rules, and layer them with Markdown headings for hierarchy and XML tags for semantics. Keep the division of labor clear: product managers define and iterate on business rules from production data, and engineers encode them accurately without making arbitrary business-logic decisions. Keep the cache in mind when editing: content early in the context, such as examples, should stay byte-for-byte stable, and dynamic content belongs after the cache boundary (lesson 2.4). Beyond this lesson, the book also suggests re-running ablations like Experiment 2-4 before and after changes (lesson 2.6) and splitting bloated content into Skills loaded on demand (lesson 2.7).
+Enforce structure: organize instructions as an SOP rather than a growing pile of rules, and layer them with Markdown headings for hierarchy and XML tags for semantics. Keep the division of labor clear: product managers define and iterate on business rules from production data, and engineers encode them accurately without making arbitrary business-logic decisions. Keep the cache in mind when editing: content early in the context, such as examples, should stay byte-for-byte stable, and dynamic content belongs after the cache boundary (lesson 2.4). Beyond this lesson, the book also suggests treating prompts as code, with version control and review; re-running ablations like Experiment 2-4 (lesson 2.6) before and after changes; and splitting bloated content into Skills loaded on demand (lesson 2.7).
 </Quiz>
 
 <Quiz question="A user says, &quot;Help me cancel my Netflix subscription.&quot; Commission or fixed fee, and why must the prompt say so explicitly?">
