@@ -1,0 +1,101 @@
+---
+// Redraw of Figure 1-4 using the text's numbers: the multi-currency trajectory, round by round, and what each call sees.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 640"
+	role="img"
+	aria-labelledby="d-tr-title d-tr-desc"
+	style="min-width: 630px"
+>
+	<title id="d-tr-title">Agent trajectory for the multi-currency revenue task</title>
+	<desc id="d-tr-desc">
+		The trajectory starts with the user message: Q1 2.5M USD, Q2 2.1M EUR, Q3 1.8M GBP, Q4 380M JPY. Round 1: the
+		assistant reasons that all currencies must be converted to USD and makes three parallel convert_currency calls; the
+		tool results are EUR to USD 2,282,608.70, GBP to USD 2,278,481.01 and JPY to USD 2,541,806.02. Round 2: the
+		assistant decides to aggregate with code and calls the code interpreter, which returns a total of $9,602,895.73 and
+		an average of $2,400,723.93. Round 3: the assistant gives the final answer. On every LLM call, the static prefix
+		(system prompt plus tool definitions) plus the trajectory, which grows every round, forms the context.
+	</desc>
+
+	<g class="dg-node dg-neutral">
+		<rect x="104" y="10" width="376" height="77" rx="8"></rect>
+		<text x="118" y="32" class="dg-accent" font-weight="700">user</text>
+		<text x="118" y="53">Q1 2.5M USD · Q2 2.1M EUR ·</text>
+		<text x="118" y="74">Q3 1.8M GBP · Q4 380M JPY</text>
+	</g>
+
+	<!-- Round 1 -->
+	<text x="14" y="121" class="dg-title" data-step="1">Round 1</text>
+	<g class="dg-node dg-model" data-step="1" data-step-label="Round 1: reason, then three parallel conversions">
+		<rect x="104" y="99" width="376" height="56" rx="8"></rect>
+		<text x="118" y="121" class="dg-accent" font-weight="700">assistant.reasoning</text>
+		<text x="118" y="142">Convert all currencies to USD</text>
+	</g>
+	<g class="dg-node dg-tools" data-step="1">
+		<rect x="104" y="161" width="376" height="56" rx="8"></rect>
+		<text x="118" y="183" class="dg-accent" font-weight="700">assistant.tool_calls ×3</text>
+		<text x="118" y="204" class="dg-mono">convert_currency(EUR / GBP / JPY)</text>
+	</g>
+	<g class="dg-node dg-context" data-step="1">
+		<rect x="104" y="223" width="376" height="98" rx="8"></rect>
+		<text x="118" y="245" class="dg-accent" font-weight="700">tool results</text>
+		<text x="118" y="266" class="dg-mono">EUR→USD 2,282,608.70</text>
+		<text x="118" y="287" class="dg-mono">GBP→USD 2,278,481.01</text>
+		<text x="118" y="308" class="dg-mono">JPY→USD 2,541,806.02</text>
+	</g>
+
+	<!-- Round 2 -->
+	<text x="14" y="355" class="dg-title" data-step="2">Round 2</text>
+	<g class="dg-node dg-model" data-step="2" data-step-label="Round 2: aggregate with the code interpreter">
+		<rect x="104" y="333" width="376" height="56" rx="8"></rect>
+		<text x="118" y="355" class="dg-accent" font-weight="700">assistant.reasoning</text>
+		<text x="118" y="376">Aggregate with code</text>
+	</g>
+	<g class="dg-node dg-tools" data-step="2">
+		<rect x="104" y="395" width="376" height="56" rx="8"></rect>
+		<text x="118" y="417" class="dg-accent" font-weight="700">assistant.tool_calls</text>
+		<text x="118" y="438" class="dg-mono">code_interpreter(total = …)</text>
+	</g>
+	<g class="dg-node dg-context" data-step="2">
+		<rect x="104" y="457" width="376" height="77" rx="8"></rect>
+		<text x="118" y="479" class="dg-accent" font-weight="700">tool result</text>
+		<text x="118" y="500" class="dg-mono">Total $9,602,895.73</text>
+		<text x="118" y="521" class="dg-mono">Average $2,400,723.93</text>
+	</g>
+
+	<!-- Round 3 -->
+	<text x="14" y="568" class="dg-title" data-step="3">Round 3</text>
+	<g class="dg-node dg-model" data-step="3" data-step-label="Round 3: final answer">
+		<rect x="104" y="546" width="376" height="77" rx="8"></rect>
+		<text x="118" y="568" class="dg-accent" font-weight="700">assistant.content</text>
+		<text x="118" y="589">FINAL ANSWER: total</text>
+		<text x="118" y="610">$9,602,895.73 …</text>
+	</g>
+
+	<!-- What every call sees -->
+	<g class="dg-edge" data-step="4">
+		<path d="M484,10 H492 V623 H484 M492,310 H499"></path>
+	</g>
+	<g class="dg-node dg-harness" data-step="4">
+		<rect x="500" y="10" width="208" height="77" rx="8"></rect>
+		<text x="604" y="32" text-anchor="middle" class="dg-accent" font-weight="700">Static prefix</text>
+		<text x="604" y="53" text-anchor="middle">system prompt +</text>
+		<text x="604" y="74" text-anchor="middle">tool definitions</text>
+	</g>
+	<text x="604" y="130" text-anchor="middle" class="dg-title" data-step="4">+</text>
+	<g class="dg-container dg-neutral" data-step="4" data-step-label="Every call sees static prefix + full trajectory">
+		<rect x="500" y="150" width="208" height="320" rx="8"></rect>
+		<text x="604" y="266" text-anchor="middle" font-weight="700">Trajectory</text>
+		<text x="604" y="290" text-anchor="middle" class="dg-sub">grows every round</text>
+		<text x="604" y="330" text-anchor="middle" class="dg-sub">user messages +</text>
+		<text x="604" y="352" text-anchor="middle" class="dg-sub">assistant messages +</text>
+		<text x="604" y="374" text-anchor="middle" class="dg-sub">tool results</text>
+	</g>
+	<g class="dg-node dg-neutral" data-step="4">
+		<rect x="500" y="500" width="208" height="56" rx="8"></rect>
+		<text x="604" y="522" text-anchor="middle" font-weight="700">= context of</text>
+		<text x="604" y="543" text-anchor="middle">every LLM call</text>
+	</g>
+</svg>

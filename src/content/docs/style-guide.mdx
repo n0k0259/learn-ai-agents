@@ -13,6 +13,9 @@ import AgentEnvironmentLoop from '~/components/diagrams/chapter-1/AgentEnvironme
 import ObservationActionSpaces from '~/components/diagrams/chapter-1/ObservationActionSpaces.astro';
 import CapabilityUpdateLevels from '~/components/diagrams/chapter-1/CapabilityUpdateLevels.astro';
 import ContextAblation from '~/components/diagrams/chapter-1/ContextAblation.astro';
+import ReActLoop from '~/components/diagrams/chapter-1/ReActLoop.astro';
+import TrajectoryRounds from '~/components/diagrams/chapter-1/TrajectoryRounds.astro';
+import ModelAsAgent from '~/components/diagrams/chapter-1/ModelAsAgent.astro';
 
 This page documents the building blocks every lesson uses. It is not part of the tutorial itself.
 
@@ -81,4 +84,22 @@ Each lesson adds its diagrams below, grouped by lesson.
 
 <Figure caption="Experiment 1-1: five controlled groups. The full baseline keeps every component; each other group removes one (✗) and shows the outcome." credit="Redrawn from Figure 1-3, AI Agent Book by Bojie Li (Apache 2.0).">
 <ContextAblation />
+</Figure>
+
+### Lesson 1.5
+
+<StepAnimator label="ReAct loop">
+<Figure caption="The ReAct loop: reason, act, observe, and reason again. A response with no tool call ends the loop with the final answer.">
+<ReActLoop />
+</Figure>
+</StepAnimator>
+
+<StepAnimator label="Trajectory, round by round">
+<Figure caption="The multi-currency trajectory, round by round. Every LLM call sees the static prefix plus the full trajectory so far." credit="Redrawn from Figure 1-4, AI Agent Book by Bojie Li (Apache 2.0).">
+<TrajectoryRounds />
+</Figure>
+</StepAnimator>
+
+<Figure caption="Model as Agent: the model decides the tool calls and native tools run server-side. The loop runs on the server only on the Responses API path." credit="Redrawn from Figure 1-5, AI Agent Book by Bojie Li (Apache 2.0).">
+<ModelAsAgent />
 </Figure>

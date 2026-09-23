@@ -1,0 +1,62 @@
+---
+// The ReAct loop: reason → act → observe, repeating until a response carries no tool call.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 340"
+	role="img"
+	aria-labelledby="d-rl-title d-rl-desc"
+	style="min-width: 630px"
+>
+	<title id="d-rl-title">The ReAct loop: reason, act, observe</title>
+	<desc id="d-rl-desc">
+		Three stages form a cycle. Reason: the model decides the next step. Act: it calls a tool. Observe: the tool result
+		joins the context, and the model reasons again. The loop repeats until the task is done. When a response has no
+		tool call, the loop exits to the final answer.
+	</desc>
+	<defs>
+		<marker id="d-rl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<g class="dg-node dg-model" data-step="1" data-step-label="The model reasons about what to do next">
+		<rect x="220" y="16" width="240" height="62" rx="10"></rect>
+		<text x="340" y="42" text-anchor="middle" class="dg-accent" font-weight="700">Reason</text>
+		<text x="340" y="64" text-anchor="middle" class="dg-sub">decide the next step</text>
+	</g>
+
+	<g class="dg-edge" data-step="2">
+		<path d="M450,78 Q540,110 540,234" marker-end="url(#d-rl-arrow)"></path>
+	</g>
+	<g class="dg-node dg-tools" data-step="2" data-step-label="It calls a tool to act">
+		<rect x="420" y="236" width="240" height="62" rx="10"></rect>
+		<text x="540" y="262" text-anchor="middle" class="dg-accent" font-weight="700">Act</text>
+		<text x="540" y="284" text-anchor="middle" class="dg-sub">call a tool</text>
+	</g>
+
+	<g class="dg-edge" data-step="3">
+		<path d="M420,284 Q340,330 262,284" marker-end="url(#d-rl-arrow)"></path>
+	</g>
+	<g class="dg-node dg-context" data-step="3" data-step-label="The tool result is appended to the context">
+		<rect x="20" y="236" width="240" height="62" rx="10"></rect>
+		<text x="140" y="262" text-anchor="middle" class="dg-accent" font-weight="700">Observe</text>
+		<text x="140" y="284" text-anchor="middle" class="dg-sub">result joins context</text>
+	</g>
+
+	<g class="dg-edge" data-step="4" data-step-label="The model reasons again with the new observation">
+		<path d="M140,234 Q140,120 228,80" marker-end="url(#d-rl-arrow)"></path>
+	</g>
+
+	<text x="340" y="176" text-anchor="middle" class="dg-sub">repeats until the task is done</text>
+
+	<g class="dg-edge" data-step="5">
+		<line x1="460" y1="47" x2="568" y2="47" marker-end="url(#d-rl-arrow)"></line>
+		<text x="515" y="34" text-anchor="middle" class="dg-edge-label">no tool call</text>
+	</g>
+	<g class="dg-node dg-neutral" data-step="5" data-step-label="With no tool call left, the loop returns the answer">
+		<rect x="570" y="16" width="142" height="62" rx="10"></rect>
+		<text x="641" y="53" text-anchor="middle" font-weight="700">Final answer</text>
+	</g>
+</svg>

@@ -1,0 +1,271 @@
+---
+title: The ReAct Loop
+description: How reason → act → observe ties model, context and tools together, what a trajectory looks like, and where the loop runs when the model is the agent.
+sidebar:
+  order: 5
+  label: 1.5 The ReAct Loop
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter1.md#the-react-loop
+  sections:
+    - The ReAct Loop
+---
+import Figure from '~/components/Figure.astro';
+import StepAnimator from '~/components/StepAnimator.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import ReActLoop from '~/components/diagrams/chapter-1/ReActLoop.astro';
+import TrajectoryRounds from '~/components/diagrams/chapter-1/TrajectoryRounds.astro';
+import ModelAsAgent from '~/components/diagrams/chapter-1/ModelAsAgent.astro';
+
+:::tip[TL;DR]
+ReAct is a loop of reason → act → observe that appends every step to a trajectory. Each LLM call sees the static prefix plus the full trajectory. When the "model is the agent", the decision policy moves into the weights, but the loop still runs somewhere.
+:::
+
+## Reason, act, observe
+
+You now have the three components: the LLM, context, and tools. The natural next question is how they work together. The ReAct loop is the core mechanism that connects them into one system.
+
+The core pattern by which an agent executes a task is called **ReAct** (Reasoning + Acting). The name mentions only reasoning and acting, but the actual loop has three stages:
+
+1. The model **reasons** about what to do next.
+2. It calls a tool to **act**.
+3. It **observes** the tool's result and reasons about the subsequent step.
+
+This "reason → act → observe → reason → act → observe" loop repeats until the task is done.
+
+<StepAnimator label="ReAct loop">
+<Figure caption="The ReAct loop: reason, act, observe, and reason again. A response with no tool call ends the loop with the final answer.">
+<ReActLoop />
+</Figure>
+</StepAnimator>
+
+## The trajectory is the agent's working memory
+
+An agent's **trajectory** is the message history that accumulates as it works. It comprises user messages, assistant messages (with their reasoning and tool calls), and tool results.
+
+On every LLM call, the complete context the model receives is the **static prefix** (system prompt + tool definitions) plus the **trajectory** (the dynamic message history). That gives a key fact:
+
+> **Agent context = static prefix + trajectory**
+
+Concretely, the static prefix is the first two of the five context components from lesson 1.4 (Context: The Working Set): system prompt and tool definitions. The trajectory is the last three: user messages, assistant messages, and tool results, growing with each interaction. From this complete context the LLM generates its next response, which is appended to the trajectory for the subsequent call.
+
+## A minimal loop
+
+A minimal implementation shows **how the components work together**:
+
+- the Model only decides the next step;
+- the Harness assembles the context, and validates and executes the tools;
+- the Environment produces the actual state changes and observations.
+
+The book writes this, like the rest of its code, as Python-style pseudocode. It is not runnable and does not correspond to any particular SDK; the concrete executable code lives in the book's companion repository.
+
+```python title="react_loop (book pseudocode)"
+trajectory = [user_request]
+
+repeat:
+    context = stable_prefix + trajectory
+    decision = Model(context)
+    trajectory.append(decision)
+
+    if decision has no tool call:
+        return decision.answer
+
+    for call in decision.tool_calls:       # independent calls may run in parallel
+        validated_call = Harness.validate(call)
+        observation = Environment.execute(validated_call)
+        trajectory.append(observation)
+```
+
+The same loop against a generic chat SDK looks like this. The client object and its method names are placeholders:
+
+```python title="react_loop.py (illustrative — adapt to your SDK)"
+MAX_ROUNDS = 20
+
+def run_agent(llm, tools, system_prompt, user_request):
+    trajectory = [{"role": "user", "content": user_request}]
+    for _ in range(MAX_ROUNDS):
+        reply = llm.chat(
+            messages=[{"role": "system", "content": system_prompt}] + trajectory,
+            tools=[tool.schema for tool in tools.values()],
+        )
+        trajectory.append(reply.as_message())
+        if not reply.tool_calls:                    # no tool call -> final answer
+            return reply.content
+        for call in reply.tool_calls:               # independent calls may run in parallel
+            tool = tools.get(call.name)
+            result = tool.run(**call.arguments) if tool else f"Error: unknown tool {call.name}"
+            trajectory.append({"role": "tool", "tool_call_id": call.id, "content": str(result)})
+    raise RuntimeError("Stopped: reached MAX_ROUNDS without a final answer")
+```
+
+How the lines map to the three roles:
+
+- **Model:** `llm.chat(...)` is the only place a decision is made. The reply carries reasoning, content, and tool calls.
+- **Harness:** everything around that call. It rebuilds `messages` from the system prompt, tool schemas, and trajectory on every round; appends each reply and each tool result; rejects a tool name that doesn't exist; and stops the loop after `MAX_ROUNDS`.
+- **Environment:** `tool.run(...)`, where state actually changes and the observation comes from.
+
+The system prompt and tool schemas are passed on every call but never appended to `trajectory`: they are the static prefix. `MAX_ROUNDS` is a stop condition, a topic covered in lesson 1.7 (Orchestration: Workflow vs. Autonomous).
+
+## Walkthrough: multi-currency revenue
+
+Take a concrete task: aggregate a company's quarterly revenue across four currencies.
+
+<StepAnimator label="Trajectory, round by round">
+<Figure caption="The multi-currency trajectory, round by round. Every LLM call sees the static prefix plus the full trajectory so far." credit="Redrawn from Figure 1-4, AI Agent Book by Bojie Li (Apache 2.0).">
+<TrajectoryRounds />
+</Figure>
+</StepAnimator>
+
+Here is the structure of that trajectory, in the book's pseudocode:
+
+```text title="trajectory (book pseudocode)"
+trajectory = [
+  {role: "user", content: "Based on the company's quarterly revenue: Q1 2.5M USD, Q2 2.1M EUR, Q3 1.8M GBP, Q4 380M JPY, calculate the company's total annual revenue and average quarterly revenue"},
+  
+  # First iteration - LLM receives the above trajectory and generates a response
+  {role: "assistant",
+   reasoning: "Need to convert all currencies to USD...",
+   content: "",  # No direct reply to the user
+   tool_calls: [
+     {name: "convert_currency", args: {amount: 2100000, from: "EUR", to: "USD"}},
+     {name: "convert_currency", args: {amount: 1800000, from: "GBP", to: "USD"}},
+     {name: "convert_currency", args: {amount: 380000000, from: "JPY", to: "USD"}}
+   ]},
+  
+  # Agent framework executes tools, adds results to trajectory
+  {role: "tool", content: "EUR->USD: 2282608.7"},
+  {role: "tool", content: "GBP->USD: 2278481.01"},
+  {role: "tool", content: "JPY->USD: 2541806.02"},
+  
+  # Second iteration - LLM receives the complete trajectory, including tool results
+  {role: "assistant",
+   reasoning: "Conversion results obtained, now need to aggregate and calculate...",
+   content: "",
+   tool_calls: [
+     {name: "code_interpreter", args: {code: "total = 2500000 + 2282608.7 + ..."}}
+   ]},
+  
+  {role: "tool", content: "Total: $9,602,895.73, Average: $2,400,723.93..."},
+  
+  # Third iteration - LLM receives the complete trajectory and generates the final answer
+  {role: "assistant",
+   reasoning: "All calculations complete, summarizing results...",
+   content: "FINAL ANSWER: Total revenue $9,602,895.73..."}
+]
+```
+
+The system prompt and tool definitions don't appear in the trajectory. They serve as the static prefix and are automatically prepended to it before each LLM call.
+
+In the book's experiment, the loop was clearly visible:
+
+1. In the first round, the agent analyzed the task and called three currency conversion tools in parallel.
+2. In the second, it fed the conversion results to a code interpreter for the more computationally intensive calculation.
+3. In the third, having confirmed all calculations were complete, it produced the final answer.
+
+A complex multi-step task took 3 iterations and 4 tool calls.
+
+In this most basic design, the context the LLM sees is continually appended to. Every LLM call receives the complete trajectory, so the model knows which stage of the task it is in, what was tried before, and what the outcome was. Just as people keep reviewing and summarizing while solving a problem, the agent maintains a global view of the task through its trajectory.
+
+Because the trajectory is structured, with user messages, assistant messages (reasoning + tool calls), and tool results cleanly separated, the system is highly interpretable and debuggable.
+
+## When the model drives the loop: Experiments 1-2 and 1-3
+
+With the loop in place, two experiments show how different models drive it.
+
+### Experiment 1-2: Kimi K3 native agent capability
+
+**Kimi K3** is an example of the "Model as Agent" paradigm. It is a Mixture of Experts (MoE) model with approximately 2.8 trillion parameters. You can think of MoE as a team of experts: for each kind of problem, the system activates only the few experts best suited to it rather than the entire model, preserving capability without paying the full efficiency cost. Kimi K3 has a 1 million token context window, native visual understanding, and an always-on "thinking mode".
+
+Through reinforcement learning, Kimi K3 has internalized the tool-calling **decision policy** as a native capability. The model decides when to call a tool, which tool to call, and what arguments to pass, so it can carry out tasks such as web searches autonomously.
+
+To be precise, what is internalized is the *when and how to call* decision. The tools themselves, such as `web_search` and `code_runner`, still execute server-side as API-level built-in tools. Kimi runs these official tools through a server-side script engine called Formula.
+
+The orchestration loop has therefore not disappeared. Only the decision-making moved into the model, and where the loop itself runs depends on how you integrate:
+
+- On the Responses API path of Experiment 1-3, search, code execution, and the multi-round orchestration are closed on the server.
+- On the Kimi path of Experiment 1-2, Formula only executes the search itself on the server. The "call the model → append the tool result → call again" ReAct loop is still driven by client code (see the `while` loop in `chapter1/web-search-agent/agent.py`).
+
+The key observations: the model decides when to search and what to search for, showing genuine autonomy. It adjusts its strategy as search results arrive and judges whether it has enough information.
+
+A common misconception is worth clearing up: **reinforcement learning gives the model the decision policy**, not the tools themselves. RL teaches when to call a tool, which tool to choose, what arguments to pass, whether to continue after receiving a result, and how to chain dozens or hundreds of calls into coherent reasoning. These *whether-and-how-to-use* judgments are what get written into the model's weights.
+
+**The tools and their execution are provided by the agent framework or API built-ins.** The implementations of `web_search` and `code_runner`, the code sandbox, and the infrastructure that issues calls and returns results all live outside the model. RL does not embed a search engine or a code sandbox into the weights. In the book's words, the orchestration loop "has moved from the client to the server, while decision-making has moved into the model" (a distinction a reader raised in GitHub issue #30; see References).
+
+Kimi K3's notable advantage in agent tasks is **the stability of long-chain tool calls**. It can sustain 200–300 consecutive tool calls with coherent reasoning throughout, far beyond the few dozen calls at which most models begin to degrade. K3 is optimized for long-horizon programming and agent workloads, and was released in two variants:
+
+- K3 Max, for dialogue and agent tasks;
+- K3 Swarm Max, for large-scale parallel processing.
+
+As an open-source model, it matches top-tier closed-source systems on software engineering and agent benchmarks. That is evidence that reinforcement learning can endow a model with native agent capability.
+
+### Experiment 1-3: GPT-5.6 native Deep Research capability
+
+The second experiment uses **OpenAI GPT-5.6** to show how an advanced model, backed by API-level built-in tools, closes the "search—read—analyze" orchestration loop on the server side for Deep Research.
+
+One convenient GPT-5.6 feature is **Freeform Tool Calling**. Traditionally, a model calling a tool must serialize every parameter into strict JSON, much like filling out a form with rigid formatting rules. Freeform tool calling, declared in the API through a tool of `type: "custom"`, lets the model send raw text straight to the tool (a snippet of Python code, a SQL query) and avoids JSON escaping entirely.
+
+This is an evolution of the API's parameter format, not an innovation in model architecture. The client's tool-calling loop (detect `tool_calls` → execute → return the result) stays the same; only the arguments change from a JSON string to raw text.
+
+Paired with the Responses API's **web search and code interpreter** built-in tools, GPT-5.6 delivers the core mechanism of Deep Research. The model can autonomously search the web for real-time information and write code for in-depth analysis, iterating "search → read → analyze → search again". For example:
+
+- "What is the shortest distance between the capitals of the 10 ASEAN countries?" GPT-5.6 searches for the geographic coordinates of each capital, writes Python code to calculate the great-circle distance between all pairs, and identifies the closest pair.
+- "Search for Bitcoin's trend over the past month and perform technical analysis." It fetches real-time price data from multiple financial data sources, uses professional technical analysis libraries to calculate moving averages, RSI, MACD, and other indicators, generates visual charts, and provides trading recommendations.
+
+GPT-5.6 also internalizes the design philosophy of the **OpenAI Deep Research** product at the model level by introducing an **intent clarification process**. Given a research request, it does not start executing immediately; it first clarifies the user's true intent through a series of questions. For the Bitcoin request it would first ask: "Which data source do you prefer? Which technical indicators would you like analyzed?" This lets it produce research reports that are more precise and better aligned with what the user actually needs.
+
+GPT-5.6 is a mature example of "Model as Agent". Web search, the code interpreter, and the Responses API's other built-in tools execute in a closed loop on the server. The orchestration loop moves from the client to the API server, which simplifies the client. The model still emits standard tool calls; the client simply no longer has to build the "search—read—analyze" orchestration framework itself.
+
+Its most noteworthy aspect is the intent clarification mechanism. Rather than executing immediately, the model first confirms what the user really needs, then formulates a research strategy. The gap between "what the user said" and "what the user actually wants" is addressed before execution begins.
+
+The experiment is not tied to one vendor. Without OpenAI credits, you can reproduce it with providers that offer equivalent managed tools. Alibaba Cloud Bailian's qwen3.7-plus Responses API also includes built-in `web_search` and `code_interpreter`, and Kimi K3's Formula-managed search and `code_runner` provide the same class of capability.
+
+### Where the loop runs
+
+The figure shows the architecture of native tool calling under "Model as Agent", with the ReAct execution of Kimi K3 and GPT-5.6 on a real task. The original figure's "no hand-written ReAct loop on the client" holds only for the Responses API path. On both paths the model decides when to call which tool and the tools execute server-side; on the Kimi path, the loop is still driven by the client.
+
+<Figure caption="Model as Agent: the model decides the tool calls and native tools run server-side. The loop runs on the server only on the Responses API path." credit="Redrawn from Figure 1-5, AI Agent Book by Bojie Li (Apache 2.0).">
+<ModelAsAgent />
+</Figure>
+
+Where does each piece run?
+
+| | Kimi K3 path | Responses API path |
+|---|---|---|
+| Tool-call decision | model | model |
+| Tool execution | server-side (Formula) | server-side (built-in tools) |
+| Loop driver | client code (`while` loop) | API server |
+
+:::note[Engineer's note]
+RL gives the model the decision policy, not the tools. Tool implementations, sandboxes, and the call infrastructure still live outside the weights.
+:::
+
+<KeyTakeaways>
+- ReAct runs reason → act → observe in a loop until the task is done; a response with no tool call ends it.
+- The trajectory is the accumulated message history: user messages, assistant messages (reasoning + tool calls), and tool results.
+- Agent context = static prefix (system prompt + tool definitions) + trajectory. Each new response is appended for the next call.
+- In the minimal loop, the Model only decides; the Harness assembles context and validates and executes tools; the Environment produces state changes and observations.
+- The multi-currency task took 3 iterations and 4 tool calls. Every call saw the full trajectory, and the structured roles make the loop interpretable and debuggable.
+- Kimi K3 and GPT-5.6 internalize the tool-calling decision policy through RL, but tools and their execution stay outside the weights.
+- The loop doesn't disappear. On the Responses API path it runs on the server; on the Kimi path, client code still drives it.
+- Freeform tool calling (`type: "custom"`) changes the argument format from JSON to raw text, not the client's tool-calling loop.
+</KeyTakeaways>
+
+### References
+
+- [GitHub issue #30: RL internalizes the tool-calling decision policy, not the tool execution mechanism](https://github.com/bojieli/ai-agent-book/issues/30). The book thanks reader asdlem for pointing out and clarifying this distinction.
+
+## Check yourself
+
+<Quiz question="Cumulative cache reads in a ReAct loop grow roughly quadratically with rounds. Why, and how do you reduce it?">
+At round *i*, the cached prefix length is roughly proportional to *i*, so cumulative reads are 1 + 2 + … + n = O(n²). The quadratic growth is in cumulative cache-read charges, not in trajectory length or KV Cache footprint, which grow roughly linearly.
+
+To reduce it, batch-compress the early trajectory at token thresholds, retaining conclusions and key state. Externalize large intermediate results for on-demand retrieval, or isolate them in sub-agents. Don't compress every round: it can hurt agent performance and adds compression calls and cache-rebuild overhead.
+</Quiz>
+
+<Quiz question="On the Kimi K3 path, what runs on the server and what runs on the client?">
+The model decides when to call which tool, and the tools (`web_search`, `code_runner`) execute server-side through Formula. The "call the model → append the tool result → call again" ReAct loop is still driven by client code.
+</Quiz>
+
+<Quiz question="Why does every call get the full trajectory in the basic design?">
+So the model knows which stage of the task it is in, what was tried before, and what the outcome was. It maintains a global view of the task through its trajectory. Because the trajectory is structured into user messages, assistant messages (reasoning + tool calls), and tool results, the system is also highly interpretable and debuggable.
+</Quiz>

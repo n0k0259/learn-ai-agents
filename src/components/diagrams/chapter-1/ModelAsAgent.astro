@@ -1,0 +1,108 @@
+---
+// Redraw of Figure 1-5: "Model as Agent" with native tool calling, and where the loop runs on each path.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 606"
+	role="img"
+	aria-labelledby="d-maa-title d-maa-desc"
+	style="min-width: 630px"
+>
+	<title id="d-maa-title">Model as Agent: native tool calling</title>
+	<desc id="d-maa-desc">
+		A user asks to search Bitcoin's price trend over the last month. Inside a ReAct loop, which runs server-side on the
+		Responses API path, the model thinks that it should search real-time data and then analyze it with code. Round 1
+		calls web_search for "BTC price last month"; the observation is $67,230 to $71,450; the observation feeds the next
+		round, where Round 2 calls code_interpreter, and the loop returns to the thought step. To the left, the LLM (Kimi K3
+		or GPT-5.6) has native agent capability from RL training. To the right, native tools: web_search, code_interpreter
+		and more. The loop produces the final output, an analysis report and chart. Note: on the Kimi path, tools run
+		server-side but client code drives the loop.
+	</desc>
+	<defs>
+		<marker id="d-maa-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<g class="dg-node dg-neutral">
+		<rect x="253" y="10" width="240" height="62" rx="10"></rect>
+		<text x="373" y="36" text-anchor="middle">User: search Bitcoin's price</text>
+		<text x="373" y="58" text-anchor="middle">trend over the last month</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="373" y1="72" x2="373" y2="88" marker-end="url(#d-maa-arrow)"></line>
+	</g>
+
+	<g class="dg-node dg-model">
+		<rect x="8" y="154" width="204" height="84" rx="10"></rect>
+		<text x="110" y="180" text-anchor="middle" class="dg-accent" font-weight="700">LLM (Kimi K3 / GPT-5.6)</text>
+		<text x="110" y="202" text-anchor="middle">native agent capability</text>
+		<text x="110" y="224" text-anchor="middle" class="dg-sub">from RL training</text>
+	</g>
+
+	<g class="dg-container dg-harness">
+		<rect x="222" y="90" width="302" height="418" rx="12"></rect>
+		<text x="238" y="116" class="dg-accent" font-weight="700">ReAct loop (server-side on the</text>
+		<text x="238" y="138" class="dg-accent" font-weight="700">Responses API path)</text>
+
+		<g class="dg-node dg-model">
+			<rect x="236" y="154" width="222" height="84" rx="8"></rect>
+			<text x="347" y="180" text-anchor="middle" class="dg-accent" font-weight="700">Thought</text>
+			<text x="347" y="202" text-anchor="middle">search real-time data,</text>
+			<text x="347" y="224" text-anchor="middle">then analyze with code</text>
+		</g>
+		<g class="dg-node dg-tools">
+			<rect x="236" y="258" width="222" height="62" rx="8"></rect>
+			<text x="347" y="284" text-anchor="middle" class="dg-accent" font-weight="700">Round 1: web_search</text>
+			<text x="347" y="306" text-anchor="middle">"BTC price last month"</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="236" y="340" width="222" height="62" rx="8"></rect>
+			<text x="347" y="366" text-anchor="middle" class="dg-accent" font-weight="700">Observation</text>
+			<text x="347" y="388" text-anchor="middle">$67,230 → $71,450</text>
+		</g>
+		<g class="dg-node dg-tools">
+			<rect x="236" y="454" width="222" height="40" rx="8"></rect>
+			<text x="347" y="480" text-anchor="middle" class="dg-accent" font-weight="700">Round 2: code_interpreter</text>
+		</g>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="347" y1="238" x2="347" y2="256" marker-end="url(#d-maa-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="347" y1="320" x2="347" y2="338" marker-end="url(#d-maa-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="347" y1="402" x2="347" y2="452" marker-end="url(#d-maa-arrow)"></line>
+		<text x="358" y="424" class="dg-edge-label">observation feeds</text>
+		<text x="358" y="444" class="dg-edge-label">the next round</text>
+	</g>
+	<g class="dg-edge">
+		<path d="M458,474 H504 V196 H460" marker-end="url(#d-maa-arrow)"></path>
+	</g>
+
+	<g class="dg-node dg-tools">
+		<rect x="534" y="258" width="178" height="106" rx="10"></rect>
+		<text x="623" y="284" text-anchor="middle" class="dg-accent" font-weight="700">Native tools</text>
+		<text x="623" y="306" text-anchor="middle" class="dg-mono">web_search</text>
+		<text x="623" y="328" text-anchor="middle" class="dg-mono">code_interpreter</text>
+		<text x="623" y="350" text-anchor="middle" class="dg-sub">more tools…</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="332" y1="508" x2="332" y2="530" marker-end="url(#d-maa-arrow)"></line>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="222" y="532" width="220" height="62" rx="10"></rect>
+		<text x="332" y="558" text-anchor="middle" font-weight="700">Final output: analysis</text>
+		<text x="332" y="580" text-anchor="middle">report + chart</text>
+	</g>
+
+	<g class="dg-node dg-env">
+		<rect x="452" y="532" width="260" height="62" rx="10"></rect>
+		<text x="582" y="558" text-anchor="middle">Kimi path: tools run server-side,</text>
+		<text x="582" y="580" text-anchor="middle">but client code drives the loop</text>
+	</g>
+</svg>
