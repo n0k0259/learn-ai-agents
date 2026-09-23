@@ -1,0 +1,97 @@
+---
+interface Props {
+	label: string;
+}
+const { label } = Astro.props;
+---
+
+<div class="dg-anim" data-animator>
+	<slot />
+	<div class="dg-anim-controls" role="group" aria-label={`Animation controls: ${label}`}>
+		<button type="button" data-action="play">Play</button>
+		<button type="button" data-action="step">Step</button>
+		<button type="button" data-action="reset">Reset</button>
+		<span class="dg-anim-status" data-status aria-live="polite"></span>
+	</div>
+</div>
+
+<style>
+	.dg-anim-controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: -1rem;
+		margin-bottom: 2rem;
+	}
+	.dg-anim-controls button {
+		font: inherit;
+		font-size: var(--sl-text-sm);
+		padding: 0.25rem 0.75rem;
+		border: 1px solid var(--sl-color-gray-4);
+		border-radius: 0.375rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-white);
+		cursor: pointer;
+	}
+	.dg-anim-controls button[hidden] {
+		display: none;
+	}
+	.dg-anim-status {
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-2);
+	}
+</style>
+
+<script>
+	const INTERVAL_MS = 1400;
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+	for (const root of document.querySelectorAll<HTMLElement>('[data-animator]')) {
+		const els = [...root.querySelectorAll<SVGElement>('[data-step]')];
+		const max = Math.max(...els.map((el) => Number(el.dataset.step)));
+		const status = root.querySelector<HTMLElement>('[data-status]')!;
+		const play = root.querySelector<HTMLButtonElement>('[data-action="play"]')!;
+		let current = 0;
+		let timer: number | undefined;
+
+		const labelFor = (n: number) =>
+			els.find((el) => Number(el.dataset.step) === n && el.dataset.stepLabel)?.dataset.stepLabel ?? '';
+		const render = () => {
+			root.classList.toggle('is-stepping', current > 0);
+			for (const el of els) {
+				const s = Number(el.dataset.step);
+				el.classList.toggle('is-current', s === current);
+				el.classList.toggle('is-past', current > 0 && s < current);
+			}
+			status.textContent = current > 0 ? `Step ${current} of ${max}: ${labelFor(current)}` : '';
+		};
+		const stop = () => {
+			if (timer !== undefined) clearInterval(timer);
+			timer = undefined;
+			play.textContent = 'Play';
+		};
+		const step = () => {
+			current = current >= max ? 1 : current + 1;
+			render();
+		};
+
+		play.hidden = reducedMotion.matches;
+		play.addEventListener('click', () => {
+			if (timer !== undefined) return stop();
+			if (current >= max) current = 0;
+			step();
+			play.textContent = 'Pause';
+			timer = window.setInterval(() => (current >= max ? stop() : step()), INTERVAL_MS);
+		});
+		root.querySelector('[data-action="step"]')!.addEventListener('click', () => {
+			stop();
+			step();
+		});
+		root.querySelector('[data-action="reset"]')!.addEventListener('click', () => {
+			stop();
+			current = 0;
+			render();
+		});
+	}
+</script>

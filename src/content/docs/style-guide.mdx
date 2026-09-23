@@ -5,6 +5,9 @@ pagefind: false
 ---
 import Quiz from '~/components/Quiz.astro';
 import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Figure from '~/components/Figure.astro';
+import StepAnimator from '~/components/StepAnimator.astro';
+import ConceptLegend from '~/components/diagrams/ConceptLegend.astro';
 
 This page documents the building blocks every lesson uses. It is not part of the tutorial itself.
 
@@ -26,3 +29,21 @@ Practical implications and pitfalls go in callouts like this.
 <Quiz question="What does a quiz look like?">
 A question with a click-to-reveal answer.
 </Quiz>
+
+## Diagram conventions
+
+Every diagram uses the same color for the same concept. Press **Step** to walk through the legend.
+
+<StepAnimator label="Concept legend">
+<Figure caption="The concept color legend used by every diagram.">
+<ConceptLegend />
+</Figure>
+</StepAnimator>
+
+- Colors come only from `src/styles/diagrams.css`; each color is always paired with a text label.
+- Boxes are `g.dg-node` elements (one `rect` + direct `text` children); groups are `g.dg-container`.
+- Wide diagrams scroll sideways on phones rather than shrinking text below 14px.
+
+## All diagrams
+
+Each lesson adds its diagrams below, grouped by lesson.

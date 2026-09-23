@@ -1,0 +1,116 @@
+/* Concept color system for all diagrams. Change colors here only. */
+:root,
+:root[data-theme='light'] {
+	--dg-ink: #0f172a;
+	--dg-muted: #475569;
+	--dg-line: #334155;
+	--dg-model-fill: #ede9fe;
+	--dg-model-stroke: #6d28d9;
+	--dg-context-fill: #e0f2fe;
+	--dg-context-stroke: #0369a1;
+	--dg-tools-fill: #d1fae5;
+	--dg-tools-stroke: #065f46;
+	--dg-env-fill: #fef3c7;
+	--dg-env-stroke: #92400e;
+	--dg-harness-fill: #f1f5f9;
+	--dg-harness-stroke: #475569;
+	--dg-guard-fill: #ffe4e6;
+	--dg-guard-stroke: #be123c;
+	--dg-neutral-fill: #ffffff;
+	--dg-neutral-stroke: #94a3b8;
+}
+
+:root[data-theme='dark'] {
+	--dg-ink: #f1f5f9;
+	--dg-muted: #cbd5e1;
+	--dg-line: #cbd5e1;
+	--dg-model-fill: #2e1065;
+	--dg-model-stroke: #c4b5fd;
+	--dg-context-fill: #082f49;
+	--dg-context-stroke: #7dd3fc;
+	--dg-tools-fill: #022c22;
+	--dg-tools-stroke: #6ee7b7;
+	--dg-env-fill: #451a03;
+	--dg-env-stroke: #fcd34d;
+	--dg-harness-fill: #1e293b;
+	--dg-harness-stroke: #94a3b8;
+	--dg-guard-fill: #4c0519;
+	--dg-guard-stroke: #fda4af;
+	--dg-neutral-fill: #0f172a;
+	--dg-neutral-stroke: #64748b;
+}
+
+svg.dg {
+	display: block;
+	width: 100%;
+	height: auto;
+	font-family: var(--sl-font, system-ui, sans-serif);
+}
+svg.dg text {
+	fill: var(--dg-ink);
+	font-size: 16px;
+}
+svg.dg .dg-title {
+	font-size: 20px;
+	font-weight: 700;
+}
+svg.dg .dg-sub,
+svg.dg .dg-edge-label {
+	fill: var(--dg-muted);
+}
+svg.dg .dg-mono {
+	font-family: var(--sl-font-mono, ui-monospace, monospace);
+}
+svg.dg :is(.dg-node, .dg-container) > rect {
+	stroke-width: 2;
+}
+svg.dg .dg-harness > rect {
+	stroke-dasharray: 8 6;
+}
+svg.dg .dg-edge :is(path, line) {
+	stroke: var(--dg-line);
+	stroke-width: 2;
+	fill: none;
+}
+svg.dg .dg-arrowhead {
+	fill: var(--dg-line);
+}
+
+/* One rule block per concept: box fill/stroke and accent text color. */
+svg.dg .dg-model > rect { fill: var(--dg-model-fill); stroke: var(--dg-model-stroke); }
+svg.dg .dg-model > .dg-accent { fill: var(--dg-model-stroke); }
+svg.dg .dg-context > rect { fill: var(--dg-context-fill); stroke: var(--dg-context-stroke); }
+svg.dg .dg-context > .dg-accent { fill: var(--dg-context-stroke); }
+svg.dg .dg-tools > rect { fill: var(--dg-tools-fill); stroke: var(--dg-tools-stroke); }
+svg.dg .dg-tools > .dg-accent { fill: var(--dg-tools-stroke); }
+svg.dg .dg-env > rect { fill: var(--dg-env-fill); stroke: var(--dg-env-stroke); }
+svg.dg .dg-env > .dg-accent { fill: var(--dg-env-stroke); }
+svg.dg .dg-harness > rect { fill: var(--dg-harness-fill); stroke: var(--dg-harness-stroke); }
+svg.dg .dg-harness > .dg-accent { fill: var(--dg-harness-stroke); }
+svg.dg .dg-guard > rect { fill: var(--dg-guard-fill); stroke: var(--dg-guard-stroke); }
+svg.dg .dg-guard > .dg-accent { fill: var(--dg-guard-stroke); }
+svg.dg .dg-neutral > rect { fill: var(--dg-neutral-fill); stroke: var(--dg-neutral-stroke); }
+
+/* Status marks (e.g. ablation matrix): never color alone — always paired with ✓ ✗ △ glyphs. */
+svg.dg .dg-ok { fill: var(--dg-tools-stroke); font-weight: 700; }
+svg.dg .dg-fail { fill: var(--dg-guard-stroke); font-weight: 700; }
+svg.dg .dg-partial { fill: var(--dg-env-stroke); font-weight: 700; }
+
+/* StepAnimator states */
+.dg-anim [data-step] {
+	transition: opacity 0.3s ease;
+}
+.dg-anim.is-stepping [data-step] {
+	opacity: 0.15;
+}
+.dg-anim.is-stepping [data-step].is-past {
+	opacity: 0.5;
+}
+.dg-anim.is-stepping [data-step].is-current {
+	opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+	.dg-anim [data-step] {
+		transition: none;
+	}
+}

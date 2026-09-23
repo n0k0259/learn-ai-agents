@@ -1,0 +1,41 @@
+---
+// Color legend for the concept system. Also used as the StepAnimator demo on the style guide.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 152"
+	role="img"
+	aria-labelledby="d-legend-title d-legend-desc"
+	style="min-width: 630px"
+>
+	<title id="d-legend-title">Diagram color legend</title>
+	<desc id="d-legend-desc">
+		Six colored boxes: Model (LLM), Context, Tools, Environment, Harness with a dashed border, and Guardrails or human
+		checkpoints. Each color means the same thing in every diagram.
+	</desc>
+	<g class="dg-node dg-model" data-step="1" data-step-label="Model — the reasoning core">
+		<rect x="12" y="16" width="216" height="52" rx="10"></rect>
+		<text x="120" y="48" text-anchor="middle" class="dg-accent">Model (LLM)</text>
+	</g>
+	<g class="dg-node dg-context" data-step="2" data-step-label="Context — the working set">
+		<rect x="252" y="16" width="216" height="52" rx="10"></rect>
+		<text x="360" y="48" text-anchor="middle" class="dg-accent">Context</text>
+	</g>
+	<g class="dg-node dg-tools" data-step="3" data-step-label="Tools — the action interfaces">
+		<rect x="492" y="16" width="216" height="52" rx="10"></rect>
+		<text x="600" y="48" text-anchor="middle" class="dg-accent">Tools</text>
+	</g>
+	<g class="dg-node dg-env" data-step="4" data-step-label="Environment — outside the agent">
+		<rect x="12" y="84" width="216" height="52" rx="10"></rect>
+		<text x="120" y="116" text-anchor="middle" class="dg-accent">Environment</text>
+	</g>
+	<g class="dg-node dg-harness" data-step="5" data-step-label="Harness — runtime and governance">
+		<rect x="252" y="84" width="216" height="52" rx="10"></rect>
+		<text x="360" y="116" text-anchor="middle" class="dg-accent">Harness</text>
+	</g>
+	<g class="dg-node dg-guard" data-step="6" data-step-label="Guardrails and human checkpoints">
+		<rect x="492" y="84" width="216" height="52" rx="10"></rect>
+		<text x="600" y="116" text-anchor="middle" class="dg-accent">Guardrails / human</text>
+	</g>
+</svg>

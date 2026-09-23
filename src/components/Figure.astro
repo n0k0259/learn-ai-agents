@@ -1,0 +1,52 @@
+---
+interface Props {
+	caption: string;
+	credit?: string;
+}
+const { caption, credit } = Astro.props;
+---
+
+<figure class="dg-figure">
+	<div class="dg-scroll" tabindex="0" role="region" aria-label={`Diagram: ${caption}`}>
+		<slot />
+	</div>
+	<p class="dg-scroll-hint">Scroll sideways to see the whole diagram →</p>
+	<figcaption>{caption}{credit && <span class="dg-credit"> {credit}</span>}</figcaption>
+</figure>
+
+<style>
+	.dg-figure {
+		margin: 2rem 0;
+	}
+	.dg-scroll {
+		overflow-x: auto;
+	}
+	.dg-scroll-hint {
+		display: none;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-3);
+		margin-top: 0.25rem;
+	}
+	.dg-figure[data-overflowing] .dg-scroll-hint {
+		display: block;
+	}
+	figcaption {
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-2);
+		margin-top: 0.5rem;
+	}
+	.dg-credit {
+		font-style: italic;
+	}
+</style>
+
+<script>
+	const update = () => {
+		for (const fig of document.querySelectorAll<HTMLElement>('.dg-figure')) {
+			const scroller = fig.querySelector<HTMLElement>('.dg-scroll')!;
+			fig.toggleAttribute('data-overflowing', scroller.scrollWidth > scroller.clientWidth + 1);
+		}
+	};
+	update();
+	window.addEventListener('resize', update);
+</script>

@@ -12,7 +12,7 @@ export default defineConfig({
 			description: 'An engineer-focused guided tutorial of AI Agent Book by Bojie Li.',
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/n0k0259/learn-ai-agents' }],
 			plugins: [starlightLinksValidator()],
-			customCss: ['./src/styles/custom.css'],
+			customCss: ['./src/styles/custom.css', './src/styles/diagrams.css'],
 			components: { Footer: './src/components/overrides/Footer.astro' },
 			sidebar: [
 				{ label: 'Chapter 1: Getting Started with AI Agents', items: [{ autogenerate: { directory: 'chapter-1' } }] },
