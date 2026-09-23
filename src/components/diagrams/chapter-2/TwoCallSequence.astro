@@ -1,21 +1,24 @@
 ---
-// The Vancouver time-and-weather example as a sequence: two model API calls, with both tools run in parallel between them (redraw of Fig 2-3).
+// The Vancouver time-and-weather example: two model API calls, with both tools run in parallel between them (redraw of Fig 2-3).
 ---
 
 <svg
 	class="dg"
-	viewBox="0 0 720 632"
+	viewBox="0 0 720 552"
 	role="img"
 	aria-labelledby="d2-tcs-title d2-tcs-desc"
 	style="min-width: 630px"
 >
 	<title id="d2-tcs-title">Complete interaction sequence for two model API calls</title>
 	<desc id="d2-tcs-desc">
-		Four lanes: user, agent framework, model API and tools. The user asks for the current time and weather in
-		Vancouver. The framework makes API call 1 with the system message, the user message and the tool definitions. The
-		model API returns two tool_calls, get_current_time and get_weather, and no text. The framework executes both
-		tools in parallel and gets two tool results. It makes API call 2 with the full history plus the tool results.
-		The model API returns a final text reply with no tool_calls, and the framework gives the answer to the user.
+		First model API call: the request carries the system and user messages plus the tools get_current_time and
+		get_weather. Through the API, the model returns an assistant message with tool_calls:
+		get_current_time(timezone="America/Vancouver") and get_weather(city="Vancouver", unit="celsius"). The two have no
+		data dependency, so they can run in parallel, and the agent framework executes the two tools in parallel. Second
+		model API call: the messages now add the tool results, Vancouver time and weather, appended to the message
+		history before requesting the model again. Through the API, the model returns the assistant's final reply, "Now
+		it is…, and the weather is…". There is no tool call, so the loop ends. With a stateless API, the complete message
+		history must be resent to the model in every round.
 	</desc>
 	<defs>
 		<marker id="d2-tcs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
@@ -25,82 +28,67 @@
 
 	<text x="2" y="28" class="dg-title">Complete interaction sequence for two model API calls</text>
 
-	<!-- Lane headers -->
-	<g class="dg-node dg-env">
-		<rect x="20" y="48" width="100" height="48" rx="8"></rect>
-		<text x="70" y="78" text-anchor="middle" class="dg-accent" font-weight="700">User</text>
+	<text x="6" y="66" font-weight="700">First model API call</text>
+
+	<!-- 1. First call -->
+	<g class="dg-node dg-context" data-step="1" data-step-label="API call 1 sends the system and user messages plus the tool definitions">
+		<rect x="6" y="80" width="270" height="110" rx="8"></rect>
+		<text x="141" y="110" text-anchor="middle" class="dg-accent" font-weight="700">messages: system + user</text>
+		<text x="141" y="140" text-anchor="middle" class="dg-sub">tools: get_current_time,</text>
+		<text x="141" y="162" text-anchor="middle" class="dg-sub">get_weather</text>
 	</g>
-	<g class="dg-node dg-harness">
-		<rect x="180" y="48" width="160" height="48" rx="8"></rect>
-		<text x="260" y="78" text-anchor="middle" class="dg-accent" font-weight="700">Agent framework</text>
-	</g>
-	<g class="dg-node dg-model">
-		<rect x="410" y="48" width="120" height="48" rx="8"></rect>
-		<text x="470" y="78" text-anchor="middle" class="dg-accent" font-weight="700">Model API</text>
-	</g>
-	<g class="dg-node dg-tools">
-		<rect x="590" y="48" width="110" height="48" rx="8"></rect>
-		<text x="645" y="78" text-anchor="middle" class="dg-accent" font-weight="700">Tools</text>
+	<g class="dg-edge" data-step="1">
+		<line x1="276" y1="135" x2="336" y2="135" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="306" y="125" text-anchor="middle" class="dg-edge-label">API</text>
 	</g>
 
-	<!-- Lifelines -->
-	<g class="dg-edge">
-		<line x1="70" y1="96" x2="70" y2="620" stroke-dasharray="4 6"></line>
-		<line x1="260" y1="96" x2="260" y2="620" stroke-dasharray="4 6"></line>
-		<line x1="470" y1="96" x2="470" y2="620" stroke-dasharray="4 6"></line>
-		<line x1="645" y1="96" x2="645" y2="620" stroke-dasharray="4 6"></line>
+	<!-- 2. tool_calls -->
+	<g class="dg-node dg-model" data-step="2" data-step-label="The model returns two tool_calls with no data dependency" style="font-variant-ligatures: none">
+		<rect x="338" y="80" width="376" height="158" rx="8"></rect>
+		<text x="526" y="106" text-anchor="middle" class="dg-accent" font-weight="700">assistant: tool_calls</text>
+		<text x="354" y="132" class="dg-mono">get_current_time(</text>
+		<text x="374" y="154" class="dg-mono">timezone="America/Vancouver")</text>
+		<text x="354" y="176" class="dg-mono">get_weather(city="Vancouver",</text>
+		<text x="374" y="198" class="dg-mono">unit="celsius")</text>
+		<text x="526" y="224" text-anchor="middle">No data dependency → can run in parallel</text>
 	</g>
 
-	<!-- 1. User question -->
-	<g class="dg-edge" data-step="1" data-step-label="The user asks for the time and weather in Vancouver">
-		<line x1="70" y1="150" x2="257" y2="150" marker-end="url(#d2-tcs-arrow)"></line>
-		<text x="165" y="138" text-anchor="middle" class="dg-edge-label">user question</text>
+	<!-- 3. Parallel execution -->
+	<g class="dg-edge" data-step="3">
+		<line x1="526" y1="238" x2="526" y2="266" marker-end="url(#d2-tcs-arrow)"></line>
+	</g>
+	<g class="dg-node dg-harness" data-step="3" data-step-label="The agent framework executes both tools in parallel">
+		<rect x="338" y="268" width="376" height="70" rx="8"></rect>
+		<text x="526" y="297" text-anchor="middle">Agent framework executes</text>
+		<text x="526" y="321" text-anchor="middle">two tools in parallel</text>
 	</g>
 
-	<!-- 2. API call 1 -->
-	<g class="dg-edge" data-step="2" data-step-label="API call 1: system, user and tool definitions">
-		<line x1="260" y1="214" x2="467" y2="214" marker-end="url(#d2-tcs-arrow)"></line>
-		<text x="365" y="182" text-anchor="middle" class="dg-edge-label">API call 1</text>
-		<text x="365" y="202" text-anchor="middle" class="dg-edge-label">system + user + tools</text>
+	<text x="6" y="354" font-weight="700">Second model API call</text>
+
+	<!-- 4. Append results -->
+	<g class="dg-edge" data-step="4">
+		<line x1="526" y1="338" x2="526" y2="366" marker-end="url(#d2-tcs-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context" data-step="4" data-step-label="The tool results are appended to the message history">
+		<rect x="338" y="368" width="376" height="110" rx="8"></rect>
+		<text x="526" y="394" text-anchor="middle" class="dg-accent" font-weight="700">messages: + tool results</text>
+		<text x="526" y="418" text-anchor="middle" class="dg-sub">Vancouver time &amp; weather</text>
+		<text x="526" y="442" text-anchor="middle" class="dg-sub">Append to message history,</text>
+		<text x="526" y="464" text-anchor="middle" class="dg-sub">then request model again</text>
 	</g>
 
-	<!-- 3. tool_calls back -->
-	<g class="dg-edge" data-step="3" data-step-label="The model returns two tool_calls, not a final reply">
-		<line x1="470" y1="278" x2="263" y2="278" marker-end="url(#d2-tcs-arrow)"></line>
-		<text x="365" y="246" text-anchor="middle" class="dg-edge-label dg-mono">tool_calls:</text>
-		<text x="365" y="266" text-anchor="middle" class="dg-edge-label">time + weather</text>
+	<!-- 5. Final reply -->
+	<g class="dg-edge" data-step="5">
+		<line x1="338" y1="423" x2="278" y2="423" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="308" y="413" text-anchor="middle" class="dg-edge-label">API</text>
+	</g>
+	<g class="dg-node dg-model" data-step="5" data-step-label="API call 2 returns a final reply with no tool call, so the loop ends">
+		<rect x="6" y="368" width="270" height="110" rx="8"></rect>
+		<text x="141" y="398" text-anchor="middle" class="dg-accent" font-weight="700">assistant: final reply</text>
+		<text x="141" y="424" text-anchor="middle" class="dg-sub">No tool call → end loop</text>
+		<text x="141" y="450" text-anchor="middle" class="dg-sub">"Now it is…, and the weather is…"</text>
 	</g>
 
-	<!-- 4. Execute both -->
-	<g class="dg-edge" data-step="4" data-step-label="The framework executes both tools in parallel">
-		<line x1="260" y1="342" x2="642" y2="342" marker-end="url(#d2-tcs-arrow)"></line>
-		<text x="558" y="310" text-anchor="middle" class="dg-edge-label">execute both</text>
-		<text x="558" y="330" text-anchor="middle" class="dg-edge-label">in parallel</text>
-	</g>
-
-	<!-- 5. Results -->
-	<g class="dg-edge" data-step="5" data-step-label="Both tool results come back to the framework">
-		<line x1="645" y1="406" x2="263" y2="406" marker-end="url(#d2-tcs-arrow)"></line>
-		<text x="558" y="394" text-anchor="middle" class="dg-edge-label">2 tool results</text>
-	</g>
-
-	<!-- 6. API call 2 -->
-	<g class="dg-edge" data-step="6" data-step-label="API call 2: full history plus tool results">
-		<line x1="260" y1="470" x2="467" y2="470" marker-end="url(#d2-tcs-arrow)"></line>
-		<text x="365" y="438" text-anchor="middle" class="dg-edge-label">API call 2</text>
-		<text x="365" y="458" text-anchor="middle" class="dg-edge-label">full history + results</text>
-	</g>
-
-	<!-- 7. Final reply -->
-	<g class="dg-edge" data-step="7" data-step-label="The model returns a text reply with no tool_calls">
-		<line x1="470" y1="534" x2="263" y2="534" marker-end="url(#d2-tcs-arrow)"></line>
-		<text x="365" y="502" text-anchor="middle" class="dg-edge-label">final text reply</text>
-		<text x="365" y="522" text-anchor="middle" class="dg-edge-label">no tool_calls</text>
-	</g>
-
-	<!-- 8. Answer -->
-	<g class="dg-edge" data-step="8" data-step-label="The framework gives the answer to the user">
-		<line x1="260" y1="598" x2="73" y2="598" marker-end="url(#d2-tcs-arrow)"></line>
-		<text x="165" y="586" text-anchor="middle" class="dg-edge-label">answer</text>
-	</g>
+	<text x="360" y="516" text-anchor="middle" class="dg-sub">With a stateless API, the complete message history</text>
+	<text x="360" y="538" text-anchor="middle" class="dg-sub">must be resent to the model in every round</text>
 </svg>

@@ -1,21 +1,21 @@
 ---
-// The same conversation as structured JSON messages (left) and as the linear Qwen token stream the model processes (right) (redraw of Fig 2-9).
+// The same conversation as structured JSON messages (left) and as the linear Qwen token stream the model processes, ending where generation starts (right) (redraw of Fig 2-9).
 ---
 
 <svg
 	class="dg"
-	viewBox="0 0 720 356"
+	viewBox="0 0 720 344"
 	role="img"
 	aria-labelledby="d2-mtt-title d2-mtt-desc"
 	style="min-width: 630px"
 >
 	<title id="d2-mtt-title">From API messages to the model's token stream</title>
 	<desc id="d2-mtt-desc">
-		Left: the conversation at the API level, as structured JSON messages, each with a role (system, user, assistant)
-		and its content. An arrow labelled Chat Template points right. Right: the same conversation inside a Qwen model,
-		as one linear token stream: im_start system, the system prompt, im_end; im_start user, the user message, im_end;
-		im_start assistant, the model reply, im_end. The im_start and im_end special tokens tell the model the role and
-		boundaries of each message.
+		Left, the API level that developers see: two JSON messages, one with role system and content "You are an
+		assistant", one with role user and content "Hello". An arrow labelled Chat Template points right. Right, the
+		model level after Chat Template conversion, one linear token stream: im_start system, "You are an assistant"
+		im_end, im_start user, "Hello" im_end, and im_start assistant, where the model starts generating. The im_start
+		and im_end special tokens tell the model the role and boundaries of each message.
 	</desc>
 	<defs>
 		<marker id="d2-mtt-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
@@ -25,40 +25,36 @@
 
 	<text x="2" y="28" class="dg-title">From API messages to the model's token stream</text>
 
-	<text x="6" y="68" font-weight="700">API messages (JSON)</text>
+	<text x="6" y="62" font-weight="700">API level</text>
+	<text x="6" y="84" class="dg-sub">(what developers see)</text>
 	<g class="dg-node dg-context">
-		<rect x="6" y="82" width="276" height="70" rx="8"></rect>
-		<text x="20" y="108" class="dg-accent dg-mono" font-weight="700">"role": "system"</text>
-		<text x="20" y="134" class="dg-sub">content: system prompt</text>
+		<rect x="6" y="98" width="276" height="70" rx="8"></rect>
+		<text x="20" y="124" class="dg-accent dg-mono" font-weight="700">"role": "system"</text>
+		<text x="20" y="150" class="dg-sub">"content": "You are an assistant"</text>
 	</g>
 	<g class="dg-node dg-env">
-		<rect x="6" y="162" width="276" height="70" rx="8"></rect>
-		<text x="20" y="188" class="dg-accent dg-mono" font-weight="700">"role": "user"</text>
-		<text x="20" y="214" class="dg-sub">content: user message</text>
-	</g>
-	<g class="dg-node dg-model">
-		<rect x="6" y="242" width="276" height="70" rx="8"></rect>
-		<text x="20" y="268" class="dg-accent dg-mono" font-weight="700">"role": "assistant"</text>
-		<text x="20" y="294" class="dg-sub">content: model reply</text>
+		<rect x="6" y="178" width="276" height="70" rx="8"></rect>
+		<text x="20" y="204" class="dg-accent dg-mono" font-weight="700">"role": "user"</text>
+		<text x="20" y="230" class="dg-sub">"content": "Hello"</text>
 	</g>
 
 	<g class="dg-edge">
-		<line x1="290" y1="197" x2="392" y2="197" marker-end="url(#d2-mtt-arrow)"></line>
-		<text x="341" y="185" text-anchor="middle" class="dg-edge-label">Chat</text>
-		<text x="341" y="224" text-anchor="middle" class="dg-edge-label">Template</text>
+		<line x1="290" y1="199" x2="382" y2="199" marker-end="url(#d2-mtt-arrow)"></line>
+		<text x="336" y="187" text-anchor="middle" class="dg-edge-label">Chat</text>
+		<text x="336" y="226" text-anchor="middle" class="dg-edge-label">Template</text>
 	</g>
 
-	<text x="400" y="68" font-weight="700">Token stream inside the model</text>
+	<text x="392" y="62" font-weight="700">Model level</text>
+	<text x="392" y="84" class="dg-sub">(after Chat Template conversion)</text>
 	<g class="dg-node dg-neutral" style="font-variant-ligatures: none">
-		<rect x="400" y="82" width="314" height="230" rx="8"></rect>
-		<text x="414" y="110" class="dg-mono" font-weight="700">&lt;|im_start|&gt;system</text>
-		<text x="414" y="134" class="dg-mono">system prompt&lt;|im_end|&gt;</text>
-		<text x="414" y="178" class="dg-mono" font-weight="700">&lt;|im_start|&gt;user</text>
-		<text x="414" y="202" class="dg-mono">user message&lt;|im_end|&gt;</text>
-		<text x="414" y="246" class="dg-mono" font-weight="700">&lt;|im_start|&gt;assistant</text>
-		<text x="414" y="270" class="dg-mono">model reply&lt;|im_end|&gt;</text>
-		<text x="414" y="298" class="dg-sub">one linear sequence</text>
+		<rect x="392" y="98" width="322" height="204" rx="8"></rect>
+		<text x="404" y="124" class="dg-mono" font-weight="700">&lt;|im_start|&gt;system</text>
+		<text x="404" y="146" class="dg-mono">You are an assistant&lt;|im_end|&gt;</text>
+		<text x="404" y="182" class="dg-mono" font-weight="700">&lt;|im_start|&gt;user</text>
+		<text x="404" y="204" class="dg-mono">Hello&lt;|im_end|&gt;</text>
+		<text x="404" y="240" class="dg-mono" font-weight="700">&lt;|im_start|&gt;assistant</text>
+		<text x="404" y="280" class="dg-sub">(the model starts generating here)</text>
 	</g>
 
-	<text x="2" y="344" class="dg-sub">&lt;|im_start|&gt; and &lt;|im_end|&gt; tell the model each message's role and boundaries.</text>
+	<text x="2" y="332" class="dg-sub">&lt;|im_start|&gt; and &lt;|im_end|&gt; tell the model each message's role and boundaries.</text>
 </svg>

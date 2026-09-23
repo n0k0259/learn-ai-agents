@@ -4,7 +4,7 @@
 
 <svg
 	class="dg"
-	viewBox="0 0 720 488"
+	viewBox="0 0 720 544"
 	role="img"
 	aria-labelledby="d2-cpc-title d2-cpc-desc"
 	style="min-width: 630px"
@@ -14,7 +14,8 @@
 		Every call sends the same two blocks at the top, the system prompt and the tool definitions, which remain
 		unchanged throughout the conversation and form a static prefix. Below them is the conversation history, the
 		trajectory: user messages, model replies with tool calls, and tool execution results. The trajectory grows with
-		each interaction.
+		each interaction. "Static prefix + trajectory": keep the prefix fixed for KV Cache; the trajectory can be
+		compressed.
 	</desc>
 
 	<text x="2" y="28" class="dg-title">Context composition each time the agent calls the model</text>
@@ -62,4 +63,7 @@
 	<text x="516" y="335" font-weight="700">Trajectory</text>
 	<text x="516" y="357" class="dg-edge-label">grows with each</text>
 	<text x="516" y="379" class="dg-edge-label">interaction</text>
+
+	<text x="2" y="506" class="dg-sub">"Static prefix + trajectory": keep the prefix fixed for KV Cache;</text>
+	<text x="2" y="530" class="dg-sub">the trajectory can be compressed</text>
 </svg>

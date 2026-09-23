@@ -1,79 +1,62 @@
 ---
-// Chat Template anatomy as an envelope: each message becomes <|im_start|> + role, its content, then <|im_end|> (redraw of Fig 2-8).
+// Chat Template token structure: structured API messages become one linear token stream of <|im_start|> role … <|im_end|> envelopes, ending at <|im_start|>assistant (redraw of Fig 2-8).
 ---
 
 <svg
 	class="dg"
-	viewBox="0 0 720 330"
+	viewBox="0 0 720 548"
 	role="img"
 	aria-labelledby="d2-ctt-title d2-ctt-desc"
 	style="min-width: 630px"
 >
 	<title id="d2-ctt-title">Token structure of the Chat Template</title>
 	<desc id="d2-ctt-desc">
-		The Chat Template wraps every message in an envelope of special tokens. For each message, a system, a user and an
-		assistant message, the sequence is the special token im_start followed by the role name, then the message content,
-		then the special token im_end. The im_start token and the role mark who the message is from; im_end marks where it
-		ends. The API server, such as vLLM or Ollama, applies the model's Chat Template automatically.
+		Top: structured API messages. A system message, "You are a helpful assistant."; a user message, "What is the
+		weather in Beijing today?"; and an assistant message still to be generated. An arrow labelled Chat Template
+		leads to the linear token stream actually processed by the model: im_start system, "You are a helpful
+		assistant." im_end, im_start user, "What is the weather in Beijing today?" im_end, and finally im_start
+		assistant. Special tokens mark roles and message boundaries, forming one continuous sequence.
 	</desc>
+	<defs>
+		<marker id="d2-ctt-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
 
 	<text x="2" y="28" class="dg-title">Token structure of the Chat Template</text>
 
-	<text x="130" y="68" text-anchor="middle" class="dg-sub">role marker</text>
-	<text x="418" y="68" text-anchor="middle" class="dg-sub">content</text>
-	<text x="648" y="68" text-anchor="middle" class="dg-sub">boundary</text>
-
-	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
-		<rect x="6" y="80" width="146" height="52" rx="8"></rect>
-		<text x="18" y="112" class="dg-accent dg-mono" font-weight="700">&lt;|im_start|&gt;</text>
-	</g>
-	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
-		<rect x="156" y="80" width="108" height="52" rx="8"></rect>
-		<text x="168" y="112" class="dg-accent dg-mono" font-weight="700">system</text>
-	</g>
+	<text x="6" y="66" font-weight="700">Structured API messages</text>
 	<g class="dg-node dg-context">
-		<rect x="272" y="80" width="304" height="52" rx="8"></rect>
-		<text x="288" y="112">system prompt</text>
-	</g>
-	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
-		<rect x="584" y="80" width="130" height="52" rx="8"></rect>
-		<text x="596" y="112" class="dg-accent dg-mono" font-weight="700">&lt;|im_end|&gt;</text>
-	</g>
-
-	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
-		<rect x="6" y="144" width="146" height="52" rx="8"></rect>
-		<text x="18" y="176" class="dg-accent dg-mono" font-weight="700">&lt;|im_start|&gt;</text>
-	</g>
-	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
-		<rect x="156" y="144" width="108" height="52" rx="8"></rect>
-		<text x="168" y="176" class="dg-accent dg-mono" font-weight="700">user</text>
+		<rect x="6" y="80" width="708" height="56" rx="8"></rect>
+		<text x="22" y="114" class="dg-accent dg-mono" font-weight="700">system</text>
+		<text x="150" y="114" class="dg-sub">"You are a helpful assistant."</text>
 	</g>
 	<g class="dg-node dg-env">
-		<rect x="272" y="144" width="304" height="52" rx="8"></rect>
-		<text x="288" y="176">user message</text>
-	</g>
-	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
-		<rect x="584" y="144" width="130" height="52" rx="8"></rect>
-		<text x="596" y="176" class="dg-accent dg-mono" font-weight="700">&lt;|im_end|&gt;</text>
-	</g>
-
-	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
-		<rect x="6" y="208" width="146" height="52" rx="8"></rect>
-		<text x="18" y="240" class="dg-accent dg-mono" font-weight="700">&lt;|im_start|&gt;</text>
-	</g>
-	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
-		<rect x="156" y="208" width="108" height="52" rx="8"></rect>
-		<text x="168" y="240" class="dg-accent dg-mono" font-weight="700">assistant</text>
+		<rect x="6" y="144" width="708" height="56" rx="8"></rect>
+		<text x="22" y="178" class="dg-accent dg-mono" font-weight="700">user</text>
+		<text x="150" y="178" class="dg-sub">"What is the weather in Beijing today?"</text>
 	</g>
 	<g class="dg-node dg-model">
-		<rect x="272" y="208" width="304" height="52" rx="8"></rect>
-		<text x="288" y="240">model reply</text>
-	</g>
-	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
-		<rect x="584" y="208" width="130" height="52" rx="8"></rect>
-		<text x="596" y="240" class="dg-accent dg-mono" font-weight="700">&lt;|im_end|&gt;</text>
+		<rect x="6" y="208" width="708" height="56" rx="8"></rect>
+		<text x="22" y="242" class="dg-accent dg-mono" font-weight="700">assistant</text>
+		<text x="150" y="242" class="dg-sub">(to be generated)</text>
 	</g>
 
-	<text x="2" y="298" class="dg-sub">Special tokens mark each message's role and boundary.</text>
-	<text x="2" y="320" class="dg-sub">The API server (vLLM, Ollama, …) applies the model's template automatically.</text>
+	<g class="dg-edge">
+		<line x1="360" y1="264" x2="360" y2="312" marker-end="url(#d2-ctt-arrow)"></line>
+		<text x="374" y="294" class="dg-edge-label">Chat Template</text>
+	</g>
+
+	<text x="6" y="338" font-weight="700">Linear token stream actually processed by the model</text>
+	<g class="dg-node dg-neutral" style="font-variant-ligatures: none">
+		<rect x="6" y="352" width="708" height="130" rx="8"></rect>
+		<text x="22" y="378" class="dg-mono">&lt;|im_start|&gt;system</text>
+		<text x="22" y="400" class="dg-mono">You are a helpful assistant.&lt;|im_end|&gt;</text>
+		<text x="22" y="422" class="dg-mono">&lt;|im_start|&gt;user</text>
+		<text x="22" y="444" class="dg-mono">What is the weather in Beijing today?&lt;|im_end|&gt;</text>
+		<text x="22" y="466" class="dg-mono">&lt;|im_start|&gt;assistant</text>
+	</g>
+
+	<text x="2" y="512" class="dg-sub">Special tokens mark roles and message boundaries,</text>
+	<text x="2" y="534" class="dg-sub">forming one continuous sequence</text>
 </svg>
