@@ -64,12 +64,12 @@ The book calls this writing advice for routing prompts, not an additional requir
 
 ### Layer 2: the core workflow
 
-When the agent determines that a specific Skill is needed, the runtime loads the complete `SKILL.md`, and only then. The loading has two triggers. In Claude Code, both land in the same place, as a user message at the invocation point:
+When the agent determines that a specific Skill is needed, the runtime loads the complete `SKILL.md`, and only then. The loading has two triggers. In Claude Code, both end the same way, with the Skill body arriving as a user message at the invocation point:
 
 | Trigger | What enters the trajectory | Extra ReAct round? |
 |---|---|---|
-| The user types a slash command such as `/pptx` | The client intercepts and expands it locally; only the Skill body arrives, as a user message | No; the model never issues a tool call |
-| The model reads the catalog and decides it needs a Skill | A call to the dedicated Skill tool, a tool result that is only a placeholder announcing the Skill is launching, then the body as a user message | Yes, one round trip |
+| The user types a slash command such as `/pptx` | The client intercepts and expands it locally; only the Skill body arrives | No; the model never issues a tool call |
+| The model reads the catalog and decides it needs a Skill | A call to the dedicated Skill tool, a tool result that is only a placeholder announcing the Skill is launching, then the body | Yes, one round trip |
 
 Runtimes without a dedicated activation tool work differently. The model reads `SKILL.md` with a general file-read tool, and the body enters the context as a tool result.
 
@@ -102,13 +102,13 @@ Skills can also bundle executable code tools and template files. A presentation 
 
 ### A path for accumulating domain knowledge
 
-The value of Skills lies not only in context management. Each Skill is a self-contained knowledge module that can be independently developed, tested, version-controlled and shared. That turns capability expansion from centralized system-prompt editing into a distributed Skill ecosystem, similar in spirit to package managers such as Python's pip or Node.js's npm. Anthropic's official Skills repository already covers document processing (PPTX, PDF, DOCX), data analysis, code generation and other domains, so developers can use and customize them or create entirely new Skills.
+The value of Skills lies not only in context management, but also in providing a sustainable path for accumulating domain knowledge. Each Skill is a self-contained knowledge module that can be independently developed, tested, version-controlled and shared. That turns capability expansion from centralized system-prompt editing into a distributed Skill ecosystem, similar in spirit to package managers such as Python's pip or Node.js's npm. Anthropic's official Skills repository already covers document processing (PPTX, PDF, DOCX), data analysis, code generation and other domains, so developers can use and customize them or create entirely new Skills.
 
 This points to an important principle for agent developers: **when choosing an agent interaction mode, align with the model vendor's training methodology**. The agent usage patterns that foundation-model companies promote often reflect modes their models were specifically trained to support.
 
 ## Skills in context
 
-When you assess what a Skill costs in context, separate the metadata catalog from the full Skill instructions. It also helps to separate what the standard fixes from what each harness chooses.
+When you assess what a Skill costs in context, separate the metadata catalog from the full Skill instructions.
 
 **The standard fixes the loading sequence, not message roles.** The catalog must be discoverable before the body, and the body loads on demand after a Skill is selected. Message roles, wrappers, and whether the catalog is rebuilt each turn are harness choices.
 
@@ -189,7 +189,7 @@ Make sure the model always knows what it has: keep the Skill metadata, `name` an
 </Quiz>
 
 <Quiz question="After an agent dynamically loads instructions from SKILL.md, can its subsequent operations reliably follow them? How does model support for the Skills pattern differ?">
-Reliability depends on model support, not only on the mechanism. The agent patterns that foundation-model companies promote often reflect modes their models were specifically trained to support, which is why you should align with the vendor's training methodology. Deferred tool loading has the same constraint: only newer models trained on tool definitions appearing mid-conversation support it ([lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/)). Where the body lands is a harness choice: Claude Code adds it as a user message at the invocation point, while runtimes without an activation tool deliver it as a tool result from a file read. Either way it is appended, so it is computed once when first loaded and then reused from the cache on later turns. It would be recomputed on every call only in a design that re-injects it every turn.
+Align with the vendor's training methodology: the agent patterns foundation-model companies promote often reflect modes their models were specifically trained to support. The book states a comparable constraint for deferred tool loading: only newer models trained on tool definitions appearing mid-conversation support it ([lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/)). Where the body lands is a harness choice: Claude Code adds it as a user message at the invocation point, while runtimes without an activation tool deliver it as a tool result from a file read. Either way it is appended, so it is computed once when first loaded and then reused from the cache on later turns. It would be recomputed on every call only in a design that re-injects it every turn.
 </Quiz>
 
 <Quiz question="In Claude Code, a user types /pptx in one session; in another, the model reads the catalog and decides on its own that it needs the PPTX Skill. What ends up in the trajectory in each case?">
