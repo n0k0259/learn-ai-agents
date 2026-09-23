@@ -189,7 +189,7 @@ The key observations: the model decides when to search and what to search for, s
 
 A common misconception is worth clearing up: **reinforcement learning gives the model the decision policy**, not the tools themselves. RL teaches when to call a tool, which tool to choose, what arguments to pass, whether to continue after receiving a result, and how to chain dozens or hundreds of calls into coherent reasoning. These *whether-and-how-to-use* judgments are what get written into the model's weights.
 
-**The tools and their execution are provided by the agent framework or API built-ins.** The implementations of `web_search` and `code_runner`, the code sandbox, and the infrastructure that issues calls and returns results all live outside the model. RL does not embed a search engine or a code sandbox into the weights. In the book's words, the orchestration loop "has moved from the client to the server, while decision-making has moved into the model" (a distinction a reader raised in GitHub issue #30; see References).
+**The tools and their execution are provided by the agent framework or API built-ins.** The implementations of `web_search` and `code_runner`, the code sandbox, and the infrastructure that issues calls and returns results all live outside the model. RL does not embed a search engine or a code sandbox into the weights (a distinction reader asdlem raised in GitHub issue #30; see References). The orchestration loop has not disappeared: decision-making has moved into the model, and on the Responses API path the loop itself has also moved from the client to the server.
 
 Kimi K3's notable advantage in agent tasks is **the stability of long-chain tool calls**. It can sustain 200–300 consecutive tool calls with coherent reasoning throughout, far beyond the few dozen calls at which most models begin to degrade. K3 is optimized for long-horizon programming and agent workloads, and was released in two variants:
 
@@ -221,7 +221,7 @@ The experiment is not tied to one vendor. Without OpenAI credits, you can reprod
 
 ### Where the loop runs
 
-The figure shows the architecture of native tool calling under "Model as Agent", with the ReAct execution of Kimi K3 and GPT-5.6 on a real task. The original figure's "no hand-written ReAct loop on the client" holds only for the Responses API path. On both paths the model decides when to call which tool and the tools execute server-side; on the Kimi path, the loop is still driven by the client.
+The figure shows the architecture of native tool calling under "Model as Agent", with the ReAct execution of Kimi K3 and GPT-5.6 on a real task. The book's original figure says 'no hand-written ReAct loop on the client'; that holds only for the Responses API path. On both paths the model decides when to call which tool and the tools execute server-side; on the Kimi path, the loop is still driven by the client.
 
 <Figure caption="Model as Agent: the model decides the tool calls and native tools run server-side. The loop runs on the server only on the Responses API path." credit="Redrawn from Figure 1-5, AI Agent Book by Bojie Li (Apache 2.0).">
 <ModelAsAgent />
@@ -236,7 +236,7 @@ Where does each piece run?
 | Loop driver | client code (`while` loop) | API server |
 
 :::note[Engineer's note]
-RL gives the model the decision policy, not the tools. Tool implementations, sandboxes, and the call infrastructure still live outside the weights.
+Even with a Model-as-Agent model, you still own or choose the tool implementations and sandboxes. They come either from your agent framework or from a provider's API built-ins, such as the Responses API's web search and code interpreter or Kimi's Formula-managed tools. On the Kimi path you also still write the loop.
 :::
 
 <KeyTakeaways>
@@ -245,7 +245,7 @@ RL gives the model the decision policy, not the tools. Tool implementations, san
 - Agent context = static prefix (system prompt + tool definitions) + trajectory. Each new response is appended for the next call.
 - In the minimal loop, the Model only decides; the Harness assembles context and validates and executes tools; the Environment produces state changes and observations.
 - The multi-currency task took 3 iterations and 4 tool calls. Every call saw the full trajectory, and the structured roles make the loop interpretable and debuggable.
-- Kimi K3 and GPT-5.6 internalize the tool-calling decision policy through RL, but tools and their execution stay outside the weights.
+- Model-as-Agent models such as Kimi K3 internalize the tool-calling decision policy through RL, but tools and their execution stay outside the weights.
 - The loop doesn't disappear. On the Responses API path it runs on the server; on the Kimi path, client code still drives it.
 - Freeform tool calling (`type: "custom"`) changes the argument format from JSON to raw text, not the client's tool-calling loop.
 </KeyTakeaways>
