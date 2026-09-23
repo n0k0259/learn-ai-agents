@@ -12,12 +12,24 @@ function auditDiagrams(page: Page) {
 	return page.evaluate(() => {
 		type RGBA = { r: number; g: number; b: number; a: number };
 		const problems: string[] = [];
-		const parse = (c: string): RGBA | null => {
-			const m = c.match(/rgba?\(([^)]+)\)/);
-			if (!m) return null;
-			const [r, g, b, a = 1] = m[1].split(/[\s,/]+/).filter(Boolean).map(Number);
-			return { r, g, b, a };
+
+		// Resolves ANY computed CSS color (rgb(), oklch(), color(), color-mix(), ...) to concrete
+		// sRGB bytes via the canvas 2D color parser, instead of regex-matching rgb()/rgba() text
+		// (which silently misses the non-rgb serializations Chromium can return for computed `fill`).
+		const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!;
+		const UNRESOLVED = 'rgba(1, 2, 3, 0.502)'; // sentinel: no real computed color should equal this
+		const parse = (input: string): RGBA | null => {
+			if (!input || input === 'none') return null;
+			probe.fillStyle = UNRESOLVED;
+			probe.fillStyle = input;
+			// Per the Canvas2D spec, an unparseable value leaves fillStyle unchanged.
+			if ((probe.fillStyle as unknown as string) === UNRESOLVED) return null;
+			probe.clearRect(0, 0, 1, 1);
+			probe.fillRect(0, 0, 1, 1);
+			const [r, g, b, a] = probe.getImageData(0, 0, 1, 1).data;
+			return { r, g, b, a: a / 255 };
 		};
+
 		const lum = ({ r, g, b }: RGBA) => {
 			const f = (v: number) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
 			return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
@@ -32,30 +44,68 @@ function auditDiagrams(page: Page) {
 			i.x + i.width <= o.x + o.width - pad + 0.5 &&
 			i.y + i.height <= o.y + o.height - pad + 0.5;
 		const snippet = (t: Element) => `"${(t.textContent ?? '').trim().slice(0, 40)}"`;
-		const pageBg = parse(getComputedStyle(document.body).backgroundColor)!;
+
+		// Multiplies an element's own computed opacity with every ancestor <g>'s computed opacity,
+		// up to (not including) the svg root. The audit always runs with no step active, so
+		// StepAnimator's dimming classes (which set opacity < 1) must never apply at rest.
+		const effectiveOpacity = (el: Element): number => {
+			let node: Element | null = el;
+			let total = 1;
+			while (node && node.tagName.toLowerCase() !== 'svg') {
+				total *= parseFloat(getComputedStyle(node).opacity || '1');
+				node = node.parentElement;
+			}
+			return total;
+		};
+
+		const rawPageBg = parse(getComputedStyle(document.body).backgroundColor);
+		if (!rawPageBg || rawPageBg.a === 0)
+			problems.push(
+				`page background color could not be resolved for contrast checks (got "${getComputedStyle(document.body).backgroundColor}")`,
+			);
+		const pageBg: RGBA = rawPageBg && rawPageBg.a > 0 ? rawPageBg : { r: 255, g: 255, b: 255, a: 1 };
 
 		document.querySelectorAll<SVGSVGElement>('svg.dg').forEach((svg, i) => {
-			const name = svg.querySelector(':scope > title')?.textContent?.trim() || `diagram #${i + 1}`;
+			const titleEl = svg.querySelector(':scope > title');
+			const descEl = svg.querySelector(':scope > desc');
+			const name = titleEl?.textContent?.trim() || `diagram #${i + 1}`;
 			const vb = svg.viewBox.baseVal;
-			const scale = svg.getBoundingClientRect().width / vb.width;
+			const svgRect = svg.getBoundingClientRect();
+			const scale = svgRect.width / vb.width;
 
-			if (!svg.querySelector(':scope > title') || !svg.querySelector(':scope > desc'))
-				problems.push(`${name}: missing direct <title> or <desc>`);
+			if (!titleEl || !descEl) problems.push(`${name}: missing direct <title> or <desc>`);
 			const ids = (svg.getAttribute('aria-labelledby') ?? '').split(/\s+/).filter(Boolean);
-			if (ids.length < 2 || ids.some((id) => !document.getElementById(id)))
-				problems.push(`${name}: aria-labelledby must reference the title and desc ids`);
+			const expectedIds = [titleEl?.id, descEl?.id].filter((x): x is string => Boolean(x));
+			if (ids.length !== 2 || expectedIds.length !== 2 || [...ids].sort().join(' ') !== [...expectedIds].sort().join(' '))
+				problems.push(`${name}: aria-labelledby must reference exactly the title and desc ids`);
 			if (svg.getAttribute('role') !== 'img') problems.push(`${name}: role="img" missing`);
 			if (vb.width > 720) problems.push(`${name}: viewBox width ${vb.width} exceeds 720`);
 
+			svg.querySelectorAll<SVGElement>('rect[transform], text[transform]').forEach((el) => {
+				problems.push(`${name}: <${el.tagName.toLowerCase()}> ${snippet(el)} must not have a transform attribute (only <g> may)`);
+			});
+
 			svg.querySelectorAll<SVGTextElement>('text').forEach((t) => {
-				const px = parseFloat(getComputedStyle(t).fontSize) * scale;
+				const style = getComputedStyle(t);
+				const px = parseFloat(style.fontSize) * scale;
 				if (px < 13.9) problems.push(`${name}: text ${snippet(t)} renders at ${px.toFixed(1)}px (< 14px)`);
-				if (!inside(t.getBBox(), vb, 2)) problems.push(`${name}: text ${snippet(t)} overflows the viewBox`);
+				if (!inside(t.getBoundingClientRect(), svgRect, 2 * scale))
+					problems.push(`${name}: text ${snippet(t)} overflows the viewBox`);
 				const owner = t.parentElement?.closest('g.dg-node, g.dg-container');
 				if (owner && t.parentElement !== owner)
 					problems.push(`${name}: text ${snippet(t)} must be a direct child of its dg-node/dg-container`);
+
+				const fillOpacity = parseFloat(style.fillOpacity || '1');
+				const totalOpacity = effectiveOpacity(t) * fillOpacity;
+				if (totalOpacity < 1 - 1e-3)
+					problems.push(
+						`${name}: text ${snippet(t)} has effective opacity ${totalOpacity.toFixed(2)} (< 1); contrast checks assume full opacity`,
+					);
+
 				if (!owner) {
-					const c = parse(getComputedStyle(t).fill);
+					const raw = style.fill;
+					const c = raw === 'none' ? null : parse(raw);
+					if (raw !== 'none' && !c) problems.push(`${name}: text ${snippet(t)} has an unparseable fill "${raw}"`);
 					if (c && contrast(c, pageBg) < 4.5)
 						problems.push(`${name}: text ${snippet(t)} contrast ${contrast(c, pageBg).toFixed(2)} < 4.5 vs page`);
 				}
@@ -67,11 +117,22 @@ function auditDiagrams(page: Page) {
 					problems.push(`${name}: ${g.getAttribute('class')} has no direct <rect>`);
 					return;
 				}
-				const fill = parse(getComputedStyle(rect).fill);
+				const rawFill = getComputedStyle(rect).fill;
+				const fill = rawFill === 'none' ? null : parse(rawFill);
+				if (rawFill !== 'none' && !fill) problems.push(`${name}: ${g.getAttribute('class')} rect has an unparseable fill "${rawFill}"`);
 				const bg = fill && fill.a > 0 ? fill : pageBg;
+
+				const rectOpacity = effectiveOpacity(rect) * (fill?.a ?? 1);
+				if (rectOpacity < 1 - 1e-3)
+					problems.push(
+						`${name}: ${g.getAttribute('class')} rect has effective opacity ${rectOpacity.toFixed(2)} (< 1); contrast checks assume full opacity`,
+					);
+
 				g.querySelectorAll<SVGTextElement>(':scope > text').forEach((t) => {
 					if (!inside(t.getBBox(), rect.getBBox(), 4)) problems.push(`${name}: text ${snippet(t)} overflows its box`);
-					const c = parse(getComputedStyle(t).fill);
+					const raw = getComputedStyle(t).fill;
+					const c = raw === 'none' ? null : parse(raw);
+					if (raw !== 'none' && !c) problems.push(`${name}: text ${snippet(t)} has an unparseable fill "${raw}"`);
 					if (c && contrast(c, bg) < 4.5)
 						problems.push(`${name}: text ${snippet(t)} contrast ${contrast(c, bg).toFixed(2)} < 4.5 vs its box`);
 				});

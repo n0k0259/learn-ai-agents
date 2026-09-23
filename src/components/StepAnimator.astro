@@ -49,6 +49,7 @@ const { label } = Astro.props;
 
 	for (const root of document.querySelectorAll<HTMLElement>('[data-animator]')) {
 		const els = [...root.querySelectorAll<SVGElement>('[data-step]')];
+		if (els.length === 0) continue;
 		const max = Math.max(...els.map((el) => Number(el.dataset.step)));
 		const status = root.querySelector<HTMLElement>('[data-status]')!;
 		const play = root.querySelector<HTMLButtonElement>('[data-action="play"]')!;
