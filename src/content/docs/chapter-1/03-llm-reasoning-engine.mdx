@@ -32,13 +32,13 @@ This understand–plan–execute capability comes from knowledge accumulated dur
 
 A distinctive capability of LLM agents is **internal reasoning**: before acting, the agent can plan and reason through the task. Internal reasoning does not change the external environment, yet it markedly improves the actions that follow.
 
-This ability also comes from pre-training, the initial training on massive amounts of internet text through which the model learns language patterns and world knowledge. The model draws on reasoning patterns encoded in human knowledge: mathematical laws, causal relationships, and strategies for decomposing problems. That is the key contrast with traditional reinforcement-learning agents. Today's LLM-based agents do not explore through blind trial and error; they reason over a structured body of knowledge.
+This ability also comes from pre-training, the initial training on massive amounts of internet text through which the model learns language patterns and world knowledge. The model draws on reasoning patterns encoded in human knowledge: mathematical laws, causal relationships, and strategies for decomposing problems. Unlike traditional reinforcement-learning agents, today's LLM-based agents do not explore through blind trial and error; they reason over a structured body of knowledge.
 
 ## Model as Agent
 
-"Model as Agent" is the newest direction in AI agent development. Advanced models internalize tool calling as a native ability through post-training, especially reinforcement learning. When to call a tool, which one, and with what arguments: the model decides all of it, with no manual orchestration required.
+"Model as Agent" is the newest direction in AI agent development, where the model itself becomes the product. Advanced models internalize tool calling as a native ability through post-training, especially reinforcement learning. When to call a tool, which one, and with what arguments: the model decides all of it, with no manual orchestration required.
 
-You might expect that to make the framework layer less important. The book argues the opposite: **the stronger the model, the more the surrounding Harness matters.**
+You might expect that to make the framework layer less important. The book argues the opposite: the stronger the model, the more the surrounding Harness matters.
 
 The word *harness* originally meant the reins and tack fitted to a horse. They don't limit the horse's ability to run; they direct that power appropriately. In an agent, the model is the powerful yet unpredictable horse, and the Harness is the engineering infrastructure that channels its capability into reliable task execution. It includes:
 
@@ -47,7 +47,7 @@ The word *harness* originally meant the reins and tack fitted to a horse. They d
 - safety constraints;
 - verification and correction mechanisms.
 
-The Harness is covered in detail in the final section of Chapter 1 of the book.
+The Harness is covered in detail in lesson 1.6 (Harness Engineering).
 
 The more decision authority a model has, the greater the impact of a wrong decision. Keeping it reliable calls for finer-grained constraint, verification, and correction.
 
@@ -64,7 +64,7 @@ The book's position: **models will increasingly absorb these capabilities, but y
 - **The direction is not in doubt.** Tool calling and long-horizon planning once depended on external orchestration. Both are now native model capabilities.
 - **The pace is far slower than intuition suggests.** Training proceeds on a timescale of months, and no model can internalize all the constraints and preferences of real businesses in a single pass.
 
-So the model's current capability boundary is precisely where the Harness creates value. Harness engineering is not resistance to the Bitter Lesson. In the book's framing, **harness engineering is the Bitter Lesson practiced on an engineering timescale**. Whatever the model cannot yet do reliably, the Harness covers first. Whenever the model internalizes another layer, the Harness sheds that layer and moves on to support the next capability frontier.
+So the model's current capability boundary is precisely where the Harness creates value. Harness engineering is not resistance to the Bitter Lesson. In the book's framing, harness engineering is the Bitter Lesson practiced on an engineering timescale. Whatever the model cannot yet do reliably, the Harness covers first. Whenever the model internalizes another layer, the Harness sheds that layer and moves on to support the next capability frontier.
 
 :::note[Engineer's note]
 Build harness layers so they can be deleted. When a model internalizes a layer, removing it from your harness should be a small, isolated change.
@@ -84,7 +84,7 @@ A model can internalize tool-use policies as native capabilities through reinfor
 
 **Contextual adaptation** occurs within the current task. Once examples, state, and retrieval results enter the context, the model can adjust its behavior immediately. None of it changes the persistent state of the next session. Its advantages are speed and low cost. Its limits come from the context window and from how the information is organized. Chapter 2 of the book explains in detail how this form of adaptation works.
 
-**External artifacts** make changes persist across tasks. Each kind of change goes into its own kind of artifact:
+**External artifacts** make changes persist across tasks:
 
 - facts and experience go into **knowledge documents**;
 - strategies expressible in language go into a **Prompt or Skill**;
@@ -93,8 +93,6 @@ A model can internalize tool-use policies as native capabilities through reinfor
 These artifacts are auditable and revisable. The catch is that the agent must still access them at execution time, through the context or tool interfaces. Chapters 3 through 5 of the book establish the foundations for knowledge and programs. Chapter 9 discusses how such updates can be generated from evaluated operational trajectories.
 
 **Model parameters** must be updated through post-training when the goal is a high-dimensional capability that external rules cannot fully express. The book's examples are medical-image understanding, natural-language style, and an implicit decision policy. Parameter updates carry higher deployment costs, but they can produce natural and broad generalization. Chapter 8 of the book presents the methods systematically.
-
-Here are the three paths side by side:
 
 | Path | Where it lives | Persists across sessions? | Speed / cost | Best for | Covered in |
 |---|---|---|---|---|---|
@@ -124,7 +122,7 @@ The three paths are not mutually exclusive categories. They are coordinated mech
 ## Check yourself
 
 <Quiz question="Models are taking over tool-calling decisions, yet the book says harness engineering matters more. How do both hold?">
-Think of the horse and the reins. The stronger the model and the more autonomy it has, the wider the blast radius of its mistakes, and the greater the need for constraint, verification, and correction. The value of an agent framework shifts from orchestrating LLM calls to the assurance layer: permissions, circuit breakers, error recovery, context compression, and the tool ecosystem.
+Think of the horse and the reins. The stronger the model and the more autonomy it has, the wider the blast radius of its mistakes, and the greater the need for constraint, verification, and correction. The value of an agent framework shifts from orchestrating LLM calls to the assurance layer among the five Harness elements: permission classification, circuit breakers, error recovery, context compression, and the tool ecosystem.
 </Quiz>
 
 <Quiz question="Your team must make the agent follow a new refund policy by tomorrow. Which update path do you use?">
