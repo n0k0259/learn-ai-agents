@@ -1,0 +1,191 @@
+---
+title: Observation & Action Spaces, Tools
+description: Why widening what an agent can see and do is the main lever for capability, the five kinds of tools, and how tool calling works.
+sidebar:
+  order: 2
+  label: 1.2 Observation & Action Spaces, Tools
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter1.md#observation-and-action-spaces-the-interface-between-model-and-world
+  sections:
+    - "Observation and Action Spaces: The Interface Between Model and World"
+    - "Tools: The Agent's Action Interfaces"
+---
+import Figure from '~/components/Figure.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import ObservationActionSpaces from '~/components/diagrams/chapter-1/ObservationActionSpaces.astro';
+
+:::tip[TL;DR]
+The model only knows what enters its observation space and can only do what its action space exposes. Widening those two interfaces is often a bigger lever than a smarter model.
+:::
+
+## The interface between model and world
+
+The observation space and the action space together form **the interface between the LLM and its external environment**. The observation space translates information in the environment into context the model can process. The action space translates the model's decisions into operations on the outside world.
+
+Both directions have a hard edge. Information outside the observation space effectively does not exist for the model. An operation outside the action space stays something the model can only recommend in words, even if it knows exactly what should be done.
+
+<Figure caption="The observation space carries the world into the model's context; the action space carries the model's decisions back out as operations.">
+<ObservationActionSpaces />
+</Figure>
+
+## The main lever: widen the interface
+
+Hold the underlying model constant, and **the primary systems-engineering lever for improving agent performance is often to redefine or expand its observation and action spaces**. In the book's terms, that means expanding context and tools. Many problems that look like they need a "smarter model" are really interface problems. Bring the task-relevant data into context, or expose the required operation as a tool, and a task that was unsolvable may become solvable.
+
+The book gives two product cases.
+
+**Manus: merging spaces that had been separate.** Before Manus, production agents mostly followed three distinct tracks: Deep Research, Coding, and Computer Use. Manus was the first widely influential production agent to bring all three together in one system. Its virtual browser enlarged the observation space, while its file system, code execution, and command execution enlarged the action space. Manus did not become a general agent merely by swapping in a stronger model. It took the union of three kinds of agents' observation and action spaces, so one agent could cross the old product boundaries.
+
+**OpenClaw: extending the interface into the user's digital life.** OpenClaw pushes both spaces outward again. It receives tasks and returns results through messaging channels users already inhabit (WhatsApp, Telegram, Slack, Discord, iMessage, and many others), so the agent can be reached from almost anywhere. Its local Gateway connects cloud applications such as Google Drive and Notion, as well as the local file system. With the user's explicit authorization, files scattered across accounts and devices can enter one agent's observation space and be acted on by its tools.
+
+Compare that with the original, cloud-sandbox-centered Manus, where files generally had to be uploaded or a connector configured separately. Local-first OpenClaw spans a broader data boundary. Manus later added its own Google Drive connector and desktop access to local files (My Computer), which only reinforces the point: product evolution often consists precisely of expanding observation and action spaces. The sources for both cases are listed under References below.
+
+## Five agent products, three dimensions
+
+Understanding what each component does, and how the components fit together, is the foundation for building effective agent systems. Here is how different kinds of agents compare across the three dimensions of working context, action interfaces, and strategy:
+
+| Agent product | Working context | Action interfaces | Strategy |
+|---|---|---|---|
+| **Coding agents (e.g., Cursor)** | Requirements documents, codebase, terminal environment | Open-ended (internal reasoning, code search, file read/write, command execution, etc.) | Incremental development: understand requirements → search relevant code → edit code → test and verify → debug and fix |
+| **Search agents (e.g., Deep Research)** | Web resources, academic databases, local files | Open-ended (internal reasoning, search queries, web reading, summary generation) | Iterative deepening: adjust search direction based on existing information, gradually synthesize a complete report |
+| **Computer control agents (e.g., Browser Use)** | Computer screen, browser pages, file system | Open-ended (internal reasoning, clicking, typing, scrolling, screenshots, code execution, etc.) | Visual perception + operation: observe screen → identify target elements → perform actions → verify results |
+| **Phone assistant agents (e.g., Doubao)** | Phone screen, installed apps | Open-ended (internal reasoning, clicking, swiping, typing, opening apps, etc.) | Intent understanding + app control: understand user needs → locate target app → perform actions → confirm completion |
+| **Personal task agents (e.g., Pine AI)** | User account information, historical bills, service provider knowledge base | Open-ended (internal reasoning, making calls, sending emails, filling forms, confirming with user) | Multi-step task execution: gather information → formulate negotiation strategy → contact service provider → negotiate → report results |
+
+These systems share three features:
+
+- **An open-ended action space.** They don't pick from a fixed set of buttons; they generate arbitrary natural language and code.
+- **Internal reasoning.** They plan before acting.
+- **Continuous interaction.** They adjust strategy based on feedback from the environment.
+
+These capabilities come from the interplay of the reasoning engine, working context, and action interfaces: the LLM, context, and tools. The book starts with the most concrete of the three, tools, and works inward to the LLM and context. This lesson does the same.
+
+## Five kinds of tools
+
+Tools are the agent's bridge to the outside world. They turn the agent from a passive observer into an active system that can search, write files, run code, call APIs, send messages, or operate interfaces. Without tools, an agent is limited to text generation; with them, it can act on external systems.
+
+The book sorts tools into five types by the direction of the agent's interaction with the world:
+
+| Type | Direction | Who starts it | Examples |
+|---|---|---|---|
+| **Perception** | Reads the world | Agent calls it | Search, file read, APIs/databases |
+| **Execution** | Changes the world | Agent calls it | Code execution, file operations, system commands, external APIs |
+| **Collaboration** | Divides work | Agent calls it | Sub-agents, human confirmation, multi-agent coordination |
+| **Event trigger** | Wakes the agent | The outside world | New email, schedule, webhook |
+| **User communication** | Carries information to the user | Agent calls it | Text message, voice call, email |
+
+A few details from the source sharpen the table:
+
+- **Perception tools** give the agent access to information. Search engines provide real-time web data, file systems read local documents, and APIs and databases connect to external services and enterprise core data.
+- **Execution tools** turn decisions into concrete actions on external systems.
+- **Collaboration tools** delegate specialized tasks to sub-agents, request human confirmation at key decision points, or coordinate actions in multi-agent systems.
+- **Event trigger tools** work in a fundamentally different way from the first three. The agent never calls them. They arrive as external inputs (a new email, a scheduled time, a webhook callback from another system) that activate the agent and start its reasoning and action. They still count as tools because they are a channel through which the agent interacts with the outside world.
+- **User communication tools** carry information rather than changing the external world: the agent's progress, or a proactive check-in.
+
+The full taxonomy and design principles for these five types are covered in Chapter 4 of the book. The key point now is that tool design quality directly determines what an agent can reliably accomplish:
+
+- Define interfaces vaguely, and the model will misuse them.
+- Handle errors poorly, and a single failed tool can leave the agent stuck.
+- Scope permissions too broadly, and one agent error can become irreversible.
+
+As the MCP (Model Context Protocol) standard spreads, integrating tools is becoming easier.
+
+## Tool calling in four steps
+
+**Tool calling** (also known as function calling) lets the model invoke external tools in a structured way. It is a core capability of modern LLM agents: it turns the LLM from a pure text generator into a system that can act through external interfaces. The book uses the term "tool calling" throughout, and so do these lessons.
+
+Tool calling proceeds in four steps:
+
+1. The context tells the model which tools are available: their names, purposes, and parameters.
+2. The model decides on its own whether to call a tool, which tool to call, and with what arguments.
+3. Once the tool has run, its result is appended to the context.
+4. The model decides its next move based on that result.
+
+This loop is the foundation of ReAct, which comes later in the chapter. Here is the book's simplified, API-level view of the four steps for a weather query:
+
+```text
+Step 1: Declare tools                  Step 2: Model decides to call
+tools: [{                             assistant: {
+  name: "get_weather",                  tool_calls: [{
+  parameters: {                           function: "get_weather",
+    city: "string"                        arguments: {city: "Beijing"}
+  }                                      }]
+}]                                    }
+
+Step 3: Result appended to context    Step 4: Model responds based on result
+tool: {                               assistant: {
+  tool_call_id: "call_1",               content: "Today in Beijing: 28°C, sunny."
+  content: '{"temp":28,"sky":"clear"}' }
+}                                     }
+```
+
+In practice, step 1 declares each tool with a name, a description, and a parameter schema. Here is the same tool written as a JSON Schema definition:
+
+```json title="get_weather tool definition (illustrative)"
+{
+  "name": "get_weather",
+  "description": "Get today's weather for a city. Use for questions about current conditions.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "city": { "type": "string", "description": "City name, e.g. \"Beijing\"" }
+    },
+    "required": ["city"]
+  }
+}
+```
+
+Notice the division of labor. The developer only defines the tools and executes the calls; the model itself decides whether to call, which tool to call, and what arguments to pass. The API structure is examined in detail in Chapter 2 of the book.
+
+:::note[Engineer's note]
+Treat a tool definition like a public API contract. Its name, description, and parameter docs are the only documentation the model gets.
+:::
+
+## Designing tools: start narrow
+
+When you design tools for an agent, start with the narrowest capability the task needs, then expand gradually as the task grows more complex.
+
+**From calculator to code interpreter.** If the task only needs basic arithmetic, a calculator with clearly defined parameters is enough. When the task grows to reading spreadsheets, cleaning missing values, computing statistics, and plotting charts, a constrained Python code interpreter is easier to combine and explore with than an ever-growing collection of specialized tools. But generality also raises the risk of errors and expands the attack surface. Generated code must run with:
+
+- an isolated sandbox;
+- network access disabled by default;
+- no access to files outside the authorized working directory;
+- limits on execution time, CPU, memory, and output size.
+
+**From logging tool to working directory.** A single logging tool suits recording one execution. For long-running tasks that take hours or even days, a controlled virtual working directory can preserve plans, intermediate results, execution logs, and final artifacts, so the agent can resume across multiple runs. That directory should restrict readable and writable paths, storage capacity, and file types, and it should prevent path traversal. Don't expose the entire host file system to the agent.
+
+**Dedicated tools for high-risk operations.** General-purpose tools are not always better than specialized ones. High-risk operations, or those governed by strict business constraints (payments, data deletion, sending email, production deployment), should still be dedicated tools with explicit parameters, restricted permissions, and end-to-end auditability. Add previews and human confirmation when necessary.
+
+The core principle of tool design follows: **use general-purpose foundational capabilities for composition and exploration; use specialized tools to constrain high-risk operations and enforce strict business rules**.
+
+<KeyTakeaways>
+- The observation space turns the environment into context; the action space turns decisions into operations. What falls outside them either doesn't exist for the model or can only be suggested in words.
+- With the model held constant, expanding context and tools is often the main lever. Many "need a smarter model" problems are interface problems.
+- Manus merged the observation and action spaces of Deep Research, Coding, and Computer Use agents; OpenClaw extended them into messaging channels, cloud apps, and local files.
+- Five tool types: perception, execution, collaboration, event trigger (the outside world starts it, not the agent), and user communication.
+- Tool calling is a four-step loop: declare tools, model decides, result appended to context, model continues. The developer defines and executes; the model decides.
+- Start with the narrowest tool the task needs. Use general-purpose capabilities for composition and exploration, and specialized tools to constrain high-risk operations.
+</KeyTakeaways>
+
+### References
+
+- Manus, [Manus Sandbox](https://manus.im/blog/manus-sandbox): the original sandbox as an isolated cloud virtual machine.
+- Manus, [Google Drive Connector](https://manus.im/blog/manus-google-drive-connector): recalls the earlier workflow of manually downloading and uploading files between Drive, the desktop, and Manus.
+- Manus, [My Computer](https://manus.im/blog/manus-my-computer-desktop) (March 2026): calls the fact that important work lives locally, not in the cloud, a fundamental limitation of the cloud sandbox.
+- [OpenClaw README](https://github.com/openclaw/openclaw): a local-first, always-on personal assistant on the user's own devices, listing more than twenty messaging channels.
+- [OpenClaw tools documentation](https://docs.openclaw.ai/tools): tools and the plugin system that add cloud integrations and local capabilities.
+
+## Check yourself
+
+<Quiz question="When would a constrained action space (choose from predefined options) beat an open-ended one?">
+In high-compliance, high-risk scenarios where errors are irreversible, such as refunds and payments. There, a fixed set of options acts as a constraint: it is mistake-proof by design, because the wrong action simply isn't available.
+</Quiz>
+
+<Quiz question="Your agent keeps replying 'I can't see your calendar.' Is that a model problem or an interface problem?">
+An interface problem. The calendar is outside the observation space, so for the model it effectively does not exist, and a smarter model won't change that. With the user's authorization, add a perception tool that reads the calendar, or put the relevant data into context.
+</Quiz>
+
+<Quiz question="Pick an AI product you use daily and describe it along the three dimensions: working context, action interfaces, strategy.">
+Open-ended; there is no single right answer. Follow the product table above. For working context, list the information sources it can see. For action interfaces, note whether its action space is open-ended and whether it reasons internally before acting. For strategy, describe the pattern of its execution loop. Then judge whether the architecture fits the product and what you would improve.
+</Quiz>

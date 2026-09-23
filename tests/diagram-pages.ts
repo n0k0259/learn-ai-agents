@@ -1,2 +1,2 @@
 // Pages whose diagrams are audited. Each lesson task appends its page.
-export const DIAGRAM_PAGES: string[] = ['style-guide/', 'chapter-1/01-what-is-an-agent/'];
+export const DIAGRAM_PAGES: string[] = ['style-guide/', 'chapter-1/01-what-is-an-agent/', 'chapter-1/02-observation-action-tools/'];

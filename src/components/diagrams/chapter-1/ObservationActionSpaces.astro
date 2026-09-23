@@ -1,0 +1,79 @@
+---
+// Observation and action spaces: the two interfaces between the model and its environment.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 330"
+	role="img"
+	aria-labelledby="d-oas-title d-oas-desc"
+	style="min-width: 630px"
+>
+	<title id="d-oas-title">Observation and action spaces</title>
+	<desc id="d-oas-desc">
+		Two lanes connect the Environment (files, web, apps, users) and the Model, which reasons and decides. In the top
+		lane, the observation space turns the world into context for the model. In the bottom lane, the action space turns
+		the model's decisions into operations on the environment. Information outside the observation space does not exist
+		for the model; an operation outside the action space is something the model can only suggest in words.
+	</desc>
+	<defs>
+		<marker id="d-oas-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="12" y="30" class="dg-title">Observation and action spaces</text>
+
+	<g class="dg-node dg-env">
+		<rect x="12" y="52" width="140" height="260" rx="12"></rect>
+		<text x="82" y="160" text-anchor="middle" class="dg-accent" font-weight="700">Environment</text>
+		<text x="82" y="192" text-anchor="middle">files · web</text>
+		<text x="82" y="218" text-anchor="middle">apps · users</text>
+	</g>
+
+	<g class="dg-node dg-context">
+		<rect x="192" y="76" width="176" height="76" rx="10"></rect>
+		<text x="280" y="107" text-anchor="middle" class="dg-accent" font-weight="700">Observation space</text>
+		<text x="280" y="134" text-anchor="middle" class="dg-sub">world → context</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="192" y="212" width="176" height="76" rx="10"></rect>
+		<text x="280" y="243" text-anchor="middle" class="dg-accent" font-weight="700">Action space</text>
+		<text x="280" y="270" text-anchor="middle" class="dg-sub">decision → operation</text>
+	</g>
+
+	<g class="dg-node dg-model">
+		<rect x="408" y="52" width="120" height="260" rx="12"></rect>
+		<text x="468" y="160" text-anchor="middle" class="dg-accent" font-weight="700">Model</text>
+		<text x="468" y="192" text-anchor="middle" class="dg-sub">reasons and</text>
+		<text x="468" y="218" text-anchor="middle" class="dg-sub">decides</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="152" y1="114" x2="190" y2="114" marker-end="url(#d-oas-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="368" y1="114" x2="406" y2="114" marker-end="url(#d-oas-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="408" y1="250" x2="370" y2="250" marker-end="url(#d-oas-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="192" y1="250" x2="154" y2="250" marker-end="url(#d-oas-arrow)"></line>
+	</g>
+
+	<g class="dg-node dg-neutral">
+		<rect x="548" y="56" width="164" height="116" rx="10"></rect>
+		<text x="630" y="86" text-anchor="middle">Outside the</text>
+		<text x="630" y="110" text-anchor="middle">observation space:</text>
+		<text x="630" y="134" text-anchor="middle">doesn't exist</text>
+		<text x="630" y="158" text-anchor="middle">for the model</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="548" y="192" width="164" height="116" rx="10"></rect>
+		<text x="630" y="222" text-anchor="middle">Outside the</text>
+		<text x="630" y="246" text-anchor="middle">action space:</text>
+		<text x="630" y="270" text-anchor="middle">can only suggest</text>
+		<text x="630" y="294" text-anchor="middle">in words</text>
+	</g>
+</svg>
