@@ -1,0 +1,176 @@
+---
+title: KV Cache, Prompt Cache & Caching as Architecture
+description: Why a prefix change invalidates everything after it, the cache-hostile patterns, KV Cache vs Prompt Cache, and how caching shapes harness design.
+sidebar:
+  order: 4
+  label: 2.4 KV & Prompt Cache
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md#principles-and-constraints-of-kv-cache
+  sections:
+    - 'Principles and Constraints of KV Cache'
+    - 'KV Cache and Prompt Cache: Two Levels of Caching'
+    - 'Caching as an Architectural Constraint'
+    - 'Rethinking KV Cache: Editable, Composable "Notes"'
+    - 'Looking Ahead: From Cache Mechanics to Designing Context Content'
+---
+import Figure from '~/components/Figure.astro';
+import StepAnimator from '~/components/StepAnimator.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import PrefixChangePropagation from '~/components/diagrams/chapter-2/PrefixChangePropagation.astro';
+import PromptCacheReuse from '~/components/diagrams/chapter-2/PromptCacheReuse.astro';
+
+:::tip[TL;DR]
+A change at token k propagates through every layer, so the cache is reusable only up to the token before it. KV Cache works inside one inference pass; Prompt Cache reuses prefix computation across requests. In production, caching is an architectural constraint, and with preserved thinking, "append only, never rewrite" becomes a correctness requirement.
+:::
+
+## What happens without a cache
+
+Suppose an agent has reached its sixth conversation round with 2,000 context tokens. Without caching, each new token requires the model to recalculate the K and V vectors for the entire prefix. The first five rounds haven't changed, yet the sixth round recomputes them, and the longer prefix makes it more expensive than the first. The attention computation in the prefill phase (where the model processes all input tokens before generating a response) grows quadratically with context length, so latency and cost rise rapidly as the conversation deepens. That hurts most in agent tasks that make many tool calls.
+
+Take a context of 4 tokens [A, B, C, D], with the model about to generate the fifth token, E. The Query for this step comes from the last known token, D. It is compared with the Keys of A, B, C and D to get match scores (the dot-product intuition is in [lesson 2.3](/learn-ai-agents/chapter-2/03-attention-kv-cache-chat-template/)). The scores weight a sum of the same four tokens' Values, producing the output at D's position, which is what the model uses to predict E. E's own Q, K and V are computed only after E has been sampled and fed back in.
+
+**Without KV Cache**, every new token reruns the whole prefix from scratch. Generating E computes 4 sets of K and V; the sixth token needs 5 sets, now including E; once the prefix reaches N tokens, N sets must be computed, so the cumulative computation is proportional to N².
+
+**With KV Cache**, each token's K and V are computed once, when the token first enters the context, and stay cached. When generating E, the 4 sets for A–D are just read back. After E is sampled and fed back, its K and V are computed and appended, growing the cache to 5 sets for the sixth token.
+
+The cache saves the recomputation of K and V projections for historical tokens, not the attention itself. Each new token's attention still traverses all cached K and V values, so computation per step grows linearly with context length. That is why long-context decoding gets slower and slower, and why the KV Cache's memory and bandwidth become the inference bottleneck.
+
+:::note[Engineer's note]
+The stretch quiz in [The ReAct Loop](/learn-ai-agents/chapter-1/05-react-loop/) also finds quadratic growth, but in a different quantity. That quiz counts cumulative *cache-read charges with caching on*: every round re-reads a cached prefix that keeps getting longer. The N² here is *recomputation with no cache at all*: every step recomputes K and V for the whole prefix. Caching removes the second cost; it doesn't remove the first.
+:::
+
+## Why a prefix change invalidates everything after it
+
+An LLM is a stack of Transformer layers (modern LLMs typically have dozens to hundreds), and each layer produces its own K and V cache. The layers run in sequence: layer 1's output is layer 2's input, layer 2's output is layer 3's input, and so on. For each token, layer 1 considers that token and all preceding ones and outputs an intermediate representation, which layer 2 processes further.
+
+<StepAnimator label="Prefix change propagation">
+<Figure caption="Tokens are columns and layers are rows. Token k changes; step by step, the states from k onward are invalidated in layer 1, layer 2, layer 3 and layer N, while tokens 1–3 stay reusable in every layer.">
+<PrefixChangePropagation />
+</Figure>
+</StepAnimator>
+
+If token k changes, for example because one character in the system prompt changes, the states before k are unaffected. The representations from k onward change, and the change propagates through the layers. In practice, the cache is reusable only through the token before the first difference and must be recomputed from there.
+
+The cost depends on where the change occurs. The earlier it is, the more tokens typically need to be recomputed and billed again, and the greater the latency impact; the book's experiments measured severalfold increases. Hence the book's repeated advice: once the system prompt is set, don't change it.
+
+:::note[Experiment 2-3: Common but Harmful Context Management Patterns]
+**What was tested.** The book's `kv-cache` experiment tests several common context management patterns that undermine KV Cache effectiveness; some also impair the agent's core capabilities.
+
+**The result.**
+
+- **Dynamic system prompt**, one of the most common mistakes. Embedding a timestamp such as "Current time: 2025-09-14 10:30:45.123456" changes the token sequence on every request, so the KV states from the timestamp onward can't be reused. Append the time to a user message at the end of the conversation instead, or fetch it through a tool call only when truly needed.
+- **Dynamic user configuration.** Updating status such as remaining API calls or account balance inside the context on every request destroys the cache. A dedicated state management mechanism, used when needed, is the better solution.
+- **Dynamic sorting of tool definitions**, a subtle trap. Tool definitions often occupy a large portion of the context (each tool may carry hundreds of tokens of descriptions and parameter specifications). Reordering them by usage frequency changes the sequence from the first moved tool onward. The experiments show a fixed order has almost no effect on tool-selection accuracy but substantially improves performance.
+- **Sliding-window conversation history.** Keeping, say, only the last 10 messages has two serious problems. It breaks prefix consistency and invalidates the KV Cache. And it may discard critical tool results: a file read in round 2 may be needed again by round 15, after it has fallen out of the window, and the model has to infer from an incomplete conversation. Agents using sliding windows often fell into loops, repeating the same tool calls because the earlier results were gone.
+- **Text formatting**, one of the most harmful patterns: flattening role-content messages into a stream like "USER: ... ASSISTANT: ...". Caching isn't the key issue; it operates on the token byte sequence, so a byte-stable concatenated prefix can still hit the cache. The real damage is the departure from the role-based format the model learned in training. It must then infer role boundaries from weaker signals, which leads to repeated operations, ignored tool results, text replies when a tool call is required, and parsing errors.
+
+**Takeaway.** Every remedy returns to the three rules in [lesson 2.3](/learn-ai-agents/chapter-2/03-attention-kv-cache-chat-template/). Also, providers have optimized heavily for their standard interfaces, so deviating from the standard format is likely to cause problems.
+:::
+
+## KV Cache and Prompt Cache: two levels
+
+These two are easily confused:
+
+- **KV Cache** is a mechanism inside the model. During a single inference pass, it caches the key-value states of already processed tokens to avoid redundant computation. It accelerates token generation within a request.
+- **Prompt Cache** is an inference-engine optimization. It reuses cached computation for identical prefixes across multiple API requests.
+
+Both rely on prefix stability. In practice, the API provider matches the request prefix: if requests share the same prefix, it reuses the previously computed KV Cache instead of recomputing those key-value states.
+
+<StepAnimator label="Prompt Cache across requests">
+<Figure caption="Request 1 computes the 1,200-token system prompt and tools and caches their KV. Request 2 shares that prefix, so it hits the cache and computes only the new user message. Request 3 puts a timestamp before the system prompt, misses, and recomputes everything after the change. The bottom panel compares a hit and a miss for a 3,000-token context, with illustrative TTFT values." credit="Redrawn from Figure 2-10, AI Agent Book by Bojie Li (Apache 2.0).">
+<PromptCacheReuse />
+</Figure>
+</StepAnimator>
+
+Reading from the cache costs far less than computing fresh: for example, about one-tenth the price with Anthropic, DeepSeek and GPT-5. How caching is enabled and billed differs by provider. Some enable it automatically, others require manual configuration, so consult the latest documentation.
+
+## Caching as an architectural constraint
+
+In production-grade agent systems, caching is not merely a performance optimization. It is an **architectural constraint** that dictates many seemingly unrelated design decisions. Claude Code illustrates a broader pattern: when Prompt Cache has significant economic value, cache consistency can shape architectural choices across the system.
+
+**Prompt structure follows cache boundaries.** Claude Code splits its system prompt with a cache boundary marker. Content before the marker can be cached globally across users and sessions; content after it holds user- and session-specific information. Prompt ordering is therefore driven primarily by caching economics and only secondarily by semantic logic.
+
+| | Don't | Do |
+|---|---|---|
+| Runtime conditions (OS type, current mode, user preferences) | Put them before the boundary. Each binary condition doubles the cache-key variants: N conditions give 2^N, so macOS/Linux × normal/debug × Chinese/English gives 2×2×2 = 8 keys. | Put all dynamic elements after the boundary. |
+
+**Sub-agents inherit the parent's bytes.** When the main agent spawns a sub-agent or runs a side query that inherits the parent's context, the sub-agent's prompt, tool definitions, model configuration, message prefix and reasoning configuration must match the parent's byte for byte. That alignment is what earns a Prompt Cache hit, cutting cost and latency. Some frameworks spawn sub-agents with a different context or prompt; then byte-level alignment isn't required.
+
+**Replacement strings are frozen on first use.** When a large tool output is replaced with a summary preview, the replacement string is persisted. Even after a session restarts, the system reuses exactly the same string, so the restored message sequence stays byte-identical to the cached stream.
+
+## Changing the prefix can also lose reasoning
+
+Everything so far is about caching: when the prefix changes, requests get slower and more expensive, but the results are still correct. The **preserved thinking** mechanism that Anthropic introduced starting with Claude Fable 5.1 and Claude Opus 5.5 gives prefix stability an additional meaning.
+
+Its original purpose is to prevent distillation. The server uses a signature to bind each thinking block to the prefix it was produced under: the top-level system and tools, plus every message before it. If anything in that prefix changes in a later request, that thinking block and all thinking after it become invalid. Newly registered accounts get a 400 error by default. Alternatively, invalid thinking can be silently dropped so the request succeeds, but for that turn the model can't use its earlier reasoning and has to think from scratch.
+
+Preventing distillation and caching are different concerns, yet they lead to the same engineering discipline. The official documentation puts it bluntly: the changes that invalidate thinking are precisely the changes that force the cache to be recomputed from scratch. The pitfalls and fixes are familiar:
+
+| Don't | Do |
+|---|---|
+| Rebuild the system prompt every turn (to write in the current time or a mode toggle) | Deliver new instructions as a system message appended to the conversation |
+| Re-render environment information in the first user message every turn | Put environment changes in the latest turn |
+| Add or remove `tools` mid-session | Declare tool additions and removals in a dedicated message block instead of editing the `tools` array |
+| Truncate old tool results in place, or insert a reminder into an old message and delete it later | Append changes at the end |
+
+Thinking blocks can't be trimmed arbitrarily either. You can drop them from the front, from the back, or all at once, but you can't remove one in the middle while keeping those after it, and removed blocks can't be put back. When you switch models mid-session and the new model can't read the original model's thinking, the API silently drops those blocks, and the first few turns after the switch run without the earlier reasoning.
+
+The core insight: **caching economics is not a post-hoc optimization but an upfront architectural constraint.** The earlier you build it into the architecture, the lower the later engineering cost. Once the reasoning chain is also bound to the prefix, "append only, never rewrite" turns from a performance recommendation into a correctness requirement. This is the append-only pattern from [Guardrails, Safety & the Big Picture](/learn-ai-agents/chapter-1/08-guardrails-and-big-picture/).
+
+<details>
+<summary>Research aside: KV cache as editable notes (optional)</summary>
+
+This is optional, research-stage material; the practical conclusions above remain the default for current production systems.
+
+So far the rule has been strict: change one byte in the prefix and the subsequent cache is invalidated. That holds in today's inference engines, but it may not be inevitable. A recent line of research (Li, 2026) starts from a counterintuitive observation: during prefill, the model behaves as if it is "taking notes". When it reads a field such as "User's city: Beijing", it writes downstream representations of the **conclusion**, what the field means, into later KV states. Measurements show that the KV states of the field's **own** tokens often contribute less than 1% to the final decision; the downstream "notes" matter more.
+
+That suggests two operations previously considered impractical:
+
+- **Editing.** Because the conclusion is already written into downstream notes, a changed field can propagate through cached reasoning when the model has an explicit chain of thought (CoT), giving results close to full recomputation with about 1% of the compute. Without CoT, an isolated field change may be ignored, because the conclusion is already embedded downstream with no reasoning path to update it.
+- **Composition.** A precomputed "skill" cache can be relocated with Rotary Position Embedding (RoPE) and spliced into another context without recomputing attention. Assembling a long context from modular cache blocks then drops from O(L²) recomputation to O(L) splicing, with output quality close to full recomputation.
+
+Think of margin notes: when a fact changes, you update the note recording what it implies instead of rereading the whole document. The paper implemented this on vLLM, speeding up p90 time to first token by factors ranging from tens to hundreds, with a prefix cache hit rate of about 98.5% and outputs close to token-by-token recomputation (logit cosine similarity 0.90–0.999 across 12 models).
+
+For agents, long contexts may not always need to be torn down and rebuilt when tools, memory fields or runtime state change. In principle, context could become mutable while keeping some caching benefits. This is still research-stage work.
+
+</details>
+
+## From cache mechanics to context content
+
+The next question is what goes into the context and how to organize it, along three threads:
+
+- **Prompts, injection and Agent Skills.** Writing the system prompt (lesson 2.5); tool definitions and defending the context against hijacking by external content (lesson 2.6); and, since one system prompt for everything wastes tokens and dilutes attention, Agent Skills that load knowledge on demand (lesson 2.7).
+- **The Agent Status Bar** (lesson 2.8). Dynamic meta-information such as task progress and the tool call count, injected at the end of the context.
+- **Context compression** (lessons 2.9–2.10). When to compress, how, and how compression coexists with the KV Cache.
+
+<KeyTakeaways>
+- Without a cache, every new token recomputes K and V for the whole prefix, and cumulative work grows with N². With KV Cache, each token's K and V are computed once, but each decode step still reads all of them, so memory and bandwidth become the bottleneck.
+- Layers feed each other, so a change at token k invalidates every layer's states from k onward. The earlier the change, the more is typically recomputed and rebilled.
+- Experiment 2-3: dynamic system prompts, dynamic user config, reordered tools and sliding windows break the cache; sliding windows also drop tool results and cause loops. Text formatting hurts reasoning, not caching.
+- KV Cache works within one inference pass; Prompt Cache reuses prefix computation across requests, with cache reads for example about one-tenth the price.
+- Caching is an architectural constraint: dynamic conditions go after the cache boundary, inheriting sub-agents match the parent byte for byte, replacement strings are frozen. With preserved thinking, append-only is a correctness requirement.
+</KeyTakeaways>
+
+### References
+
+- Anthropic, ["Preserved thinking"](https://platform.claude.com/docs/en/build-with-claude/preserved-thinking), Claude API documentation.
+- Li, Bojie. *Models Take Notes at Prefill: KV Cache Can Be Editable and Composable.* arXiv:2606.17107, 2026.
+
+## Check yourself
+
+<Quiz question="Changing one character in the system prompt made TTFT several times slower. Why does the whole suffix get recomputed, not just that token?">
+The model is a stack of layers, and each layer's output is the next layer's input. A changed token k alters the representations from k onward in layer 1, and that change propagates through every layer after it. So the cache is reusable only through the token before the first difference, and everything from k onward is recomputed. The earlier the change, the more tokens typically need to be recomputed and billed again, and the system prompt sits near the start of the context.
+</Quiz>
+
+<Quiz question="Three binary runtime conditions are placed before the cache boundary. How many cache-key variants result, and what's the fix?">
+Each binary condition before the boundary doubles the variants, so three give 2³ = 2×2×2 = 8 cache keys (for example macOS/Linux, normal/debug mode, Chinese/English). The fix is to place all dynamic elements after the boundary, with the other user- and session-specific content.
+</Quiz>
+
+<Quiz question="A sliding window of 10 messages keeps context small. Name the two problems it causes.">
+First, dropping the earliest message changes the prefix, which breaks prefix consistency and invalidates the KV Cache. Second, it may discard critical tool results, such as a file read in round 2 that's needed again in round 15. The model then works from an incomplete conversation, and in the experiment agents often fell into loops, repeating the same tool calls.
+</Quiz>
+
+<Quiz question="With preserved thinking, why is 'append only, never rewrite' a correctness issue and not just a cost issue?">
+A prefix change on its own only makes requests slower and more expensive; the results stay correct. Preserved thinking binds each thinking block, by signature, to the prefix it was produced under. If you rewrite anything in that prefix, that block and all later thinking become invalid. Newly registered accounts get a 400 error by default; otherwise the invalid thinking is silently dropped and the model has to reason from scratch that turn. Rewriting the prefix now costs reasoning, not just money.
+</Quiz>

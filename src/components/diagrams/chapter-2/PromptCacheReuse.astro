@@ -1,0 +1,124 @@
+---
+// Prompt Cache across three requests: request 1 caches the prefix KV, request 2 hits it, request 3 puts a timestamp first and misses (redraw of Fig 2-10).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 716"
+	role="img"
+	aria-labelledby="d2-pcr-title d2-pcr-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-pcr-title">Prompt Cache: reusing the prefix KV Cache across requests</title>
+	<desc id="d2-pcr-desc">
+		Three requests in sequence. Request 1 sends the system prompt and tools, 1,200 tokens, followed by the user
+		message "What's the weather like?", and generates a response; the prefix KV is computed and cached. Request 2
+		sends the same system prompt and tools, which is a Prompt Cache hit, so the KV is reused and only the new user
+		message "What time is it?" is computed before the response is generated. Request 3 changes the system prompt by
+		putting "Time: 10:30:45" before the system prompt and tools, which is a Prompt Cache miss: the change point comes
+		first, so everything after it, including the user message "What's the weather like?", is recomputed. For a
+		3,000-token total context, a cache hit has a TTFT of about 0.5 seconds and bills only new tokens; a cache miss has
+		a TTFT of 3 to 5 seconds and rebills all tokens after the change. The TTFT values are illustrative; they vary by
+		model, hardware and deployment and only indicate relative scale.
+	</desc>
+	<defs>
+		<marker id="d2-pcr-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Prompt Cache: reusing the prefix KV across requests</text>
+
+	<!-- Request 1 -->
+	<g data-step="1" data-step-label="Request 1 computes the 1,200-token prefix and caches its KV">
+		<text x="6" y="66" font-weight="700">Request 1</text>
+		<g class="dg-node dg-context">
+			<rect x="6" y="78" width="270" height="84" rx="8"></rect>
+			<text x="22" y="104" class="dg-accent" font-weight="700">System prompt + tools</text>
+			<text x="22" y="128">1,200 tokens</text>
+			<text x="22" y="150" class="dg-sub">computed, KV cached</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="284" y="78" width="270" height="84" rx="8"></rect>
+			<text x="300" y="104" font-weight="700">user</text>
+			<text x="300" y="128">“What's the weather like?”</text>
+			<text x="300" y="150" class="dg-sub">new: computed</text>
+		</g>
+		<g class="dg-node dg-model">
+			<rect x="562" y="78" width="152" height="84" rx="8"></rect>
+			<text x="578" y="116" class="dg-accent" font-weight="700">→ Generate</text>
+			<text x="578" y="140">response</text>
+		</g>
+	</g>
+
+	<!-- Request 2 -->
+	<g data-step="2" data-step-label="Request 2 shares the prefix: cache hit, only the new message is computed">
+		<g class="dg-edge">
+			<line x1="141" y1="164" x2="141" y2="246" marker-end="url(#d2-pcr-arrow)"></line>
+			<text x="156" y="210" class="dg-edge-label">Prompt Cache hit: KV reused</text>
+		</g>
+		<text x="6" y="236" font-weight="700">Request 2</text>
+		<g class="dg-node dg-context">
+			<rect x="6" y="248" width="270" height="84" rx="8"></rect>
+			<text x="22" y="274" class="dg-accent" font-weight="700">System prompt + tools</text>
+			<text x="22" y="298">same prefix</text>
+			<text x="22" y="320" class="dg-sub">cache hit ✓ KV reused</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="284" y="248" width="270" height="84" rx="8"></rect>
+			<text x="300" y="274" font-weight="700">user</text>
+			<text x="300" y="298">“What time is it?”</text>
+			<text x="300" y="320" class="dg-sub">new: computed</text>
+		</g>
+		<g class="dg-node dg-model">
+			<rect x="562" y="248" width="152" height="84" rx="8"></rect>
+			<text x="578" y="286" class="dg-accent" font-weight="700">→ Generate</text>
+			<text x="578" y="310">response</text>
+		</g>
+	</g>
+
+	<!-- Request 3 -->
+	<g data-step="3" data-step-label="Request 3 puts a timestamp first: cache miss, everything after it recomputed">
+		<g class="dg-edge">
+			<line x1="141" y1="334" x2="141" y2="416" stroke-dasharray="6 5" marker-end="url(#d2-pcr-arrow)"></line>
+			<text x="156" y="370" class="dg-edge-label">System prompt changed</text>
+			<text x="156" y="392" class="dg-edge-label">Prompt Cache miss: KV recomputed</text>
+		</g>
+		<text x="6" y="406" font-weight="700">Request 3</text>
+		<g class="dg-node dg-guard">
+			<rect x="6" y="418" width="270" height="84" rx="8"></rect>
+			<text x="22" y="444" class="dg-accent" font-weight="700">“Time: 10:30:45”</text>
+			<text x="22" y="468">+ system prompt + tools</text>
+			<text x="22" y="490" class="dg-sub">cache miss ✗ recomputed</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="284" y="418" width="270" height="84" rx="8"></rect>
+			<text x="300" y="444" class="dg-accent" font-weight="700">user</text>
+			<text x="300" y="468">“What's the weather like?”</text>
+			<text x="300" y="490" class="dg-sub">after the change: recomputed</text>
+		</g>
+		<g class="dg-node dg-model">
+			<rect x="562" y="418" width="152" height="84" rx="8"></rect>
+			<text x="578" y="456" class="dg-accent" font-weight="700">→ Generate</text>
+			<text x="578" y="480">response</text>
+		</g>
+		<text x="6" y="526" class="dg-sub">Change point first → everything after it recomputed</text>
+	</g>
+
+	<!-- Comparison -->
+	<text x="6" y="566" font-weight="700">3,000-token total context</text>
+	<g class="dg-node dg-context">
+		<rect x="6" y="578" width="350" height="80" rx="8"></rect>
+		<text x="22" y="604" class="dg-accent" font-weight="700">Cache hit</text>
+		<text x="22" y="628">TTFT ~0.5 s*</text>
+		<text x="22" y="648" class="dg-sub">only new tokens billed</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="364" y="578" width="350" height="80" rx="8"></rect>
+		<text x="380" y="604" class="dg-accent" font-weight="700">Cache miss</text>
+		<text x="380" y="628">TTFT 3–5 s*</text>
+		<text x="380" y="648" class="dg-sub">all tokens after the change rebilled</text>
+	</g>
+	<text x="6" y="684" class="dg-sub">*TTFT is illustrative; it varies by model, hardware and deployment</text>
+	<text x="6" y="706" class="dg-sub">and only indicates relative scale.</text>
+</svg>
