@@ -10,7 +10,7 @@
     "astro": "astro",
     "check:lessons": "node scripts/check-lessons.mjs",
     "test:e2e": "playwright test",
-    "test": "astro build && npm run check:lessons && playwright test"
+    "test": "astro build && node --test 'scripts/*.test.mjs' && npm run check:lessons && playwright test"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
