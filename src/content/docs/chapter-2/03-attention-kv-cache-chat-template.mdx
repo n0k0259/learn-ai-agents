@@ -100,7 +100,7 @@ An **attention heatmap** arranges these weights into a matrix. Each row is a Que
 **Takeaway.** Long chain-of-thought generation and tool calling both depend heavily on **in-context learning**: the model's ability to adapt to a task from the instructions and examples in its input, without retraining.
 :::
 
-<Figure caption="A schematic of the heatmap's structure, not measured values: a lower-triangular grid banded system/tools, user, <think> and answer, with callouts for the attention sink, the reasoning triangle, the output triangle and position bias." credit="Redrawn from Figure 2-7, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Schematic, not measured values: a lower-triangular grid banded system/tools, user, <think> and answer, with callouts for the attention sink, the reasoning triangle, the output triangle and position bias." credit="Redrawn from Figure 2-7, AI Agent Book by Bojie Li (Apache 2.0).">
 <AttentionHeatmapSchematic />
 </Figure>
 
@@ -171,5 +171,5 @@ Softmax forces all attention weights to sum to exactly 100%, so the model can't 
 </Quiz>
 
 <Quiz question="Qwen3's template keeps reasoning only after the last real user message. For a ReAct loop of hundreds of tool calls, how would you change that, and what does DeepSeek's move from R1 stripping to V4 pass-back tell you?">
-The book's reference answer: keep the most recent rounds of reasoning in full, and outside that window compress on a token budget into a structured status bar (current goal, confirmed facts, ruled-out paths, to-dos). Compress once, at a fixed position, so the cache rebuild is paid once rather than every round. R1 stripping saves tokens, keeps the prefix stable and matches the training distribution, but the model reasons from scratch each round, loses long-range plans and repeats mistakes. V4 pass-back keeps thinking coherent across long agentic tasks, at a high token cost and a prefix that grows every round. The reversal says that for pure dialogue reasoning is waste, while for agents reasoning is state.
+R1-style stripping saves tokens and avoids feeding the model reasoning it never saw in training, but it throws away the state that reasoning carries: why a tool was called and which hypotheses were ruled out. The model then reasons from scratch each round, repeats mistakes and loses long-range plans. V4-style pass-back keeps that state, at the cost of tokens that grow with every round, and is mandatory whenever `tools` is present. So for a long loop, don't simply clear reasoning: keep the state it carries while bounding its size. How to do that comes later in this chapter, with the Agent Status Bar (lesson 2.8) and context compression (lessons 2.9–2.10). The reversal suggests that for agents, reasoning is state rather than waste.
 </Quiz>

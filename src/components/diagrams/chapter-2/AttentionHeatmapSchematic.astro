@@ -28,7 +28,7 @@
 	</defs>
 
 	<text x="2" y="28" class="dg-title">Attention heatmap patterns (schematic)</text>
-	<text x="2" y="52" class="dg-sub">schematic, not measured values · rows: Query · columns: Key</text>
+	<text x="2" y="52" class="dg-sub">schematic, not measured values · rows: Query · columns: Key · darker = more attention</text>
 
 	<!-- Column bands -->
 	<text x="195" y="78" text-anchor="middle">system/tools</text>
@@ -38,7 +38,7 @@
 	<rect x="150" y="102" width="90" height="6" fill="var(--dg-context-stroke)"></rect>
 	<rect x="240" y="102" width="60" height="6" fill="var(--dg-env-stroke)"></rect>
 	<rect x="300" y="102" width="120" height="6" fill="var(--dg-model-stroke)"></rect>
-	<rect x="420" y="102" width="90" height="6" fill="var(--dg-tools-stroke)"></rect>
+	<rect x="420" y="102" width="90" height="6" fill="var(--dg-neutral-stroke)"></rect>
 
 	<!-- Row bands -->
 	<text x="130" y="163" text-anchor="end">system/tools</text>
@@ -48,7 +48,7 @@
 	<rect x="138" y="112" width="6" height="90" fill="var(--dg-context-stroke)"></rect>
 	<rect x="138" y="202" width="6" height="60" fill="var(--dg-env-stroke)"></rect>
 	<rect x="138" y="262" width="6" height="120" fill="var(--dg-model-stroke)"></rect>
-	<rect x="138" y="382" width="6" height="90" fill="var(--dg-tools-stroke)"></rect>
+	<rect x="138" y="382" width="6" height="90" fill="var(--dg-neutral-stroke)"></rect>
 
 	<!-- Grid outline, including the empty upper triangle -->
 	<g fill="none" stroke="var(--dg-neutral-stroke)" stroke-width="1" stroke-opacity="0.5">
@@ -289,7 +289,7 @@
 		<text x="540" y="242" class="dg-sub">definitions</text>
 	</g>
 	<g class="dg-edge">
-		<path d="M528,230 L368,294" marker-end="url(#d2-ahs-arrow)"></path>
+		<path d="M528,230 L345,335" marker-end="url(#d2-ahs-arrow)"></path>
 	</g>
 
 	<g class="dg-node dg-neutral">
@@ -299,7 +299,7 @@
 		<text x="540" y="440" class="dg-sub">reasoning trace</text>
 	</g>
 	<g class="dg-edge">
-		<path d="M528,392 L486,410" marker-end="url(#d2-ahs-arrow)"></path>
+		<path d="M528,392 L464,450" marker-end="url(#d2-ahs-arrow)"></path>
 	</g>
 
 	<g class="dg-node dg-neutral">
