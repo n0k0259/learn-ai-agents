@@ -189,7 +189,7 @@ The key observations: the model decides when to search and what to search for, s
 
 A common misconception is worth clearing up: **reinforcement learning gives the model the decision policy**, not the tools themselves. RL teaches when to call a tool, which tool to choose, what arguments to pass, whether to continue after receiving a result, and how to chain dozens or hundreds of calls into coherent reasoning. These *whether-and-how-to-use* judgments are what get written into the model's weights.
 
-**The tools and their execution are provided by the agent framework or API built-ins.** The implementations of `web_search` and `code_runner`, the code sandbox, and the infrastructure that issues calls and returns results all live outside the model. RL does not embed a search engine or a code sandbox into the weights (a distinction reader asdlem raised in GitHub issue #30; see References). So the orchestration loop is still there: decision-making has moved into the model, and on the Responses API path the loop itself has also moved from the client to the server.
+**The tools and their execution are provided by the agent framework or API built-ins.** The implementations of `web_search` and `code_runner`, the code sandbox, and the infrastructure that issues calls and returns results all live outside the model. RL does not embed a search engine or a code sandbox into the weights. So the orchestration loop is still there: decision-making has moved into the model, and on the Responses API path the loop itself has also moved from the client to the server.
 
 Kimi K3's notable advantage in agent tasks is **the stability of long-chain tool calls**. It can sustain 200–300 consecutive tool calls with coherent reasoning throughout, far beyond the few dozen calls at which most models begin to degrade. K3 is optimized for long-horizon programming and agent workloads, and was released in two variants:
 
@@ -249,10 +249,6 @@ Even with a Model-as-Agent model, you still own or choose the tool implementatio
 - The loop doesn't disappear. On the Responses API path it runs on the server; on the Kimi path, client code still drives it.
 - Freeform tool calling (`type: "custom"`) changes the argument format from JSON to raw text, not the client's tool-calling loop.
 </KeyTakeaways>
-
-### References
-
-- [GitHub issue #30: RL internalizes the tool-calling decision policy, not the tool execution mechanism](https://github.com/bojieli/ai-agent-book/issues/30). The book thanks reader asdlem for pointing out and clarifying this distinction.
 
 ## Check yourself
 
