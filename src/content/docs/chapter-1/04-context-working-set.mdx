@@ -1,0 +1,135 @@
+---
+title: "Context: The Working Set"
+description: The five parts of an agent's context, the static prefix vs. the growing history, and what an ablation study reveals about each part.
+sidebar:
+  order: 4
+  label: "1.4 Context: The Working Set"
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter1.md#context-the-agents-working-set
+  sections:
+    - "Context: The Agent's Working Set"
+---
+import Figure from '~/components/Figure.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import ContextAblation from '~/components/diagrams/chapter-1/ContextAblation.astro';
+
+:::tip[TL;DR]
+Each LLM call sees a static prefix (system prompt + tool definitions) plus a growing history. Remove a part and the agent often doesn't crash; it returns a confident, wrong-but-plausible answer.
+:::
+
+## Five parts of every call
+
+Context is the working set of information available to an agent at each decision point. A person making a decision needs the right materials on the table: task instructions, reference manuals, earlier correspondence, the latest data. An agent's context window plays the same role. It is the information the agent can use.
+
+From the API's perspective (detailed in Chapter 2 of the book), the context of each LLM call consists of five parts.
+
+**System prompt.** The developer writes it, and it stays fixed for the whole conversation. That distinguishes it from the prompts users enter during a conversation. It is the agent's "job description", defining its identity, permissions, and rules of conduct. Careful prompt engineering of the system prompt is how you shape the agent's operating behavior.
+
+The system prompt also carries:
+
+- **user memory** that persists across sessions: personalized information such as preferences, past behavior, and background settings (see Chapter 3 of the book);
+- dynamically injected environmental state.
+
+**Tool definitions.** These declare the names, functional descriptions, and parameter formats of the tools available to the agent. Without tool definitions, the agent cannot recognize or call any tools. It does not fall silent either; Experiment 1-1 below shows what it does instead.
+
+Tool definitions and the system prompt together form the **static prefix**, which stays unchanged throughout the conversation. This is the foundational pattern. Since 2026, production frameworks can also load full tool schemas on demand at the end of the context without breaking the prefix (see the tool definitions section of Chapter 2 and Chapter 4 of the book).
+
+**User messages.** This is the input from the user. User messages may also contain **external knowledge** retrieved dynamically through RAG (Retrieval-Augmented Generation, covered in Chapter 3 of the book). That knowledge covers information beyond the training data cutoff, or private domain knowledge.
+
+**Assistant messages.** These are responses the model generated earlier. Each can contain up to three parts:
+
+- `reasoning`: the internal chain of thought, which maintains coherence and makes decisions interpretable;
+- `content`: the response to the user;
+- `tool_calls`: the way the agent takes action.
+
+A given response does not always contain all three. When the agent decides to call a tool, it usually has only `reasoning` + `tool_calls`. When it gives a final answer, it usually has only `reasoning` + `content`.
+
+**Tool results.** This is the output returned after the agent framework executes a tool. Tool results are the direct basis for the agent's next reasoning step. They are what let it learn from outcomes rather than repeat its mistakes.
+
+### Static prefix and dynamic history
+
+The first two parts (system prompt + tool definitions) form the static prefix. The last three (user messages + assistant messages + tool results) form the dynamic message history, which grows with every interaction. Together, the five parts make up the context of each LLM inference.
+
+In code, the split looks like this:
+
+```python title="build_context.py (illustrative)"
+def build_context(system_prompt, tool_definitions, trajectory):
+    # Static prefix: identical on every call in this conversation
+    prefix = [{"role": "system", "content": system_prompt}]
+    # Dynamic history: user, assistant and tool messages, appended in order
+    return {"messages": prefix + trajectory, "tools": tool_definitions}
+```
+
+| Component | Part of | What it carries | Book chapter |
+|---|---|---|---|
+| System prompt | static prefix | identity, permissions, rules, user memory, injected environment state | Chapters 2–3 |
+| Tool definitions | static prefix | names, descriptions, parameter formats | Chapters 2, 4 |
+| User messages | dynamic history | the request, plus RAG-retrieved knowledge | Chapter 3 |
+| Assistant messages | dynamic history | reasoning, content, tool_calls | Chapter 2 |
+| Tool results | dynamic history | what actually happened | Chapter 2 |
+
+## Experiment 1-1: remove one part at a time
+
+Is every component truly indispensable? The most direct way to find out is an **ablation study**, the diagnostic method of ruling out causes one at a time. Remove component A and see whether the system still works, then component B, and so on, until each component's contribution is clear. Experiment 1-1 applies exactly this method to the five components above.
+
+Of the five components, four were tested. The system prompt was exempt: it is the agent's basic identity definition, and without it the agent has no role awareness at all, so the test would be meaningless. The experiment ran five controlled groups:
+
+- a complete baseline that retains every component;
+- four groups, each missing one component.
+
+Each group shows that component's effect on agent performance.
+
+<Figure caption="Experiment 1-1: five controlled groups. The full baseline keeps every component; each other group removes one (✗) and shows the outcome." credit="Redrawn from Figure 1-3, AI Agent Book by Bojie Li (Apache 2.0).">
+<ContextAblation />
+</Figure>
+
+The results show the role of each component, and that the components are not equally important.
+
+**Tool definitions** (part of the static prefix) are the foundation of the agent's ability to act. Without them, the agent cannot call any tool. But losing the ability to act does not mean falling silent. The model still returns a neatly formatted, confidently worded answer. Its numbers come from parametric memory rather than from observations, yet it is laid out exactly like an answer genuinely derived from tool output.
+
+Whether the model declines outright or fabricates on the spot depends mainly on its own hallucination rate and honesty. A constraint in the prompt such as "do not estimate the rates yourself" lowers the odds of fabrication without eliminating it.
+
+**Tool results** are key to closed-loop control. Without them, the agent executes "blind", retrying until it exhausts its iteration budget.
+
+**The reasoning process** (the `reasoning` part of assistant messages) records *why* a step was taken. Tool results record *what happened*. When the why can be reconstructed from the what, dropping reasoning from the history costs almost nothing.
+
+**Message history** (user messages, assistant messages, and tool results from previous rounds) prevents redundant operations and keeps the agent from repeating the same mistakes.
+
+## What the experiment teaches
+
+The core insight: **context determines what the agent can see, and the agent can only decide based on what it sees.**
+
+The components are not equivalent, though. The measure is whether the information a component carries can be reconstructed from somewhere else. A claim like "every component is indispensable" has to be measured rather than assumed. Models also move fast enough that the same ablation on a newer model may well reach a different conclusion.
+
+One more point matters even more in engineering practice: **"produced an answer" is not "completed the task."** When a context component is missing, the typical failure is not an error exit. It is an answer that looks flawless.
+
+:::note[Engineer's note]
+Evaluate task completion against ground truth: were the tools actually called, and do the numbers in the answer match the tool output? Getting a well-formatted answer back tells you nothing on its own.
+:::
+
+<KeyTakeaways>
+- Context is the agent's working set at each decision point: the information it can use.
+- Every LLM call has five parts: system prompt, tool definitions, user messages, assistant messages, and tool results.
+- The system prompt and tool definitions form the static prefix, fixed for the conversation. User, assistant, and tool messages form the dynamic history, which grows with every interaction.
+- The system prompt also carries cross-session user memory and injected environmental state. User messages can carry RAG-retrieved knowledge. Assistant messages combine `reasoning`, `content`, and `tool_calls`.
+- An ablation study removes one component at a time to measure its contribution. Without tool definitions the agent fabricates a confident answer; without tool results it retries blind; without reasoning it loses little if the why is reconstructable; without history it repeats operations.
+- Components are not equivalent: the test is whether their information can be reconstructed from elsewhere, and results may change with newer models.
+- "Produced an answer" is not "completed the task." A missing component usually yields a flawless-looking answer, not an error.
+</KeyTakeaways>
+
+## Check yourself
+
+<Quiz question="You remove tool definitions from the context. What does the agent do?">
+It can't call any tools, but it doesn't go silent. It returns a neatly formatted, confidently worded answer whose numbers come from parametric memory rather than from observations. A prompt constraint such as "do not estimate the rates yourself" lowers the odds of fabrication but doesn't eliminate it.
+</Quiz>
+
+<Quiz question="Why can the reasoning part be dropped from history at little cost?">
+Reasoning records *why* a step was taken; tool results record *what happened*. When the why can be reconstructed from the what, dropping it from the history costs almost nothing.
+</Quiz>
+
+<Quiz question="Besides missing tool results, what can trap an agent in a loop in production, and how do you detect and stop it?">
+Other causes: a tool repeatedly returns the same error; hallucinated calls to nonexistent tools; context compression drops critical state; the reasoning content is stripped and the model API errors out; the task itself is unsolvable.
+
+Mechanisms: set stop conditions such as a maximum iteration count; detect repeated calls (same tool + argument fingerprint); escalate to human intervention once a failure threshold is exceeded.
+</Quiz>

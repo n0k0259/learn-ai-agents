@@ -1,0 +1,220 @@
+---
+// Experiment 1-1 context ablation matrix: which component each group removes, and what happens (redraw of Fig 1-3).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 404"
+	role="img"
+	aria-labelledby="d-abl-title d-abl-desc"
+	style="min-width: 630px"
+>
+	<title id="d-abl-title">Experiment 1-1: context ablation study</title>
+	<desc id="d-abl-desc">
+		A matrix of five experimental groups against five context columns. System prompt and tool definitions form the
+		static prefix; tool results, reasoning (assistant) and history messages form the dynamic history. The full baseline
+		keeps every component and works. Removing tool definitions means the agent can't act and fabricates an answer.
+		Removing tool results leaves it in a blind retry loop. Removing reasoning costs little if the reasoning can be
+		reconstructed. Removing history makes it repeat operations. The system prompt is kept in every group.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">Experiment 1-1: context ablation study</text>
+
+	<g class="dg-edge">
+		<path d="M100,70 V62 H281 V70"></path>
+	</g>
+	<text x="190" y="52" text-anchor="middle" class="dg-edge-label">static prefix</text>
+	<g class="dg-edge">
+		<path d="M290,70 V62 H568 V70"></path>
+	</g>
+	<text x="429" y="52" text-anchor="middle" class="dg-edge-label">dynamic history</text>
+
+	<!-- Header row -->
+	<g class="dg-node dg-context">
+		<rect x="98" y="74" width="92" height="52" rx="6"></rect>
+		<text x="144" y="95" text-anchor="middle">System</text>
+		<text x="144" y="117" text-anchor="middle">prompt</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="193" y="74" width="92" height="52" rx="6"></rect>
+		<text x="239" y="95" text-anchor="middle">Tool</text>
+		<text x="239" y="117" text-anchor="middle">definitions</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="288" y="74" width="92" height="52" rx="6"></rect>
+		<text x="334" y="95" text-anchor="middle">Tool</text>
+		<text x="334" y="117" text-anchor="middle">results</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="383" y="74" width="92" height="52" rx="6"></rect>
+		<text x="429" y="95" text-anchor="middle">Reasoning</text>
+		<text x="429" y="117" text-anchor="middle">(assistant)</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="478" y="74" width="92" height="52" rx="6"></rect>
+		<text x="524" y="95" text-anchor="middle">History</text>
+		<text x="524" y="117" text-anchor="middle">messages</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="574" y="74" width="144" height="52" rx="6"></rect>
+		<text x="646" y="106" text-anchor="middle">Outcome</text>
+	</g>
+
+	<!-- Row: Full baseline -->
+	<g class="dg-node dg-neutral">
+		<rect x="2" y="130" width="92" height="51" rx="6"></rect>
+		<text x="48" y="151" text-anchor="middle">Full</text>
+		<text x="48" y="171" text-anchor="middle">baseline</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="98" y="130" width="92" height="51" rx="6"></rect>
+		<text x="144" y="161" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="193" y="130" width="92" height="51" rx="6"></rect>
+		<text x="239" y="161" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="288" y="130" width="92" height="51" rx="6"></rect>
+		<text x="334" y="161" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="383" y="130" width="92" height="51" rx="6"></rect>
+		<text x="429" y="161" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="478" y="130" width="92" height="51" rx="6"></rect>
+		<text x="524" y="161" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="574" y="130" width="144" height="51" rx="6"></rect>
+		<text x="646" y="161" text-anchor="middle">✓ works</text>
+	</g>
+
+	<!-- Row: No tool definitions -->
+	<g class="dg-node dg-neutral">
+		<rect x="2" y="184" width="92" height="51" rx="6"></rect>
+		<text x="48" y="205" text-anchor="middle">No tool</text>
+		<text x="48" y="225" text-anchor="middle">definitions</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="98" y="184" width="92" height="51" rx="6"></rect>
+		<text x="144" y="215" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="193" y="184" width="92" height="51" rx="6"></rect>
+		<text x="239" y="215" text-anchor="middle" class="dg-fail">✗</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="288" y="184" width="92" height="51" rx="6"></rect>
+		<text x="334" y="215" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="383" y="184" width="92" height="51" rx="6"></rect>
+		<text x="429" y="215" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="478" y="184" width="92" height="51" rx="6"></rect>
+		<text x="524" y="215" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="574" y="184" width="144" height="51" rx="6"></rect>
+		<text x="646" y="205" text-anchor="middle">✗ can't act,</text>
+		<text x="646" y="225" text-anchor="middle">fabricates answer</text>
+	</g>
+
+	<!-- Row: No tool results -->
+	<g class="dg-node dg-neutral">
+		<rect x="2" y="238" width="92" height="51" rx="6"></rect>
+		<text x="48" y="259" text-anchor="middle">No tool</text>
+		<text x="48" y="279" text-anchor="middle">results</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="98" y="238" width="92" height="51" rx="6"></rect>
+		<text x="144" y="269" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="193" y="238" width="92" height="51" rx="6"></rect>
+		<text x="239" y="269" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="288" y="238" width="92" height="51" rx="6"></rect>
+		<text x="334" y="269" text-anchor="middle" class="dg-fail">✗</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="383" y="238" width="92" height="51" rx="6"></rect>
+		<text x="429" y="269" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="478" y="238" width="92" height="51" rx="6"></rect>
+		<text x="524" y="269" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="574" y="238" width="144" height="51" rx="6"></rect>
+		<text x="646" y="269" text-anchor="middle">✗ blind retry loop</text>
+	</g>
+
+	<!-- Row: No reasoning -->
+	<g class="dg-node dg-neutral">
+		<rect x="2" y="292" width="92" height="51" rx="6"></rect>
+		<text x="48" y="313" text-anchor="middle">No</text>
+		<text x="48" y="333" text-anchor="middle">reasoning</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="98" y="292" width="92" height="51" rx="6"></rect>
+		<text x="144" y="323" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="193" y="292" width="92" height="51" rx="6"></rect>
+		<text x="239" y="323" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="288" y="292" width="92" height="51" rx="6"></rect>
+		<text x="334" y="323" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="383" y="292" width="92" height="51" rx="6"></rect>
+		<text x="429" y="323" text-anchor="middle" class="dg-fail">✗</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="478" y="292" width="92" height="51" rx="6"></rect>
+		<text x="524" y="323" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="574" y="292" width="144" height="51" rx="6"></rect>
+		<text x="646" y="313" text-anchor="middle">△ little cost if</text>
+		<text x="646" y="333" text-anchor="middle">reconstructable</text>
+	</g>
+
+	<!-- Row: No history -->
+	<g class="dg-node dg-neutral">
+		<rect x="2" y="346" width="92" height="51" rx="6"></rect>
+		<text x="48" y="367" text-anchor="middle">No</text>
+		<text x="48" y="387" text-anchor="middle">history</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="98" y="346" width="92" height="51" rx="6"></rect>
+		<text x="144" y="377" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="193" y="346" width="92" height="51" rx="6"></rect>
+		<text x="239" y="377" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="288" y="346" width="92" height="51" rx="6"></rect>
+		<text x="334" y="377" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="383" y="346" width="92" height="51" rx="6"></rect>
+		<text x="429" y="377" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="478" y="346" width="92" height="51" rx="6"></rect>
+		<text x="524" y="377" text-anchor="middle" class="dg-fail">✗</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="574" y="346" width="144" height="51" rx="6"></rect>
+		<text x="646" y="367" text-anchor="middle">△ repeats</text>
+		<text x="646" y="387" text-anchor="middle">operations</text>
+	</g>
+</svg>
