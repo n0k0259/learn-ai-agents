@@ -1,0 +1,128 @@
+---
+title: What an Agent Actually Is
+description: The core formula Agent = LLM + Context + Tools, the agent–environment boundary, and how the pieces map to reinforcement learning.
+sidebar:
+  order: 1
+  label: 1.1 What an Agent Actually Is
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter1.md#modern-agent--llm--context--tools
+  sections:
+    - Modern Agent = LLM + Context + Tools
+---
+import Figure from '~/components/Figure.astro';
+import StepAnimator from '~/components/StepAnimator.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import AgentFormula from '~/components/diagrams/chapter-1/AgentFormula.astro';
+import AgentEnvironmentLoop from '~/components/diagrams/chapter-1/AgentEnvironmentLoop.astro';
+
+:::tip[TL;DR]
+An agent is a loop, not a single answer. An LLM decides, context gives it a working set, and tools let it act on an environment that sits outside the agent.
+:::
+
+## From chat to agents
+
+You have probably used an agent already. Cursor searches your codebase, edits several files, and reruns the tests until they pass. Deep Research investigates a topic by searching and reading over and over. Manus drives a browser to finish online tasks, the Doubao phone assistant books tickets and sends messages, and Pine AI negotiates a lower telecom bill on your behalf.
+
+These products look different, but they share one trait: they are no longer a passive "you ask, it answers" conversation. They plan their own execution steps, call whatever tools the task needs, and adjust their strategy as results come in. The book frames this as a new way to interact with computers.
+
+The difference is easiest to see if you compare the two systems as an engineer would:
+
+| | Chat assistant | Agent |
+|---|---|---|
+| Control flow | One request → one response | Loop until the task is done |
+| Who picks the next step | The user | The model |
+| Side effects | None (text only) | Tools act on external systems |
+| State | The conversation | Trajectory plus task state |
+| Typical failure | A wrong answer | A wrong action with real effects |
+
+Chapter 1 of the book is its conceptual map. It tours the core formula, the operating loop, the engineering framework, and the agent design patterns, and it sets the shared vocabulary that later chapters expand. This lesson covers the first piece, the formula and the boundary it draws. Aim for the big picture; later lessons fill in each part.
+
+## The formula
+
+At its simplest, a modern agent has three components:
+
+> **Agent = LLM + Context + Tools**
+
+Two qualifications matter before you use it. First, the plus signs mean a combination of engineering components, not a formal definition from reinforcement learning. Second, the formula describes only what lies **inside** the agent's boundary. It **does not include the Environment** the agent interacts with.
+
+<Figure caption="Agent = LLM + Context + Tools. The three components sit inside the agent boundary; the environment sits outside it.">
+<AgentFormula />
+</Figure>
+
+Read each term broadly, but keep its boundary clear:
+
+| Component | Role | What it covers |
+|---|---|---|
+| **LLM** | Reasoning engine | More than a set of parameters: the decision-making core that understands intent, reasons, plans, and judges. World knowledge and language ability come from **pre-training**; decision-making strategies are encoded by **post-training** (supervised fine-tuning and reinforcement learning, covered in Chapter 8 of the book). |
+| **Context** | Working set of information | Not just the text fed to the model, but everything available at each decision point: the environment, user memory, domain knowledge, the agent's own state, and task progress. |
+| **Tools** | Action interfaces | Not a handful of callable API functions, but every way the agent can act: predefined tool calls, Skills loaded on demand, generated code that creates new capabilities on the fly, delegation to sub-agents, reaching out to the user, and responding to external events. |
+
+The book grounds context in a human analogy. Before a person decides, they size up the situation, recall relevant experience, and consult references. The agent's context window plays the same role: it holds the information the agent can use at that moment, and nothing else.
+
+Put more intuitively, **Agent = Reasoning Engine + Working Context + Action Interfaces**. The model reasons and decides. The context supplies the working set those decisions depend on. The tools are the interfaces through which decisions affect the outside world.
+
+## Two levels: agent ↔ environment, model ↔ harness
+
+From the classical reinforcement-learning and control perspective, the agent and the environment are two sides of a closed loop. Neither is a component of the other. The environment returns an observation, the agent uses its context to choose the next action, and that action changes the environment's state, which produces the next observation.
+
+Press **Step** to walk through one turn of the loop.
+
+<StepAnimator label="Agent–environment loop">
+<Figure caption="The agent–environment loop, and the Model–Harness structure inside the agent." credit="Redrawn from Figure 1-1, AI Agent Book by Bojie Li (Apache 2.0).">
+<AgentEnvironmentLoop />
+</Figure>
+</StepAnimator>
+
+The figure shows two levels of abstraction:
+
+- **Outer level: agent ↔ environment.** The environment includes file systems, databases, web pages, users, other agents, and physical or simulated worlds.
+- **Inner level: model ↔ harness, inside the agent.** The Model makes policy decisions. The Harness is the runtime and governance layer inside the agent boundary. It builds context, exposes tool interfaces, maintains loops and state, and applies permissions, verification, and correction.
+
+| | Side of the boundary | Owns |
+|---|---|---|
+| **Model** | Inside the agent | Policy decisions: what to do next |
+| **Harness** | Inside the agent | Context construction, tool interfaces, loop and state, permissions, verification, correction |
+| **Environment** | Outside the agent | Its own state and transition rules: files, databases, web pages, users, other agents, real or simulated worlds |
+
+The harness mediates the interaction, but it is not the environment. A harness can **create, isolate, or proxy** an environment without containing the environment's state or its transition rules. For example, a sandbox the harness spins up is harness machinery; the files inside it are still environment.
+
+This lets you expand the formula. The LLM is the Model, and Context + Tools form the **minimum harness**. Production systems add constraints, verification, and correction inside the same boundary. The rest of Chapter 1 follows this boundary, and later lessons return to it when they cover harness engineering.
+
+:::note[Engineer's note]
+When an agent fails, first locate which side of the boundary failed. Was it the model's decision? Was it the harness, with missing context or a missing tool? Or was it the environment itself? The book's reference answers recommend the same move: analyze failure trajectories to find whether the bottleneck is perception, decision, or action. Only then decide what to change.
+:::
+
+## Mapping to reinforcement learning
+
+The three components relate to policies and interaction interfaces in RL (Chapter 8 of the book), but the mapping is **not one-to-one**. Context is the observations and history held inside the agent, not the entire observation space. Tools define the observation and action interfaces available to the agent, while the objects they act on remain in the environment.
+
+| Intuition | Agent component | RL concept | Role |
+|---|---|---|---|
+| **Reasoning engine** | LLM | **Policy** | Decides "what to do next": given the current information, picks the most appropriate action from those available |
+| **Working context** | Context construction | **Observations and history** | Organizes environment observations and existing history into the information the current decision needs |
+| **Action interfaces** | Tool interfaces | **Observation/action interfaces** | Defines which observations the agent can read, which actions it can issue, and the format of those interfaces |
+
+The practical consequence: when you enrich context or add a tool, you are changing what the policy can see and do. You are not changing the environment itself.
+
+<KeyTakeaways>
+- An agent runs a loop: it plans its own steps, calls tools, and adapts to results, instead of answering once.
+- **Agent = LLM + Context + Tools**: a reasoning engine, a working set of information, and action interfaces. The plus signs mean engineering composition, not an RL definition.
+- The formula covers only what is inside the agent boundary. The environment (files, databases, web, users, other agents, real or simulated worlds) is outside it.
+- Inside the agent, the Model makes policy decisions and the Harness builds context, exposes tools, runs the loop, and applies permissions, verification, and correction. Context + Tools is the minimum harness.
+- The mapping to RL is loose: the LLM is the policy, but context is not the whole observation space, and tools are interfaces whose targets stay in the environment.
+</KeyTakeaways>
+
+## Check yourself
+
+<Quiz question="If you could add only one thing to an agent (a stronger model, richer context, or more tools), which would you choose, and when would that change?">
+Find the weak link first. Usually the priority is richer context, which expands the observation space. Switch to a stronger model when the task exceeds the model's reasoning ability. Add tools when the action space is insufficient, for example when the agent cannot reach internal company systems. To decide, analyze failure trajectories and locate whether the bottleneck is perception, decision, or action.
+</Quiz>
+
+<Quiz question="Is the file system your agent edits part of the harness?">
+No. The files are the Environment: they hold state and change according to their own rules. The tool definitions, call adapters, sandbox permissions, and reset mechanisms that touch those files are the Harness. A harness can create, isolate, or proxy an environment without containing the environment's state.
+</Quiz>
+
+<Quiz question="Why is 'Agent = LLM + Context + Tools' not a reinforcement-learning definition?">
+The plus signs describe how engineering components combine, not a formal RL decomposition. Context is the observations and history inside the agent, not the whole observation space. Tools define the interfaces for observing and acting, while the things they act on stay in the environment. The formula also leaves the environment out entirely, whereas RL treats agent and environment as the two sides of one loop.
+</Quiz>

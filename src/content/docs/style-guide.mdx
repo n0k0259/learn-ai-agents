@@ -8,6 +8,8 @@ import KeyTakeaways from '~/components/KeyTakeaways.astro';
 import Figure from '~/components/Figure.astro';
 import StepAnimator from '~/components/StepAnimator.astro';
 import ConceptLegend from '~/components/diagrams/ConceptLegend.astro';
+import AgentFormula from '~/components/diagrams/chapter-1/AgentFormula.astro';
+import AgentEnvironmentLoop from '~/components/diagrams/chapter-1/AgentEnvironmentLoop.astro';
 
 This page documents the building blocks every lesson uses. It is not part of the tutorial itself.
 
@@ -47,3 +49,15 @@ Every diagram uses the same color for the same concept. Press **Step** to walk t
 ## All diagrams
 
 Each lesson adds its diagrams below, grouped by lesson.
+
+### Lesson 1.1
+
+<Figure caption="Agent = LLM + Context + Tools. The environment sits outside the agent boundary.">
+<AgentFormula />
+</Figure>
+
+<StepAnimator label="Agent–environment loop">
+<Figure caption="The agent–environment loop and the Model–Harness structure inside the agent." credit="Redrawn from Figure 1-1, AI Agent Book by Bojie Li (Apache 2.0).">
+<AgentEnvironmentLoop />
+</Figure>
+</StepAnimator>

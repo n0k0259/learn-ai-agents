@@ -1,0 +1,74 @@
+---
+// Redraw of Figure 1-1: agent–environment loop with the Model–Harness structure inside the agent.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 460"
+	role="img"
+	aria-labelledby="d-ael-title d-ael-desc"
+	style="min-width: 630px"
+>
+	<title id="d-ael-title">The agent–environment loop and the Model–Harness structure</title>
+	<desc id="d-ael-desc">
+		Inside the agent, a harness contains Context, the Model, and Tools. The environment sends an observation into the
+		context; the model reads the context and decides; tools send an action to the environment, which changes state and
+		produces the next observation. The harness mediates the interaction but is not the environment.
+	</desc>
+	<defs>
+		<marker id="d-ael-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<g class="dg-container dg-neutral">
+		<rect x="10" y="10" width="380" height="440" rx="14"></rect>
+		<text x="30" y="42" class="dg-title">Agent</text>
+	</g>
+	<g class="dg-container dg-harness">
+		<rect x="26" y="58" width="348" height="372" rx="12"></rect>
+		<text x="42" y="86">Harness: runtime &amp; governance</text>
+		<text x="200" y="414" text-anchor="middle" class="dg-sub">constrain · verify · correct</text>
+	</g>
+
+	<g class="dg-node dg-context" data-step="2" data-step-label="The harness builds the context">
+		<rect x="50" y="106" width="300" height="76" rx="10"></rect>
+		<text x="200" y="137" text-anchor="middle" class="dg-accent" font-weight="700">Context</text>
+		<text x="200" y="164" text-anchor="middle" class="dg-sub">history · memory · task state</text>
+	</g>
+	<g class="dg-edge" data-step="3">
+		<line x1="200" y1="182" x2="200" y2="204" marker-end="url(#d-ael-arrow)"></line>
+	</g>
+	<g class="dg-node dg-model" data-step="3" data-step-label="The model reads the context and decides the next action">
+		<rect x="50" y="206" width="300" height="76" rx="10"></rect>
+		<text x="200" y="237" text-anchor="middle" class="dg-accent" font-weight="700">Model (LLM)</text>
+		<text x="200" y="264" text-anchor="middle" class="dg-sub">reason · decide next action</text>
+	</g>
+	<g class="dg-edge" data-step="4">
+		<line x1="200" y1="282" x2="200" y2="304" marker-end="url(#d-ael-arrow)"></line>
+	</g>
+	<g class="dg-node dg-tools" data-step="4" data-step-label="The harness validates and runs the tool call">
+		<rect x="50" y="306" width="300" height="76" rx="10"></rect>
+		<text x="200" y="337" text-anchor="middle" class="dg-accent" font-weight="700">Tools</text>
+		<text x="200" y="364" text-anchor="middle" class="dg-sub">action interfaces</text>
+	</g>
+
+	<g class="dg-node dg-env" data-step="5" data-step-label="The action changes the environment's state">
+		<rect x="500" y="106" width="210" height="276" rx="12"></rect>
+		<text x="605" y="140" text-anchor="middle" class="dg-accent" font-weight="700">Environment</text>
+		<text x="605" y="188" text-anchor="middle">files · databases</text>
+		<text x="605" y="220" text-anchor="middle">web · APIs · apps</text>
+		<text x="605" y="252" text-anchor="middle">users · other agents</text>
+		<text x="605" y="284" text-anchor="middle">real or simulated world</text>
+		<text x="605" y="340" text-anchor="middle" class="dg-sub">state changes here</text>
+	</g>
+
+	<g class="dg-edge" data-step="1" data-step-label="The environment returns an observation">
+		<line x1="500" y1="144" x2="352" y2="144" marker-end="url(#d-ael-arrow)"></line>
+		<text x="445" y="132" text-anchor="middle" class="dg-edge-label">observation</text>
+	</g>
+	<g class="dg-edge" data-step="5">
+		<line x1="350" y1="344" x2="498" y2="344" marker-end="url(#d-ael-arrow)"></line>
+		<text x="445" y="332" text-anchor="middle" class="dg-edge-label">action</text>
+	</g>
+</svg>
