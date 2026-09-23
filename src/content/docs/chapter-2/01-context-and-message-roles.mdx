@@ -36,7 +36,7 @@ From the harness perspective, context engineering is a core implementation of th
 
 Large language models score well on standardized benchmarks but often disappoint in real business settings. Concrete tasks need background a general-purpose model simply does not have: product architecture, business rules, internal conventions.
 
-Picture a highly capable engineer joining a new team. They have deep theory and strong programming skills, but they don't yet know the product architecture, the business logic, the technical debt or the team norms. If key architectural decisions live only in individual memories and the codebase is poorly documented, even an exceptional engineer will struggle to deliver value quickly. Today's agents face the same problem.
+Picture a highly capable engineer joining a new team. They may have deep theory and strong programming skills, but they don't yet know the product architecture, the business logic, the technical debt or the team norms. If key architectural decisions live only in individual memories and the codebase is poorly documented, even an exceptional engineer will struggle to deliver value quickly. Today's agents face the same problem.
 
 Take a coding agent and the instruction "Help me fix this bug." Whether it can finish the task depends on the quality of three kinds of context:
 
@@ -66,7 +66,7 @@ For agents, the same principle means the value an agent delivers in a business o
 
 The ReAct paper is widely regarded as one of the foundational works on building agents with LLMs. Its opening sentence ties together agent, environment, context and action:
 
-> Consider a general setup of an agent interacting with an environment for task solving. At time step *t*, an agent receives an observation oₜ ∈ 𝒪 from the environment and takes an action aₜ ∈ 𝒜 following some policy π(aₜ | cₜ), where cₜ = (o₁, a₁, …, oₜ) is the context to the agent.
+> Consider a general setup of an agent interacting with an environment for task solving. At time step *t*, an agent receives an observation oₜ ∈ 𝒪 from the environment and takes an action aₜ ∈ 𝒜 following some policy π(aₜ | cₜ), where cₜ = (o₁, a₁, …, oₜ₋₁, aₜ₋₁, oₜ) is the context to the agent.
 
 The symbols matter less than the claim behind them: **the agent's next action depends on the complete interaction context accumulated so far, not only on the input immediately in front of it.**
 
@@ -74,7 +74,7 @@ Map this onto an LLM agent. User messages and tool results are observations retu
 
 Model APIs are stateless, so the agent framework must reconstruct a sufficient context for every call. The most direct lossless approach is to include the complete message history so far. Production systems may summarize and compress it, but they must not silently discard information needed to determine the next action.
 
-Every later technique in this chapter, including context layouts, status bars and compression, answers one question: how do you give the model a sufficiently informative cₜ at lower cost?
+Every later technique in this chapter, including context layouts, status bars and compression, can be viewed as an answer to one question: how do you give the model a sufficiently informative cₜ at lower cost?
 
 :::note[Engineer's note]
 Because the API is stateless, conversation state belongs to your framework. Whatever you leave out of the next request, the model does not have. When you summarize or trim history, check that nothing the next action depends on was dropped silently.
@@ -148,7 +148,7 @@ The request holds just two messages: a system message with the developer's rules
 <KeyTakeaways>
 - Context is everything the model sees on a call: system instructions, tool descriptions, conversation history and other information. Context engineering is a core part of the harness's Context and Tools layer.
 - Context quality is the real key to agent capability; a moderately capable model with well-organized context can often outperform a stronger one with insufficient context. For a coding agent, code, process and environment are the minimum.
-- Context engineering is also organizational: teams with public, recorded, documentation-driven cultures are AI-friendly environments.
+- Context engineering is also organizational: teams with public, recorded, documentation-driven cultures often make AI-friendly environments.
 - In the ReAct definition, the action follows π(aₜ | cₜ), where cₜ is the accumulated interaction history. Because APIs are stateless, the framework must rebuild a sufficient cₜ on every call without silently dropping what the next action needs.
 - The `system`, `user`, `assistant` and `tool` roles plus the top-level `tools` field exactly cover the five context components.
 </KeyTakeaways>
