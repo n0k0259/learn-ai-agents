@@ -20,6 +20,7 @@ export default defineConfig({
 			customCss: ['./src/styles/custom.css', './src/styles/diagrams.css'],
 			sidebar: [
 				{ label: 'Chapter 1: Getting Started with AI Agents', items: [{ autogenerate: { directory: 'chapter-1' } }] },
+				{ label: 'Chapter 2: Context Engineering', items: [{ autogenerate: { directory: 'chapter-2' } }] },
 				{ label: 'About & credits', slug: 'about' },
 			],
 		}),

@@ -1,0 +1,63 @@
+---
+// What fills the context window on each call: the developer-defined prefix, then the alternating interaction history (redraw of Fig 2-1).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 466"
+	role="img"
+	aria-labelledby="d2-cwc-title d2-cwc-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-cwc-title">Overview of the context window composition</title>
+	<desc id="d2-cwc-desc">
+		The context window holds everything the model sees on a call. First come the system instructions, the
+		developer-written rules of behavior, and the tool descriptions of the external capabilities available. After them
+		comes the interaction history, which grows as it alternates: user messages and tool results are observations from
+		the environment, and assistant replies and tool-call requests are the agent's actions. Other information can also
+		enter the window.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">Overview of the context window composition</text>
+
+	<g class="dg-container dg-neutral">
+		<rect x="12" y="48" width="520" height="404" rx="14"></rect>
+		<text x="28" y="78" font-weight="700">Context window: what the model sees</text>
+		<text x="28" y="436" class="dg-sub">+ other information</text>
+	</g>
+
+	<g class="dg-node dg-context">
+		<rect x="28" y="96" width="488" height="56" rx="8"></rect>
+		<text x="44" y="119" class="dg-accent" font-weight="700">System instructions</text>
+		<text x="44" y="141" class="dg-sub">developer-written rules of behavior</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="28" y="160" width="488" height="56" rx="8"></rect>
+		<text x="44" y="183" class="dg-accent" font-weight="700">Tool descriptions</text>
+		<text x="44" y="205" class="dg-sub">external capabilities available to the model</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="28" y="224" width="488" height="56" rx="8"></rect>
+		<text x="44" y="247" class="dg-accent" font-weight="700">User message</text>
+		<text x="44" y="269" class="dg-sub">observation: the request to handle</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="28" y="288" width="488" height="56" rx="8"></rect>
+		<text x="44" y="311" class="dg-accent" font-weight="700">Assistant message</text>
+		<text x="44" y="333" class="dg-sub">action: a reply or a tool-call request</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="28" y="352" width="488" height="56" rx="8"></rect>
+		<text x="44" y="375" class="dg-accent" font-weight="700">Tool result</text>
+		<text x="44" y="397" class="dg-sub">observation: what the tool returned</text>
+	</g>
+
+	<g class="dg-edge">
+		<path d="M540,96 H548 V216 H540 M548,156 H556"></path>
+		<path d="M540,224 H548 V408 H540 M548,316 H556"></path>
+	</g>
+	<text x="564" y="150" class="dg-edge-label">placed before</text>
+	<text x="564" y="172" class="dg-edge-label">the history</text>
+	<text x="564" y="310" class="dg-edge-label">interaction</text>
+	<text x="564" y="332" class="dg-edge-label">history, grows</text>
+</svg>
