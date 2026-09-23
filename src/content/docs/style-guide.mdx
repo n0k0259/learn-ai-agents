@@ -21,6 +21,8 @@ import EngineeringParadigms from '~/components/diagrams/chapter-1/EngineeringPar
 import WorkflowVsAutonomous from '~/components/diagrams/chapter-1/WorkflowVsAutonomous.astro';
 import AutonomousLoop from '~/components/diagrams/chapter-1/AutonomousLoop.astro';
 import N8nWorkflow from '~/components/diagrams/chapter-1/N8nWorkflow.astro';
+import GuardrailLayers from '~/components/diagrams/chapter-1/GuardrailLayers.astro';
+import HarnessElementsMap from '~/components/diagrams/chapter-1/HarnessElementsMap.astro';
 
 This page documents the building blocks every lesson uses. It is not part of the tutorial itself.
 
@@ -133,4 +135,14 @@ Each lesson adds its diagrams below, grouped by lesson.
 
 <Figure caption="An n8n workflow: deterministic nodes handle the Telegram message, and an AI agent node with its own model, memory, and tools writes the reply." credit="Redrawn from Figure 1-7 (n8n screenshot), AI Agent Book by Bojie Li (Apache 2.0).">
 <N8nWorkflow />
+</Figure>
+
+### Lesson 1.8
+
+<Figure caption="Three guardrail layers. The lower the layer, the less it depends on the model's own judgment, and the harder a single successful attack finds it to get through.">
+<GuardrailLayers />
+</Figure>
+
+<Figure caption="The harness focus areas map onto Chapters 2–5 of the book. Chapter 6, Chapters 7–9, and Chapter 10 sit outside the five elements.">
+<HarnessElementsMap />
 </Figure>

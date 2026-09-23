@@ -1,0 +1,208 @@
+---
+title: Guardrails, Safety & the Big Picture
+description: Three guardrail layers ordered by how hard they are to bypass, when to bring in a human, how the harness maps onto the book, and the five design patterns that recur throughout.
+sidebar:
+  order: 8
+  label: 1.8 Guardrails, Safety & the Big Picture
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter1.md#guardrails-and-safety
+  sections:
+    - Guardrails and Safety
+    - Types of Guardrails
+    - Human Intervention
+    - The Five Harness Elements and the "Building" Part
+    - Design Patterns That Run Through the Book
+    - Chapter Summary
+    - Thought Questions
+---
+import Figure from '~/components/Figure.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import GuardrailLayers from '~/components/diagrams/chapter-1/GuardrailLayers.astro';
+import HarnessElementsMap from '~/components/diagrams/chapter-1/HarnessElementsMap.astro';
+
+:::tip[TL;DR]
+No single guardrail is enough. Layer them by how hard each is to bypass: what the model sees, what it does, and what data may change. The lowest layer holds even when the upper ones fail. Bring in a human for failure thresholds and high-risk actions.
+:::
+
+## Defense in depth
+
+Guardrails implement the Harness's constraints, verification, and correction mechanisms, providing a layered defense that keeps agent behavior safe and controllable. Well-designed **guardrails** help you manage data privacy risks, such as system prompt leakage, and reputational risks, such as keeping model behavior consistent with the brand. Start with guardrails for the risks you have already identified, then add new ones as new vulnerabilities surface.
+
+Think of guardrails as defense in depth. No single guardrail is likely to be sufficient on its own, but several specialized ones combined make a far more resilient agent system.
+
+Guardrails have a second failure mode: **false refusal**. To lower the chance of letting dangerous requests through, a model may also reject legitimate work that merely looks sensitive, such as authorized security testing or model distillation research. So your guardrail evaluation has to test both directions: that prohibited requests are blocked, and that clearly permitted requests can still be completed.
+
+## Three layers
+
+Guardrails can sit at three layers: **the context layer, the execution layer, and the data layer**. They are ordered not by where they sit in the request lifecycle but by **how hard they are to bypass**. The lower the layer, the less it depends on the model's own judgment, and the harder it is for a single successful attack to get through. The book uses this three-layer framework to organize its later security discussions.
+
+<Figure caption="Three guardrail layers. The lower the layer, the less it depends on the model's own judgment, and the harder a single successful attack finds it to get through.">
+<GuardrailLayers />
+</Figure>
+
+### Context layer: what the model sees
+
+**Context-layer** guardrails govern **what the model gets to see**. They intercept content before it enters the context, usually through four mechanisms:
+
+- A **relevance classifier** flags off-topic queries, such as a coding assistant being asked "how tall is the Empire State Building?"
+- A **safety classifier** detects jailbreaks and prompt injection. A jailbreak is the user trying to get the model around its own safety limits. Prompt injection is an attacker manipulating the model indirectly by embedding malicious instructions in external data such as web pages or documents.
+- **Content moderation** flags harmful or inappropriate input, such as violent or discriminatory content.
+- **Rule-based protection** applies deterministic measures (blocklists, input length limits, regular-expression filters) against known threats such as SQL injection.
+
+Source labelling and the separation of "instructions" from "data" also belong to this layer (covered in Chapter 2 of the book).
+
+Anthropic's [Constitutional Classifiers](https://www.anthropic.com/research/next-generation-constitutional-classifiers) are one example of classifier-based guardrails in practice. Their design has three key elements:
+
+1. **Rule-driven training.** Natural-language rules stating what is allowed and what is prohibited are used to generate synthetic training data for the input and output classifiers.
+2. **Joint contextual judgment.** The new generation checks the user's question and the model's answer together. Some answers look perfectly fine on their own, like "how to use food flavorings"; only against the question does it become clear that "food flavorings" is code for chemical reagents.
+3. **Two-stage screening.** An extremely lightweight probe, which reads the model's internal activations at almost zero cost, checks every conversation first. Anything suspicious is escalated to a more powerful classifier for review instead of being refused outright. The first stage can therefore tolerate more false positives without hurting the user experience, and overall cost drops sharply.
+
+This layer has a structural ceiling, though: **an agent cannot reliably determine whether prompt injection has already compromised its own context**. The context layer can lower an attack's success rate but cannot guarantee anything, which is exactly why you need the two layers below it.
+
+### Execution layer: what the model does
+
+**Execution-layer** guardrails govern **what the model gets to do**, validating an action before it takes effect. At their core is **tool risk rating**: you label each tool low, medium, or high risk according to its reversibility, privilege level, and financial impact, and high-risk operations require additional review or human confirmation.
+
+That review must be performed by a mechanism **outside the context**: an independent review process, least-privilege credentials, sandbox isolation, or a human in the loop. Otherwise the same attack may compromise both the agent and its safeguards.
+
+The reply returned to the user is itself an action (Chapter 4 of the book classifies it as a user-communication tool), so **output checks** belong to this layer too. A **PII filter** screens the output for personally identifiable information, such as ID or phone numbers, to prevent unnecessary exposure. **Output validation** checks content to keep replies aligned with brand values.
+
+:::note[Engineer's note]
+A tool that is usually low-risk can become high-risk with certain arguments: `delete_file` on a normal file versus a system file. Rate the tool *plus* its arguments at call time, with deterministic rules that read only structured fields, to guard against prompt-injection manipulation.
+
+```python title="risk.py (illustrative)"
+import os
+
+WORKDIR = "/srv/agent/workspace/"
+PROTECTED = ("/etc/", "/usr/", "/System/")
+TOOL_BASE_RISK = {"read_file": "low", "search": "low", "delete_file": "medium", "send_email": "high"}
+
+def risk_of(call):
+    """Rate the tool *and* its arguments with deterministic rules on structured fields."""
+    if call.name == "delete_file":
+        path = os.path.realpath(call.arguments["path"])
+        if path.startswith(PROTECTED) or not path.startswith(WORKDIR):
+            return "high"                       # outside the authorized directory: escalate
+    return TOOL_BASE_RISK.get(call.name, "high")  # unknown tools default to high (fail-safe)
+```
+:::
+
+### Data layer: what may change
+
+**Data-layer** guardrails govern **which changes the system is allowed to make to its data**. They enforce who may perform which operations on which records through stable, human-reviewed mechanisms:
+
+- row-level security policies in the database;
+- constraints and validators;
+- controlled views and stored procedures;
+- an access context bound by a trusted runtime, which cannot be forged.
+
+The value of this layer is precisely that it does not depend on the two above it being correct. Even if a prompt injection succeeds and the generated code omits its permission checks entirely, the unauthorized operation is still rejected at the data layer. Chapter 5 of the book develops this layer through the example of dynamically generated software.
+
+## Bringing in a human
+
+**Human-in-the-loop** intervention is a key protective measure: it lets an agent improve its real-world performance without degrading the user experience. It matters most in early deployment, when it helps you identify failure modes, surface edge cases, and establish a robust evaluation cycle.
+
+With a human in the loop, an agent that cannot complete a task can hand over control gracefully. In customer service, that means escalating to a human representative; for a coding agent, it means handing control back to the developer.
+
+Two situations typically trigger human intervention:
+
+- **Exceeding Failure Thresholds.** Set caps on the agent's retries and operations. If the agent exceeds them, escalate to a human.
+- **High-Risk Operations.** Sensitive, irreversible, or high-risk operations should trigger human oversight, at least until your team has built enough confidence in the agent's reliability. Typical examples are authorizing a large refund or processing a payment.
+
+## How the harness maps onto the book
+
+**The two formulas describe the same architecture at different levels of detail.** **Agent = LLM + Context + Tools** gives the book its organizing framework: Chapters 2–6 cover construction, Chapters 7–9 cover evaluation and improvement, and Chapter 10 covers collaboration. **Agent = Model + Harness** expands context and tools into the five responsibilities of a production system: context management, tool interfaces, constraints, verification, and correction. It **explains the architecture covered in the construction chapters** rather than providing a separate outline for all ten chapters.
+
+Within that scope, the five harness elements map cleanly onto Chapters 2 through 5:
+
+<Figure caption="The harness focus areas map onto Chapters 2–5 of the book. Chapter 6, Chapters 7–9, and Chapter 10 sit outside the five elements.">
+<HarnessElementsMap />
+</Figure>
+
+| Harness focus | Corresponding chapter | Core content | Security concerns |
+|---|---|---|---|
+| Context Management | Chapter 2 (Context Engineering) | Prompt engineering, agent status bar, context compression, Agent Skills | Prompt injection and context contamination |
+| Context Management Across Sessions | Chapter 3 (User Memory and Knowledge Bases) | User memory, RAG, structured indexing, agentic RAG | Sensitive information exposure, privacy protection |
+| Tool Interfaces and Constraints | Chapter 4 (Tools) | Tool classification, permission control, MCP standard, proactive tool discovery | Misoperation, unauthorized access, irreversible operations |
+| Verification and Correction | Chapter 5 (Coding Agents and General-Purpose Agents) | Coding agent's Harness, test-driven development, codified rules | Identity impersonation, responsibility attribution |
+
+The remaining chapters don't fit the five categories, and forcing them in would make the categories less useful:
+
+- Chapter 6 (Interaction) expands the modality and timing of the observation and action spaces themselves.
+- Chapters 7 through 9 ask **how we know the Harness was built right, and how to keep making it better**.
+- Chapter 10 replaces a single agent's Harness with a collaboration structure among several agents.
+
+Security is not partitioned by chapter either. It is a cross-cutting concern, a problem that affects many parts of a system, and it runs through the whole book organized by the three guardrail layers above: context, execution, data. The "Security concerns" column names the main ones each chapter addresses.
+
+Anthropic's practice in building long-running agents shows how Harness design can solve problems the model itself cannot. They split complex tasks between an "Initialization Agent", which sets up the environment and decomposes the task list, and an "Execution Agent", which makes incremental progress each session and leaves clear handover artifacts. The structured Harness tackles the two failure modes of long tasks: running out of context and declaring the task done prematurely. The book then works through the Harness component by component: Chapter 2 starts with the most central one, context engineering, and Chapter 5 lays out the complete practice of Harness engineering in coding agents.
+
+## Five design patterns you'll see again
+
+The later chapters of the book repeatedly use the same group of design patterns, so the book names and defines them once here.
+
+| Pattern | Rule | What it buys you |
+|---|---|---|
+| **Proposer–Reviewer** | Creator and reviewer use separate contexts; review the artifact, not the reasoning | Catches blind spots and injected context that self-review misses |
+| **Progressive Disclosure** | Show a searchable catalogue first, load details on demand | Smaller context budget, more accurate selection |
+| **Append-only** | Evolve state by appending, never editing in place | Cacheability, replayability, auditability |
+| **Boundary Set + Retention Set** | Validate on what should change *and* what must not | Separates real progress from overfitting and no-op changes |
+| **Minimal Diff, Reversible** | Small, attributed, independently revertible changes | Failures trace to one change |
+
+Where the book uses each one:
+
+- Proposer–Reviewer: the reviewer judges the rendered result, the test output, or the structured call arguments, on the premise that **self-review is unreliable**. Chapter 3 uses it to update knowledge; Chapter 4 for pre-approval and post-validation of tool calls (the Sidecar is a read-only variant); Chapter 7 to evaluate UIs; and Chapter 9 to review update proposals. Chapter 5's PPT, video, and log experiments are all built on it. Chapter 10 discusses its shape in peer collaboration and why an agent must not review itself.
+- Progressive Disclosure: Agent Skills in Chapter 2 is the archetype (metadata resident, body loaded on demand). Chapter 3's layered retrieval, Chapter 4's proactive tool discovery and paginated truncation, and Chapter 10's agent discovery are variants.
+- Append-only: Chapter 2 shows the performance benefit of a stable KV-cache prefix, since a change earlier in the prefix invalidates more of the cache. Chapter 3's event-based memory and Chapter 4's practice of appending newly discovered tool schemas to the trajectory, rather than inserting them into the prefix, follow the same principle.
+- Boundary Set + Retention Set: test only the first set and you mistake overfitting for progress; test only the second and you mistake an ineffective change for a safe one. Chapter 7's regression tasks, Chapter 8's training/evaluation isolation, and Chapter 9's update-proposal validation rest on this pair.
+- Minimal Diff, Reversible: Chapter 3's knowledge updates, Chapter 5's code patches, and Chapter 9's prompt and program updates. The three update paths from lesson 1.3 (The LLM as Reasoning Engine), in-context adaptation, external-artifact updates, and parameter updates, are themselves ordered from most to least reversible.
+
+## Chapter 1 cheat sheet
+
+Chapter 1 builds a practice-first framework for understanding and constructing AI agents:
+
+- **Agent = Reasoning Engine + Working Context + Action Interfaces.** The LLM reasons and decides, context supplies the working set of information at decision time, and tools provide the action interfaces. None of the three is dispensable.
+- **Expanding Context and Tools Is the Primary Capability Lever.** With the model fixed, redefining or enlarging the observation and action spaces can often turn an unsolvable task into a solvable one. Manus and OpenClaw show that much of an agent's versatility comes from the interfaces available to it. That expansion must stay on-demand and be paired with permissions and verification.
+- **Context Is the Decisive Factor.** Context is a static prefix (system prompt + tool definitions) plus a dynamic trajectory (message history). In the ablation, removing tool definitions or tool results takes away the ability to act or to close the loop outright; the cost of removing the other two depends on whether the information can be reconstructed from current observations. The ReAct loop appends to the trajectory, over and over, so the model keeps advancing the task.
+- **Harness Is the Competitive Advantage.** Model capability is commoditizing. The real differentiator is the Harness: the constraints, verification, and correction built around context and tools. In production-grade systems, the vast majority of Harness code goes into these safeguards, not the context and tools alone.
+- **From Workflow to Autonomous Agent.** Prompts first, then workflows, autonomous agents last: that ordering is the most practical way to reduce unexpected behavior. Every orchestration pattern has situations where it fits; none is best everywhere.
+- **Five design patterns run through the book:** Proposer-Reviewer, Progressive Disclosure, Append-only, Boundary Set + Retention Set, and Minimal Diff + Reversible.
+- **Security Is an Architectural Issue.** Consider security from the first line of code, not as a patch before launch. Guardrails divide by difficulty of bypass into context, execution, and data layers, and all later security discussions use this structure.
+
+Chapter 2 of the book examines the Harness's most central component in depth: context engineering. Chapter 8 covers the agent concept's academic roots in reinforcement learning and compares traditional RL with modern LLM agents.
+
+The chapter closes with ten thought questions that have no single correct answer; the "Check yourself" quizzes across lessons 1.1 to 1.8 are drawn from them.
+
+<KeyTakeaways>
+- No single guardrail is sufficient. Layer specialized ones, start from risks you know about, and test for false refusals as well as for blocked requests.
+- The three layers are ordered by how hard they are to bypass, not by their place in the request lifecycle. The lower the layer, the less it depends on the model's judgment.
+- The context layer (classifiers, moderation, rules, source labels) lowers attack success rates but can't guarantee anything, because an agent can't reliably tell whether its own context is compromised.
+- The execution layer rates tools by reversibility, privilege, and financial impact, and reviews high-risk actions from outside the context. Output checks belong here too.
+- The data layer (row-level security, constraints, controlled views, trusted access context) rejects unauthorized changes even when both layers above fail.
+- Hand over to a human gracefully when the agent exceeds its failure thresholds or reaches a high-risk operation.
+- The five harness elements map onto Chapters 2–5 of the book. Interaction, evaluation and improvement, and multi-agent collaboration sit outside them, and security cuts across everything.
+- Five design patterns recur throughout the book: Proposer-Reviewer, Progressive Disclosure, Append-only, Boundary Set + Retention Set, and Minimal Diff, Reversible.
+</KeyTakeaways>
+
+### References
+
+- Anthropic, ["Next-generation Constitutional Classifiers: More efficient protection against universal jailbreaks"](https://www.anthropic.com/research/next-generation-constitutional-classifiers), 2026.
+- Cunningham et al., ["Constitutional Classifiers++: Efficient Production-Grade Defenses against Universal Jailbreaks"](https://arxiv.org/abs/2601.04603), arXiv:2601.04603.
+
+## Check yourself
+
+<Quiz question="A tool is usually low-risk but dangerous with certain arguments (`delete_file` on a system file). How do you assess risk dynamically?">
+Refine the rating target from "tool" to "tool + arguments", and compute risk at call time based on reversibility, permissions, and blast radius. Use deterministic rules, such as path allowlists and blocklists or regular expressions, rather than model judgment. The check should inspect only structured data, so prompt injection can't manipulate it.
+</Quiz>
+
+<Quiz question="Prompt injection succeeded and the generated code skipped its permission check. Which layer still stops the unauthorized write?">
+The data layer. Row-level security, constraints and validators, controlled views, and a trusted access context reject the operation regardless of whether the layers above did their job.
+</Quiz>
+
+<Quiz question="Why must high-risk reviews happen outside the agent's context?">
+Otherwise the same attack could compromise both the agent and its safeguard. Use a mechanism the context can't reach: an independent review process, least-privilege credentials, sandbox isolation, or a human in the loop.
+</Quiz>
+
+<Quiz question="The agent needs a human to confirm, but the user is offline, slow, or vague. What should it do?">
+Fail safe. When no confirmation arrives, pause the high-risk operations rather than executing them by default. Do the reversible, low-risk parts first, and document the high-risk parts so a human can decide and the agent can resume. Notify the user through asynchronous channels such as messages or email, with a timeout policy, and clarify intent when the instructions are vague.
+</Quiz>

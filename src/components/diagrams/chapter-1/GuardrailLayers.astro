@@ -1,0 +1,59 @@
+---
+// Three guardrail layers (context, execution, data) stacked in order of how hard each is to bypass.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 430"
+	role="img"
+	aria-labelledby="d-gl-title d-gl-desc"
+	style="min-width: 630px"
+>
+	<title id="d-gl-title">Three guardrail layers, ordered by how hard they are to bypass</title>
+	<desc id="d-gl-desc">
+		Three stacked guardrail bands. At the top, the context layer governs what the model sees, with relevance and
+		safety classifiers, moderation, rules, and source labels. In the middle, the execution layer governs what the model
+		does, with tool risk rating, human confirmation, a PII filter, and output validation. At the bottom, the data layer
+		governs what may change, with row-level security, constraints, controlled views, and a trusted context. An arrow
+		down the right side reads "harder to bypass". A note below says the lower layers don't depend on the model's
+		judgment.
+	</desc>
+	<defs>
+		<marker id="d-gl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="360" y="32" text-anchor="middle" class="dg-title">Three guardrail layers, ordered by how hard they are to bypass</text>
+
+	<g class="dg-node dg-guard">
+		<rect x="12" y="52" width="568" height="90" rx="10"></rect>
+		<text x="296" y="82" text-anchor="middle" class="dg-accent" font-weight="700">Context layer: what the model sees</text>
+		<text x="296" y="106" text-anchor="middle" class="dg-sub">relevance &amp; safety classifiers ·</text>
+		<text x="296" y="128" text-anchor="middle" class="dg-sub">moderation · rules · source labels</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="12" y="152" width="568" height="90" rx="10"></rect>
+		<text x="296" y="182" text-anchor="middle" class="dg-accent" font-weight="700">Execution layer: what the model does</text>
+		<text x="296" y="206" text-anchor="middle" class="dg-sub">tool risk rating · human confirm ·</text>
+		<text x="296" y="228" text-anchor="middle" class="dg-sub">PII filter · output validation</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="12" y="252" width="568" height="90" rx="10"></rect>
+		<text x="296" y="282" text-anchor="middle" class="dg-accent" font-weight="700">Data layer: what may change</text>
+		<text x="296" y="306" text-anchor="middle" class="dg-sub">row-level security · constraints ·</text>
+		<text x="296" y="328" text-anchor="middle" class="dg-sub">controlled views · trusted context</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="696" y1="52" x2="696" y2="340" marker-end="url(#d-gl-arrow)"></line>
+		<text x="638" y="192" text-anchor="middle" class="dg-edge-label">harder to</text>
+		<text x="638" y="214" text-anchor="middle" class="dg-edge-label">bypass</text>
+	</g>
+
+	<g class="dg-node dg-neutral">
+		<rect x="12" y="356" width="568" height="62" rx="10"></rect>
+		<text x="296" y="382" text-anchor="middle">Lower layers don't depend on</text>
+		<text x="296" y="404" text-anchor="middle">the model's judgment</text>
+	</g>
+</svg>
