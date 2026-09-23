@@ -58,6 +58,29 @@ function auditDiagrams(page: Page) {
 			return total;
 		};
 
+		// Every source of alpha that can make a fill render less than fully solid: ancestor + own
+		// CSS opacity (effectiveOpacity), the element's own fill-opacity property, and the alpha
+		// channel baked into its resolved fill color itself (e.g. an rgba()/hsla() fill). Missing
+		// any one of these lets a genuinely translucent fill pass a full-opacity contrast check
+		// silently. `fillColor` is null for `fill: none`, which contributes no color alpha (nothing
+		// to blend), so only the opacity/fill-opacity factors apply there — the existing fill:none
+		// exemption from color-alpha checks is preserved.
+		const totalAlpha = (el: Element, fillColor: RGBA | null): number => {
+			const fillOpacity = parseFloat(getComputedStyle(el).fillOpacity || '1');
+			return effectiveOpacity(el) * fillOpacity * (fillColor?.a ?? 1);
+		};
+
+		// Alpha-composites a foreground color over a background with the standard "over" operator,
+		// so contrast checks evaluate the color that actually renders, not the raw (possibly
+		// translucent) fill.
+		const composite = (fg: RGBA, bg: RGBA, alpha: number): RGBA => ({
+			r: fg.r * alpha + bg.r * (1 - alpha),
+			g: fg.g * alpha + bg.g * (1 - alpha),
+			b: fg.b * alpha + bg.b * (1 - alpha),
+			a: 1,
+		});
+		const visibleColor = (fg: RGBA, bg: RGBA, alpha: number) => (alpha < 1 - 1e-3 ? composite(fg, bg, alpha) : fg);
+
 		const rawPageBg = parse(getComputedStyle(document.body).backgroundColor);
 		if (!rawPageBg || rawPageBg.a === 0)
 			problems.push(
@@ -95,19 +118,22 @@ function auditDiagrams(page: Page) {
 				if (owner && t.parentElement !== owner)
 					problems.push(`${name}: text ${snippet(t)} must be a direct child of its dg-node/dg-container`);
 
-				const fillOpacity = parseFloat(style.fillOpacity || '1');
-				const totalOpacity = effectiveOpacity(t) * fillOpacity;
-				if (totalOpacity < 1 - 1e-3)
+				const raw = style.fill;
+				const c = raw === 'none' ? null : parse(raw);
+				if (!owner && raw !== 'none' && !c) problems.push(`${name}: text ${snippet(t)} has an unparseable fill "${raw}"`);
+
+				// Own + ancestor opacity, own fill-opacity, AND the fill color's own alpha channel (e.g.
+				// `fill: rgba(15,23,42,0.3)`) all count toward "not fully opaque".
+				const alpha = totalAlpha(t, c);
+				if (alpha < 1 - 1e-3)
 					problems.push(
-						`${name}: text ${snippet(t)} has effective opacity ${totalOpacity.toFixed(2)} (< 1); contrast checks assume full opacity`,
+						`${name}: text ${snippet(t)} has effective opacity ${alpha.toFixed(2)} (< 1); contrast checks assume full opacity`,
 					);
 
-				if (!owner) {
-					const raw = style.fill;
-					const c = raw === 'none' ? null : parse(raw);
-					if (raw !== 'none' && !c) problems.push(`${name}: text ${snippet(t)} has an unparseable fill "${raw}"`);
-					if (c && contrast(c, pageBg) < 4.5)
-						problems.push(`${name}: text ${snippet(t)} contrast ${contrast(c, pageBg).toFixed(2)} < 4.5 vs page`);
+				if (!owner && c) {
+					const visible = visibleColor(c, pageBg, alpha);
+					const ratio = contrast(visible, pageBg);
+					if (ratio < 4.5) problems.push(`${name}: text ${snippet(t)} contrast ${ratio.toFixed(2)} < 4.5 vs page`);
 				}
 			});
 
@@ -120,21 +146,29 @@ function auditDiagrams(page: Page) {
 				const rawFill = getComputedStyle(rect).fill;
 				const fill = rawFill === 'none' ? null : parse(rawFill);
 				if (rawFill !== 'none' && !fill) problems.push(`${name}: ${g.getAttribute('class')} rect has an unparseable fill "${rawFill}"`);
-				const bg = fill && fill.a > 0 ? fill : pageBg;
 
-				const rectOpacity = effectiveOpacity(rect) * (fill?.a ?? 1);
-				if (rectOpacity < 1 - 1e-3)
+				// Own + ancestor opacity, the rect's own fill-opacity property, AND the fill color's own
+				// alpha channel all count — e.g. `fill: rgb(200,50,50); fill-opacity: 0.3` must be caught
+				// even though the resolved fill color itself is fully opaque. `fill: none` contributes no
+				// color alpha (nothing to blend), preserving the existing exemption there.
+				const rectAlpha = totalAlpha(rect, fill);
+				if (rectAlpha < 1 - 1e-3)
 					problems.push(
-						`${name}: ${g.getAttribute('class')} rect has effective opacity ${rectOpacity.toFixed(2)} (< 1); contrast checks assume full opacity`,
+						`${name}: ${g.getAttribute('class')} rect has effective opacity ${rectAlpha.toFixed(2)} (< 1); contrast checks assume full opacity`,
 					);
+				const bg = fill && fill.a > 0 ? visibleColor(fill, pageBg, rectAlpha) : pageBg;
 
 				g.querySelectorAll<SVGTextElement>(':scope > text').forEach((t) => {
 					if (!inside(t.getBBox(), rect.getBBox(), 4)) problems.push(`${name}: text ${snippet(t)} overflows its box`);
 					const raw = getComputedStyle(t).fill;
 					const c = raw === 'none' ? null : parse(raw);
 					if (raw !== 'none' && !c) problems.push(`${name}: text ${snippet(t)} has an unparseable fill "${raw}"`);
-					if (c && contrast(c, bg) < 4.5)
-						problems.push(`${name}: text ${snippet(t)} contrast ${contrast(c, bg).toFixed(2)} < 4.5 vs its box`);
+					if (c) {
+						const alpha = totalAlpha(t, c);
+						const visible = visibleColor(c, bg, alpha);
+						const ratio = contrast(visible, bg);
+						if (ratio < 4.5) problems.push(`${name}: text ${snippet(t)} contrast ${ratio.toFixed(2)} < 4.5 vs its box`);
+					}
 				});
 			});
 
