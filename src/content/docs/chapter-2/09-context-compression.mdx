@@ -20,7 +20,7 @@ import CompressionComparison from '~/components/diagrams/chapter-2/CompressionCo
 import CompressionFlows from '~/components/diagrams/chapter-2/CompressionFlows.astro';
 
 :::tip[TL;DR]
-Compress for length and cost, but also because distilled knowledge is easier for the model to use than raw records, and to ease context anxiety. Compression replaces raw tool results with computed conclusions between API calls, so the static prefix stays cached; batch it near a threshold. In Experiment 2-10, context-aware compression reported the fewest tokens and iterations.
+Compress for length and cost, but also because distilled knowledge is easier for the model to use than raw records, and to ease context anxiety. Compression replaces raw tool results with computed conclusions between API calls, so the static prefix stays cached; batch it near a threshold. In Experiment 2-10, context-aware compression used the fewest tokens and tied for the fewest iterations.
 :::
 
 ## Reducing what's in the context
@@ -107,16 +107,16 @@ Anthropic recommends one of two approaches. Either compress the entire session i
 
 **Strategy 6: adaptive windowing.** Early in a task, context space is abundant, so there's no need to rush compression. A threshold trigger activates compression only when the prompt token count exceeds 80% of the window. Batch compression then compresses every unmarked tool result at once (for example, all 10 uncompressed tool messages after the context crosses the 102,400-token threshold), and a `[COMPRESSED]` marker prevents compressed content from being processed again.
 
-**Result.** Of the reported figures, context-aware compression's 7 iterations and 40,157 tokens are the lowest. Adaptive windowing's total token usage was relatively high (174,601), but its first few iterations keep the complete original information, which gives maximum flexibility for broad initial information gathering.
+**Result.** Context-aware compression used the fewest tokens; the book's Figure 2-16 puts it at 76% fewer than no compression, tied with adaptive windowing for the fewest iterations. Adaptive windowing's total token usage was relatively high (174,601), but its first few iterations keep the complete original information, which gives maximum flexibility for broad initial information gathering.
 
 **Takeaway.** Bringing the query intent and the accumulated information into the compression decision produced targeted summaries, where non-task-aware summaries couldn't tell relevant information from irrelevant. Deferring compression keeps the original information longer, at a higher total token cost.
 :::
 
-<Figure caption="Experiment 2-10 by strategy: total tokens, compression ratio (compressed / original), iterations and result, with bars scaled to token usage. Context-aware compression, highlighted, uses the fewest tokens. The prose gives no figures for strategy 5, and no ratio or iteration count for adaptive windowing." credit="Redrawn from Figure 2-16, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Experiment 2-10 by strategy: total tokens, compression ratio (compressed / original), iterations and result, with bars scaled to token usage. Awareness + citation is strategy 5, context-aware with citations. Context-aware compression, highlighted, uses the fewest tokens." credit="Redrawn from Figure 2-16, AI Agent Book by Bojie Li (Apache 2.0).">
 <CompressionComparison />
 </Figure>
 
-<Figure caption="What each strategy does with a search result of about 52K characters before it enters the context: keep it whole, summarize it alone, merge it with the rest, compress it against the query and current context, do the same while keeping URL citations, or keep it until 80% of the window and then batch-compress it with a [COMPRESSED] marker." credit="Redrawn from Figure 2-17, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="What each strategy does with a search result of about 52K characters on average, and the outcome: keep it whole, summarize it alone, merge it with the rest, compress it against the query and current context (strategy 4, emphasized with a solid border and a highlighted outcome), do the same while keeping URL citations (strategy 5, context-aware with citations), or keep it until 80% of the window and then batch-compress." credit="Redrawn from Figure 2-17, AI Agent Book by Bojie Li (Apache 2.0).">
 <CompressionFlows />
 </Figure>
 

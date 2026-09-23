@@ -1,10 +1,10 @@
 ---
-// Experiment 2-10 outcomes per compression strategy: tokens, ratio, iterations, result and a token-usage bar (redraw of Fig 2-16, prose numbers only).
+// Experiment 2-10 outcomes per compression strategy: tokens, ratio, iterations, result and a token-usage bar (redraw of Fig 2-16).
 ---
 
 <svg
 	class="dg"
-	viewBox="0 0 720 484"
+	viewBox="0 0 720 532"
 	role="img"
 	aria-labelledby="d2-cc-title d2-cc-desc"
 	style="min-width: 630px"
@@ -12,10 +12,12 @@
 	<title id="d2-cc-title">Comparison of context compression strategies</title>
 	<desc id="d2-cc-desc">
 		A table of six strategies with tokens, compression ratio, iterations, result and a token-usage bar. No
-		compression: about 165,000 tokens, overflow at iteration 5, failed. Individual summary: 276,608 tokens, 10.9%, 12
-		iterations, success. Combined summary: 93,449 tokens, 4.3%, 10 iterations, success. Context-aware, highlighted:
-		40,157 tokens, about 3.0%, 7 iterations, success. Aware plus citation: no figures given. Adaptive window: 174,601
-		tokens. Key: incorporate query intent and existing information into compression decisions.
+		compression: 166,043 tokens, 102.1%, 5 iterations, failed. Individual summary: 276,608 tokens, 10.9%, 12
+		iterations, success. Combined summary: 93,449 tokens, 4.3%, 10 iterations, success. Context-aware, highlighted
+		with a colored row: 40,157 tokens, 3.0%, 7 iterations, success. Awareness plus citation (context-aware with
+		citations): 222,992 tokens, 4.1%, 10 iterations, success. Adaptive window: 174,601 tokens, 102.4%, 7 iterations,
+		success. Context-aware compression: 76% fewer tokens than no compression, tied for fewest iterations. Key:
+		incorporate query intent and existing information into compression decisions.
 	</desc>
 
 	<text x="2" y="28" class="dg-title">Comparison of context compression strategies</text>
@@ -33,12 +35,12 @@
 
 	<!-- 1. No compression -->
 	<text x="12" y="113">No compression</text>
-	<text x="282" y="113" text-anchor="end">≈165,000</text>
-	<text x="348" y="113" text-anchor="end">—</text>
+	<text x="282" y="113" text-anchor="end">166,043</text>
+	<text x="348" y="113" text-anchor="end">102.1%</text>
 	<text x="400" y="113" text-anchor="end">5</text>
-	<text x="416" y="113" class="dg-fail" style="font-size: 16px">✗ Overflow</text>
+	<text x="416" y="113" class="dg-fail" style="font-size: 16px">✗ Failed</text>
 	<g class="dg-node dg-guard">
-		<rect x="540" y="92" width="95" height="32" rx="3"></rect>
+		<rect x="540" y="92" width="96" height="32" rx="3"></rect>
 	</g>
 
 	<!-- 2. Individual summary -->
@@ -66,7 +68,7 @@
 		<rect x="4" y="236" width="712" height="48" rx="6"></rect>
 		<text x="12" y="269" font-weight="700">Context-aware</text>
 		<text x="282" y="269" text-anchor="end">40,157</text>
-		<text x="348" y="269" text-anchor="end">≈3.0%</text>
+		<text x="348" y="269" text-anchor="end">3.0%</text>
 		<text x="400" y="269" text-anchor="end">7</text>
 		<text x="416" y="269" class="dg-ok" style="font-size: 16px">✓ Success</text>
 	</g>
@@ -75,26 +77,31 @@
 	</g>
 
 	<!-- 5. Aware + citation -->
-	<text x="12" y="321">Aware + citation</text>
-	<text x="282" y="321" text-anchor="end">—</text>
-	<text x="348" y="321" text-anchor="end">—</text>
-	<text x="400" y="321" text-anchor="end">—</text>
-	<text x="416" y="321">—</text>
+	<text x="12" y="321">Awareness + citation</text>
+	<text x="282" y="321" text-anchor="end">222,992</text>
+	<text x="348" y="321" text-anchor="end">4.1%</text>
+	<text x="400" y="321" text-anchor="end">10</text>
+	<text x="416" y="321" class="dg-ok" style="font-size: 16px">✓ Success</text>
+	<g class="dg-node dg-context">
+		<rect x="540" y="300" width="129" height="32" rx="3"></rect>
+	</g>
 
 	<!-- 6. Adaptive window -->
 	<text x="12" y="373">Adaptive window</text>
 	<text x="282" y="373" text-anchor="end">174,601</text>
-	<text x="348" y="373" text-anchor="end">—</text>
-	<text x="400" y="373" text-anchor="end">—</text>
-	<text x="416" y="373">—</text>
+	<text x="348" y="373" text-anchor="end">102.4%</text>
+	<text x="400" y="373" text-anchor="end">7</text>
+	<text x="416" y="373" class="dg-ok" style="font-size: 16px">✓ Success</text>
 	<g class="dg-node dg-context">
 		<rect x="540" y="352" width="101" height="32" rx="3"></rect>
 	</g>
 
 	<!-- Key -->
 	<g class="dg-node dg-neutral">
-		<rect x="4" y="404" width="712" height="72" rx="8"></rect>
-		<text x="360" y="432" text-anchor="middle" font-weight="700">Key: incorporate query intent and existing information</text>
-		<text x="360" y="458" text-anchor="middle">into compression decisions</text>
+		<rect x="4" y="404" width="712" height="120" rx="8"></rect>
+		<text x="360" y="432" text-anchor="middle" font-weight="700">Context-aware compression: 76% fewer tokens than</text>
+		<text x="360" y="456" text-anchor="middle" font-weight="700">no compression, tied for fewest iterations</text>
+		<text x="360" y="486" text-anchor="middle" class="dg-sub">Key: Incorporate query intent and existing information</text>
+		<text x="360" y="510" text-anchor="middle" class="dg-sub">into compression decisions</text>
 	</g>
 </svg>
