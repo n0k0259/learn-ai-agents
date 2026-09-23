@@ -28,7 +28,7 @@ The ReAct loop at the wire level: the model requests tool calls, the framework e
 
 Real agent workflows are usually more complex than a single-turn Q&A like the one in [lesson 2.1](/learn-ai-agents/chapter-2/01-context-and-message-roles/). Ask "What's the current time and weather in Vancouver?" and the model cannot answer from its own knowledge: it does not know what time "now" is, much less the weather. It must call external tools. The example below walks through each interaction between the agent framework and the model.
 
-This is the same loop as [The ReAct Loop](/learn-ai-agents/chapter-1/05-react-loop/), seen at the wire level. The Thought/Action/Observation stages aren't re-taught here; the focus is on what actually goes over the API.
+This is the same loop as [The ReAct Loop](/learn-ai-agents/chapter-1/05-react-loop/), seen at the wire level.
 
 <StepAnimator label="Two model API calls">
 <Figure caption="The Vancouver example as a sequence: API call 1 returns two tool_calls, the framework runs both tools in parallel, and API call 2 returns the final text reply." credit="Redrawn from Figure 2-3, AI Agent Book by Bojie Li (Apache 2.0).">
@@ -167,7 +167,7 @@ After receiving the tool-call requests, the framework executes the two tools, fo
 
 Three details matter here:
 
-1. **The second request includes the full conversation history from the first request**: the system message, the user message, the assistant message with the tool calls, and the new tool results. This is the stateless API from lesson 2.1 in action: the framework must include the relevant history in every request.
+1. **The second request includes the full conversation history from the first request**: the system message, the user message, the assistant message with the tool calls, and the new tool results. This is the stateless API from [lesson 2.1](/learn-ai-agents/chapter-2/01-context-and-message-roles/) in action: the framework must include the relevant history in every request.
 2. **The first assistant message goes back into the message list verbatim.** That gives the next model call access to the tool-call decisions made in the previous call.
 3. **Tool messages are linked to their tool calls through `tool_call_id`.** This tells the model which result belongs to which requested call.
 
@@ -285,7 +285,7 @@ The loop has one main branch: **if the model returns `tool_calls`, execute the t
 
 Each round appends to the list: the model's output as an assistant message, then, if it asked for tools, one `tool` message per result, added by the framework.
 
-<Figure caption="The messages list before the first call, after call 1 (model returns tool calls) and after call 2 (final reply, loop ends). New rows are colored and tagged by who adds them; carried-over rows are plain.">
+<Figure caption="The messages list before the first call, after call 1 (model returns tool calls) and after call 2 (final reply, loop ends). Rows added after each call are tagged by who adds them; carried-over rows are plain.">
 <MessagesGrowth />
 </Figure>
 
@@ -376,5 +376,5 @@ The model. The framework sends the same static `tools` list whatever the user as
 </Quiz>
 
 <Quiz question="The book's loop is while True. What does production code need to add, and why?">
-A `max_iterations` cap (like `MAX_ROUNDS` in lesson 1.5), because agents can become stuck repeating the same tool calls forever. The cap is a stop condition, the topic of lesson 1.7.
+A `max_iterations` cap (like `MAX_ROUNDS` in lesson 1.5), because agents can become stuck repeating the same tool calls forever. The cap is a stop condition, covered in lesson 1.7.
 </Quiz>
