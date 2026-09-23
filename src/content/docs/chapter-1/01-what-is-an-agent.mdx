@@ -36,7 +36,7 @@ The difference is easiest to see if you compare the two systems as an engineer w
 | State | The conversation | Trajectory plus task state |
 | Typical failure | A wrong answer | A wrong action with real effects |
 
-Chapter 1 of the book is its conceptual map. It tours the core formula, the operating loop, the engineering framework, and the agent design patterns, and it sets the shared vocabulary that later chapters expand. This lesson covers the first piece, the formula and the boundary it draws. Aim for the big picture; later lessons fill in each part.
+Chapter 1 of the book starts from practical examples like these and works back to the core components, so you understand the architecture behind agents and the design patterns and best practices for building them. It is the book's conceptual map: a tour of the core formula, operating loop, engineering framework, and design patterns that sets the vocabulary later chapters expand. Don't try to memorize every concept on a first read; aim for the big picture and come back here whenever you need to reorient. This lesson covers the first piece: the formula and the boundary it draws.
 
 ## The formula
 
@@ -58,7 +58,7 @@ Read each term broadly, but keep its boundary clear:
 | **Context** | Working set of information | Not just the text fed to the model, but everything available at each decision point: the environment, user memory, domain knowledge, the agent's own state, and task progress. |
 | **Tools** | Action interfaces | Not a handful of callable API functions, but every way the agent can act: predefined tool calls, Skills loaded on demand, generated code that creates new capabilities on the fly, delegation to sub-agents, reaching out to the user, and responding to external events. |
 
-The book grounds context in a human analogy. Before a person decides, they size up the situation, recall relevant experience, and consult references. The agent's context window plays the same role: it holds the information the agent can use at that moment, and nothing else.
+The book grounds context in a human analogy. Before a person decides, they size up the situation, recall relevant experience, and consult references. The agent's context window plays the same role: it holds the information the agent can use at that moment.
 
 Put more intuitively, **Agent = Reasoning Engine + Working Context + Action Interfaces**. The model reasons and decides. The context supplies the working set those decisions depend on. The tools are the interfaces through which decisions affect the outside world.
 
@@ -74,18 +74,15 @@ Press **Step** to walk through one turn of the loop.
 </Figure>
 </StepAnimator>
 
-The figure shows two levels of abstraction:
-
-- **Outer level: agent ↔ environment.** The environment includes file systems, databases, web pages, users, other agents, and physical or simulated worlds.
-- **Inner level: model ↔ harness, inside the agent.** The Model makes policy decisions. The Harness is the runtime and governance layer inside the agent boundary. It builds context, exposes tool interfaces, maintains loops and state, and applies permissions, verification, and correction.
+The figure shows two levels: agent ↔ environment outside, model ↔ harness inside. The Harness is the runtime and governance layer inside the agent boundary.
 
 | | Side of the boundary | Owns |
 |---|---|---|
 | **Model** | Inside the agent | Policy decisions: what to do next |
 | **Harness** | Inside the agent | Context construction, tool interfaces, loop and state, permissions, verification, correction |
-| **Environment** | Outside the agent | Its own state and transition rules: files, databases, web pages, users, other agents, real or simulated worlds |
+| **Environment** | Outside the agent | Its own state and transition rules: file systems, databases, web pages, users, other agents, physical or simulated worlds |
 
-The harness mediates the interaction, but it is not the environment. A harness can **create, isolate, or proxy** an environment without containing the environment's state or its transition rules. For example, a sandbox the harness spins up is harness machinery; the files inside it are still environment.
+The harness mediates the interaction, but it is not the environment. A harness can **create, isolate, or proxy** an environment without containing the environment's state or its transition rules. For example, a sandbox's permissions and reset mechanisms are harness, while the files and processes that change inside it are still environment.
 
 This lets you expand the formula. The LLM is the Model, and Context + Tools form the **minimum harness**. Production systems add constraints, verification, and correction inside the same boundary. The rest of Chapter 1 follows this boundary, and later lessons return to it when they cover harness engineering.
 
@@ -108,7 +105,7 @@ The practical consequence: when you enrich context or add a tool, you are changi
 <KeyTakeaways>
 - An agent runs a loop: it plans its own steps, calls tools, and adapts to results, instead of answering once.
 - **Agent = LLM + Context + Tools**: a reasoning engine, a working set of information, and action interfaces. The plus signs mean engineering composition, not an RL definition.
-- The formula covers only what is inside the agent boundary. The environment (files, databases, web, users, other agents, real or simulated worlds) is outside it.
+- The formula covers only what is inside the agent boundary. The environment (file systems, databases, web pages, users, other agents, physical or simulated worlds) is outside it.
 - Inside the agent, the Model makes policy decisions and the Harness builds context, exposes tools, runs the loop, and applies permissions, verification, and correction. Context + Tools is the minimum harness.
 - The mapping to RL is loose: the LLM is the policy, but context is not the whole observation space, and tools are interfaces whose targets stay in the environment.
 </KeyTakeaways>
