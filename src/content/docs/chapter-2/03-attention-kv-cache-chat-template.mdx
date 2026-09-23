@@ -132,7 +132,7 @@ Model families differ greatly in how they handle historical chain-of-thought, an
 
 - **DeepSeek R1:** the official guidance was to **strip all historical reasoning**, passing back only `content`, not `reasoning_content`. Historical CoT never appeared in R1's training input, so feeding it back is out-of-distribution input that may interfere with the output; stripping also saves tokens. The flaw for agents: intermediate reasoning carries critical state, such as why a tool was called and which hypotheses were ruled out. Stripped, the model reasons from scratch every turn, prone to repeating mistakes and losing long-range plans.
 - **DeepSeek V4** completely reversed the policy. Whenever the request carries `tools`, the `reasoning_content` of every assistant message between two user messages, even one that made no tool call, must be passed back verbatim, or the API returns a 400 error. Plain chat without `tools` still ignores it. An agent always carries `tools`, so there's no escaping this. Kimi K2, GLM-5 and others have adopted the same protocol.
-- **Claude** likewise requires thinking blocks back verbatim with their signatures. The signature binds each block to the prefix it was produced under; once that prefix changes, the block is invalidated (lesson 2.4).
+- **Claude** likewise requires thinking blocks back verbatim with their signatures. The signature binds each block to the prefix it was produced under; once that prefix changes, the block is invalidated ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)).
 
 Consult the model's latest documentation before use. In multi-turn dialogue these differences only decide whether tokens are saved; when a half-finished trajectory is handed to another vendor's model, they turn into real API errors (Experiment 5-1 in Chapter 5 of the book).
 
@@ -142,7 +142,7 @@ The quiz in [Context: The Working Set](/learn-ai-agents/chapter-1/04-context-wor
 
 ## Why the cache is so sensitive to the prefix
 
-The Chat Template converts system messages and tool definitions into a fixed token sequence near the beginning of the input, whose key-value states can be cached and reused across requests. If a token in this prefix changes, even through an extra space in the system prompt, the cache from the first differing token onward can no longer be reused. In the terms lesson 2.4 introduces, this cross-request reuse happens at the Prompt Cache level, and what gets reused is the prefix's KV Cache.
+The Chat Template converts system messages and tool definitions into a fixed token sequence near the beginning of the input, whose key-value states can be cached and reused across requests. If a token in this prefix changes, even through an extra space in the system prompt, the cache from the first differing token onward can no longer be reused. In the terms [lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/) introduces, this cross-request reuse happens at the Prompt Cache level, and what gets reused is the prefix's KV Cache.
 
 <KeyTakeaways>
 - KV Cache reuse holds only up to the first differing token; everything from there on is recomputed. A `Current time: {{now}}` line in the system prompt took TTFT from 0.5 s to 3–5 s and nearly doubled the bill.

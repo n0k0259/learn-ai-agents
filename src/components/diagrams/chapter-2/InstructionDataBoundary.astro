@@ -1,0 +1,100 @@
+---
+// Instructions vs. data: trusted channels (system, user) carry authority over the agent; untrusted external content is wrapped in a source tag before entering the context, and the context layer is only the first line of defense.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 522"
+	role="img"
+	aria-labelledby="d2-idb-title d2-idb-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-idb-title">Separating instructions from data</title>
+	<desc id="d2-idb-desc">
+		Left: trusted channels, the system prompt and the user's direct request, sent in their own Chat Template roles.
+		Right: untrusted external content, each item wrapped in an external_content tag that annotates its source: web
+		page hidden text, email, PDF metadata, image EXIF metadata, a third-party Skill, and a status-bar source an
+		attacker can manipulate. Both flow into the context, the trusted channels through structured roles and the
+		external content through input sanitization, which is auxiliary only. In the context, instructions carry
+		authority and data is only material to be processed. A banner notes that the context layer is only the first line
+		of defense; the execution and data layers are in lesson 1.8 and later chapters.
+	</desc>
+	<defs>
+		<marker id="d2-idb-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Separating instructions from data</text>
+
+	<!-- Left: trusted channels -->
+	<g class="dg-container dg-harness">
+		<rect x="2" y="44" width="220" height="258" rx="12"></rect>
+		<text x="14" y="72" font-weight="700">Trusted channels</text>
+		<text x="14" y="94" class="dg-sub">may direct behavior</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="14" y="118" width="196" height="64" rx="8"></rect>
+		<text x="30" y="143" class="dg-accent" font-weight="700">system</text>
+		<text x="30" y="167" class="dg-sub">system prompt</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="14" y="206" width="196" height="64" rx="8"></rect>
+		<text x="30" y="231" class="dg-accent" font-weight="700">user</text>
+		<text x="30" y="255" class="dg-sub">direct user request</text>
+	</g>
+
+	<!-- Right: untrusted content, wrapped in source tags -->
+	<g class="dg-container dg-guard">
+		<rect x="246" y="44" width="472" height="258" rx="12"></rect>
+		<text x="258" y="72" font-weight="700">&lt;external_content source="…"&gt;</text>
+		<text x="258" y="94" class="dg-sub">untrusted: material, not instructions</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="258" y="110" width="220" height="48" rx="8"></rect>
+		<text x="274" y="140">Web page hidden text</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="490" y="110" width="216" height="48" rx="8"></rect>
+		<text x="506" y="140">Email</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="258" y="170" width="220" height="48" rx="8"></rect>
+		<text x="274" y="200">PDF metadata</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="490" y="170" width="216" height="48" rx="8"></rect>
+		<text x="506" y="200">Image EXIF metadata</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="258" y="230" width="220" height="48" rx="8"></rect>
+		<text x="274" y="260">Third-party Skill</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="490" y="230" width="216" height="48" rx="8"></rect>
+		<text x="506" y="260">Status-bar source</text>
+	</g>
+
+	<!-- Context -->
+	<g class="dg-node dg-context">
+		<rect x="2" y="356" width="716" height="72" rx="10"></rect>
+		<text x="18" y="384" class="dg-accent" font-weight="700">Context</text>
+		<text x="18" y="410" class="dg-sub">instructions carry authority; data is only material to be processed</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="112" y1="302" x2="112" y2="354" marker-end="url(#d2-idb-arrow)"></line>
+		<text x="124" y="334" class="dg-edge-label">structured roles</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="482" y1="302" x2="482" y2="354" marker-end="url(#d2-idb-arrow)"></line>
+		<text x="494" y="334" class="dg-edge-label">input sanitization (auxiliary)</text>
+	</g>
+
+	<!-- Banner -->
+	<g class="dg-node dg-neutral">
+		<rect x="2" y="446" width="716" height="72" rx="10"></rect>
+		<text x="18" y="474" font-weight="700">Context layer = first line of defense only</text>
+		<text x="18" y="500" class="dg-sub">Execution and data layers: lesson 1.8 and later chapters</text>
+	</g>
+</svg>

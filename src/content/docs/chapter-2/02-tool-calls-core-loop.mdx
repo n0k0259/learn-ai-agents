@@ -305,9 +305,9 @@ This "static prefix + trajectory" structure is the foundation for KV Cache optim
 
 The rest of this chapter examines each layer of the structure:
 
-- a stable static prefix to accelerate inference with the KV Cache (lessons 2.3–2.4);
-- designing an effective system prompt (lesson 2.5);
-- stopping external content from hijacking the context, that is, prompt injection defense (lesson 2.6);
+- a stable static prefix to accelerate inference with the KV Cache (lessons [2.3](/learn-ai-agents/chapter-2/03-attention-kv-cache-chat-template/)–[2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/));
+- designing an effective system prompt ([lesson 2.5](/learn-ai-agents/chapter-2/05-system-prompts/));
+- stopping external content from hijacking the context, that is, prompt injection defense ([lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/));
 - loading specialized knowledge on demand with Agent Skills (lesson 2.7);
 - injecting dynamic state at the end of the conversation with the Agent Status Bar (lesson 2.8);
 - compressing conversation history when it grows too large (lessons 2.9–2.10).
@@ -341,7 +341,7 @@ Three guidelines follow from it. Keep the system prompt and core tool definition
 - **Performance:** on the Apple M2 chip used by the book's author, the model can generate more than 100 tokens per second, which the author calls sufficient for real-time interactive applications. By the book's rule of thumb, one Chinese character typically corresponds to 1–2 tokens and one English word to 1–3 tokens.
 - **The ReAct loop:** the model solves complex problems through multiple rounds of reasoning and tool calling.
 - **Streaming:** users see the model's reasoning in real time, including decisions about tool calls and the processing of results.
-- **KV Cache, as an incidental observation:** compare the time to first token (TTFT) with the system prompt unchanged and with a few characters changed at its start. The unchanged prefix is significantly faster; lesson 2.3 explains why.
+- **KV Cache, as an incidental observation:** compare the time to first token (TTFT) with the system prompt unchanged and with a few characters changed at its start. The unchanged prefix is significantly faster; [lesson 2.3](/learn-ai-agents/chapter-2/03-attention-kv-cache-chat-template/) explains why.
 
 **What the token stream shows.** In a local deployment, the server (vLLM or Ollama, for example) converts the API messages into the model's internal token format. The project lets you inspect the raw input and output token stream, including details normally hidden at the API level:
 
