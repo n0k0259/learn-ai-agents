@@ -109,7 +109,7 @@ Back to flight booking. An autonomous agent needs no four predefined nodes. The 
 
 The agent therefore has to plan for itself, choosing its own execution steps. It also has to recognize failure and change strategy rather than simply halting on an error. But autonomy is not unbounded. You must design in explicit **stopping conditions** (task complete, maximum iterations reached, unrecoverable error hit); otherwise the agent can enter an infinite loop or keep executing after the task is already done.
 
-In implementation terms, an autonomous agent is an LLM using tools in a loop, continuously taking in environmental feedback to make progress on the task. This is the ReAct loop from [lesson 1.5](/learn-ai-agents/chapter-1/05-react-loop/). Common exit conditions are calling a final output tool, the model returning a response with no tool calls, and hitting an error or the maximum number of rounds.
+In implementation terms, an autonomous agent is an LLM using tools in a loop, continuously taking in environmental feedback to make progress on the task. This is the ReAct loop from [lesson 1.5 (The ReAct Loop)](/learn-ai-agents/chapter-1/05-react-loop/). Common exit conditions are calling a final output tool, the model returning a response with no tool calls, and hitting an error or the maximum number of rounds.
 
 <StepAnimator label="Autonomous agent loop">
 <Figure caption="The autonomous agent loop: think, act, observe, then check the exit conditions. Any one condition ends the loop." credit="Redrawn from Figure 1-6, AI Agent Book by Bojie Li (Apache 2.0).">

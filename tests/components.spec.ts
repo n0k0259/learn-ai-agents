@@ -14,10 +14,20 @@ test('key takeaways box is labelled for assistive tech', async ({ page }) => {
 });
 
 test('pages with a source show the attribution footer', async ({ page }) => {
-	await page.goto('chapter-1/');
+	await page.goto('chapter-1/01-what-is-an-agent/');
 	const attribution = page.locator('.lesson-attribution');
 	await expect(attribution).toContainText('Bojie Li');
 	await expect(attribution.getByRole('link', { name: 'Read the original section →' })).toHaveAttribute(
+		'href',
+		/github\.com\/bojieli\/ai-agent-book\/blob\/main\/book-en\/chapter1\.md/,
+	);
+});
+
+test('the chapter overview footer links to the original chapter', async ({ page }) => {
+	await page.goto('chapter-1/');
+	const attribution = page.locator('.lesson-attribution');
+	await expect(attribution).toContainText('This page summarizes the original chapter.');
+	await expect(attribution.getByRole('link', { name: 'Read the original chapter →' })).toHaveAttribute(
 		'href',
 		/github\.com\/bojieli\/ai-agent-book\/blob\/main\/book-en\/chapter1\.md/,
 	);

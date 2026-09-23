@@ -3,6 +3,8 @@ import Default from '@astrojs/starlight/components/Footer.astro';
 
 const { entry } = Astro.locals.starlightRoute;
 const source = entry.data.source;
+// The chapter overview claims no source sections; lessons always list at least one.
+const isOverview = source?.sections.length === 0;
 ---
 
 {
@@ -10,8 +12,9 @@ const source = entry.data.source;
 		<p class="lesson-attribution">
 			Adapted from <cite>AI Agent Book</cite> by Bojie Li (
 			<a href="https://github.com/bojieli/ai-agent-book">GitHub</a>), licensed under the{' '}
-			<a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</a>. This lesson rewrites and
-			restructures the original text. <a href={source.url}>Read the original section →</a>
+			<a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</a>.{' '}
+			{isOverview ? 'This page summarizes the original chapter.' : 'This lesson rewrites and restructures the original text.'}{' '}
+			<a href={source.url}>{isOverview ? 'Read the original chapter →' : 'Read the original section →'}</a>
 		</p>
 	)
 }
