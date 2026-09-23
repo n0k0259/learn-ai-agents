@@ -1,0 +1,68 @@
+---
+// Three levels of agent capability updates: context, external artifacts, model parameters (redraw of Fig 1-2).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 400"
+	role="img"
+	aria-labelledby="d-cul-title d-cul-desc"
+	style="min-width: 630px"
+>
+	<title id="d-cul-title">Three levels of agent capability updates</title>
+	<desc id="d-cul-desc">
+		Three columns. Contextual adaptation happens at inference time: temporary and instant, bounded by the context
+		window, for example learning a format from three examples. External artifacts are updated at runtime: persistent
+		and auditable, covering knowledge, prompts, Skills, and programs, for example freezing a workflow into a tool.
+		Model parameters are updated at training time: permanent and general, but with high cost and slow to update, for
+		example learning when to call a tool. An arrow beneath runs from slower (weeks) on the right to faster to update
+		(milliseconds) on the left, and the three paths are ordered from most reversible to least reversible.
+	</desc>
+	<defs>
+		<marker id="d-cul-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="12" y="30" class="dg-title">Three levels of agent capability updates</text>
+
+	<g class="dg-node dg-context">
+		<rect x="12" y="52" width="220" height="220" rx="12"></rect>
+		<text x="122" y="84" text-anchor="middle" class="dg-accent" font-weight="700">Contextual adaptation</text>
+		<text x="122" y="112" text-anchor="middle">inference time</text>
+		<text x="122" y="136" text-anchor="middle">temporary · instant</text>
+		<text x="122" y="160" text-anchor="middle">bounded by the</text>
+		<text x="122" y="184" text-anchor="middle">context window</text>
+		<text x="122" y="220" text-anchor="middle">e.g. learn a format</text>
+		<text x="122" y="244" text-anchor="middle">from 3 examples</text>
+	</g>
+
+	<g class="dg-node dg-harness">
+		<rect x="250" y="52" width="220" height="220" rx="12" style="stroke-dasharray: none"></rect>
+		<text x="360" y="84" text-anchor="middle" class="dg-accent" font-weight="700">External artifacts</text>
+		<text x="360" y="112" text-anchor="middle">runtime</text>
+		<text x="360" y="136" text-anchor="middle">persistent · auditable</text>
+		<text x="360" y="160" text-anchor="middle">knowledge, prompts,</text>
+		<text x="360" y="184" text-anchor="middle">Skills, programs</text>
+		<text x="360" y="220" text-anchor="middle">e.g. freeze a</text>
+		<text x="360" y="244" text-anchor="middle">workflow into a tool</text>
+	</g>
+
+	<g class="dg-node dg-model">
+		<rect x="488" y="52" width="220" height="220" rx="12"></rect>
+		<text x="598" y="84" text-anchor="middle" class="dg-accent" font-weight="700">Model parameters</text>
+		<text x="598" y="112" text-anchor="middle">training time</text>
+		<text x="598" y="136" text-anchor="middle">permanent · general</text>
+		<text x="598" y="160" text-anchor="middle">high cost · slow</text>
+		<text x="598" y="184" text-anchor="middle">to update</text>
+		<text x="598" y="220" text-anchor="middle">e.g. learn when</text>
+		<text x="598" y="244" text-anchor="middle">to call a tool</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="708" y1="300" x2="14" y2="300" marker-end="url(#d-cul-arrow)"></line>
+	</g>
+	<text x="12" y="330" class="dg-edge-label">faster to update (milliseconds)</text>
+	<text x="708" y="330" text-anchor="end" class="dg-edge-label">slower (weeks)</text>
+	<text x="360" y="372" text-anchor="middle" class="dg-edge-label">most reversible → least reversible</text>
+</svg>

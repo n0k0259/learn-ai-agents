@@ -1,0 +1,136 @@
+---
+title: The LLM as Reasoning Engine
+description: What the model contributes, the Model-as-Agent shift, why the harness still matters, and the three ways an agent's behavior can change.
+sidebar:
+  order: 3
+  label: 1.3 The LLM as Reasoning Engine
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter1.md#llm-the-agents-reasoning-engine
+  sections:
+    - "LLM: The Agent's Reasoning Engine"
+    - "Model as Agent: When the Model Itself Becomes the Product"
+    - "Agent Learning Mechanisms: From Contextual Adaptation to Persistent Updates"
+---
+import Figure from '~/components/Figure.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import CapabilityUpdateLevels from '~/components/diagrams/chapter-1/CapabilityUpdateLevels.astro';
+
+:::tip[TL;DR]
+The LLM infers intent, plans, and picks each next action. Models are absorbing more of the agent loop, but that makes the harness more important, not less. Behavior can change in three places: context, external artifacts, and weights.
+:::
+
+## What the model contributes
+
+The Large Language Model (LLM) is the agent's decision-making core. Given a user request, it has to:
+
+- **infer the real intent**, because what users say is often not what they actually want;
+- **decompose the task**, breaking a vague or complex request into executable steps;
+- **decide at every step**: what to do next, whether to call a tool, which one, and with what arguments.
+
+This understand–plan–execute capability comes from knowledge accumulated during pre-training. It is the foundation that both workflows and autonomous agents depend on.
+
+A distinctive capability of LLM agents is **internal reasoning**: before acting, the agent can plan and reason through the task. Internal reasoning does not change the external environment, yet it markedly improves the actions that follow.
+
+This ability also comes from pre-training, the initial training on massive amounts of internet text through which the model learns language patterns and world knowledge. The model draws on reasoning patterns encoded in human knowledge: mathematical laws, causal relationships, and strategies for decomposing problems. That is the key contrast with traditional reinforcement-learning agents. Today's LLM-based agents do not explore through blind trial and error; they reason over a structured body of knowledge.
+
+## Model as Agent
+
+"Model as Agent" is the newest direction in AI agent development. Advanced models internalize tool calling as a native ability through post-training, especially reinforcement learning. When to call a tool, which one, and with what arguments: the model decides all of it, with no manual orchestration required.
+
+You might expect that to make the framework layer less important. The book argues the opposite: **the stronger the model, the more the surrounding Harness matters.**
+
+The word *harness* originally meant the reins and tack fitted to a horse. They don't limit the horse's ability to run; they direct that power appropriately. In an agent, the model is the powerful yet unpredictable horse, and the Harness is the engineering infrastructure that channels its capability into reliable task execution. It includes:
+
+- context management;
+- tool interfaces;
+- safety constraints;
+- verification and correction mechanisms.
+
+The Harness is covered in detail in the final section of Chapter 1 of the book.
+
+The more decision authority a model has, the greater the impact of a wrong decision. Keeping it reliable calls for finer-grained constraint, verification, and correction.
+
+For model providers, the real advantage is not "making the framework thinner". It is being able to co-optimize the model and its surrounding Harness, iterating on both continuously.
+
+## Will the harness be absorbed? The Bitter Lesson
+
+A deeper question follows. If models keep getting stronger, will today's Harness eventually be absorbed into the model?
+
+In "The Bitter Lesson", Rich Sutton looked back on a pattern repeated throughout seventy years of AI research. Researchers kept encoding their understanding of a domain into a system. That brought short-term gains, but it ultimately lost to general methods, search and learning, that scale with compute and data. Seen through that lens, how much of a Harness's constraint, verification, and correction is "human prior" that the model is destined to internalize?
+
+The book's position: **models will increasingly absorb these capabilities, but you should be realistic about how quickly that will happen.**
+
+- **The direction is not in doubt.** Tool calling and long-horizon planning once depended on external orchestration. Both are now native model capabilities.
+- **The pace is far slower than intuition suggests.** Training proceeds on a timescale of months, and no model can internalize all the constraints and preferences of real businesses in a single pass.
+
+So the model's current capability boundary is precisely where the Harness creates value. Harness engineering is not resistance to the Bitter Lesson. In the book's framing, **harness engineering is the Bitter Lesson practiced on an engineering timescale**. Whatever the model cannot yet do reliably, the Harness covers first. Whenever the model internalizes another layer, the Harness sheds that layer and moves on to support the next capability frontier.
+
+:::note[Engineer's note]
+Build harness layers so they can be deleted. When a model internalizes a layer, removing it from your harness should be a small, isolated change.
+:::
+
+## Three ways an agent's behavior changes
+
+A model can internalize tool-use policies as native capabilities through reinforcement learning. But an agent's behavior does not change only during training. The book sorts behavior changes by **where the update occurs and how long it persists** into three complementary paths:
+
+1. within-task **contextual adaptation**;
+2. cross-task updates to **external artifacts**;
+3. **parameter updates** during training cycles.
+
+<Figure caption="Three levels of agent capability updates, from fast and temporary context changes to slow and permanent parameter updates." credit="Redrawn from Figure 1-2, AI Agent Book by Bojie Li (Apache 2.0).">
+<CapabilityUpdateLevels />
+</Figure>
+
+**Contextual adaptation** occurs within the current task. Once examples, state, and retrieval results enter the context, the model can adjust its behavior immediately. None of it changes the persistent state of the next session. Its advantages are speed and low cost. Its limits come from the context window and from how the information is organized. Chapter 2 of the book explains in detail how this form of adaptation works.
+
+**External artifacts** make changes persist across tasks. Each kind of change goes into its own kind of artifact:
+
+- facts and experience go into **knowledge documents**;
+- strategies expressible in language go into a **Prompt or Skill**;
+- deterministic procedures and constraints are encoded in **programs and Harnesses**.
+
+These artifacts are auditable and revisable. The catch is that the agent must still access them at execution time, through the context or tool interfaces. Chapters 3 through 5 of the book establish the foundations for knowledge and programs. Chapter 9 discusses how such updates can be generated from evaluated operational trajectories.
+
+**Model parameters** must be updated through post-training when the goal is a high-dimensional capability that external rules cannot fully express. The book's examples are medical-image understanding, natural-language style, and an implicit decision policy. Parameter updates carry higher deployment costs, but they can produce natural and broad generalization. Chapter 8 of the book presents the methods systematically.
+
+Here are the three paths side by side:
+
+| Path | Where it lives | Persists across sessions? | Speed / cost | Best for | Covered in |
+|---|---|---|---|---|---|
+| **Contextual adaptation** | The current context (examples, state, retrieval results) | No | Instant and cheap; bounded by the context window | Per-task adjustment | Chapter 2 |
+| **External artifacts** | Knowledge docs, prompts/Skills, programs and harness code | Yes; auditable and revisable | Must be loaded through context or tools at run time | Facts, strategies expressible in language, deterministic procedures | Chapters 3–5, 9 |
+| **Model parameters** | Weights, via post-training | Yes; broad generalization | High deployment cost, slow | High-dimensional skills rules can't express (medical images, style, implicit policies) | Chapter 8 |
+
+The three paths are not mutually exclusive categories. They are coordinated mechanisms operating on different timescales:
+
+- context supports immediate adaptation;
+- external artifacts support controlled accumulation;
+- parameters internalize capabilities that are difficult to express explicitly.
+
+<KeyTakeaways>
+- The LLM infers the real intent, decomposes the task into executable steps, and decides each next action: whether to call a tool, which one, and with what arguments.
+- Internal reasoning changes nothing in the environment but markedly improves the actions that follow. LLM agents reason over structured knowledge from pre-training instead of exploring by blind trial and error.
+- Model as Agent: post-training (especially reinforcement learning) makes tool calling a native model ability, with no manual orchestration.
+- The stronger the model, the more the Harness matters. More decision authority means a wrong decision has more impact, so it needs finer-grained constraint, verification, and correction.
+- Models will keep absorbing parts of the Harness, but slowly. Harness engineering is the Bitter Lesson practiced on an engineering timescale: cover what the model can't yet do reliably, and shed each layer the model internalizes.
+- Behavior changes along three coordinated paths on different timescales: contextual adaptation (immediate, temporary), external artifacts (persistent, auditable), and model parameters (costly, broadly generalizing).
+</KeyTakeaways>
+
+### References
+
+- Rich Sutton, [The Bitter Lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html) (2019).
+
+## Check yourself
+
+<Quiz question="Models are taking over tool-calling decisions, yet the book says harness engineering matters more. How do both hold?">
+Think of the horse and the reins. The stronger the model and the more autonomy it has, the wider the blast radius of its mistakes, and the greater the need for constraint, verification, and correction. The value of an agent framework shifts from orchestrating LLM calls to the assurance layer: permissions, circuit breakers, error recovery, context compression, and the tool ecosystem.
+</Quiz>
+
+<Quiz question="Your team must make the agent follow a new refund policy by tomorrow. Which update path do you use?">
+An external artifact: write the policy into a prompt or Skill, and encode hard limits as a deterministic rule in the harness. It takes effect at the next run, and it is auditable and reversible. Fine-tuning the model parameters is slow and costly, and a context-only change doesn't persist into the next session.
+</Quiz>
+
+<Quiz question="What does the model's internal reasoning change in the environment?">
+Nothing. Internal reasoning changes no external state. Its value is that it markedly improves the actions that follow.
+</Quiz>
