@@ -1,0 +1,178 @@
+---
+title: "System Prompts: Tone, Structure, Rules & Examples"
+description: The new-team-member test, emphasis and tone, XML plus Markdown structure, SOPs over rule piles, executable business rules, and when to use few-shot examples.
+sidebar:
+  order: 5
+  label: 2.5 System Prompts
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md#prompt-engineering-optimizing-the-system-prompt
+  sections:
+    - 'Prompt Engineering: Optimizing the System Prompt'
+    - 'Tone and Style: Behavioral Framing'
+    - 'Structured Prompts: The "Format" of the System Prompt'
+    - 'Process-Driven vs. Rule Stacking: The "Organization" of the System Prompt'
+    - 'Translating Business Rules into Executable Instructions'
+    - 'Few-Shot Examples: When to Show the Model Examples'
+---
+import Figure from '~/components/Figure.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import RulesVsSOP from '~/components/diagrams/chapter-2/RulesVsSOP.astro';
+
+:::tip[TL;DR]
+Write the system prompt for a capable new team member who knows nothing about your workflows. Reserve uppercase emphasis for critical constraints, layer XML semantics under Markdown hierarchy, and organize instructions as an SOP rather than a pile of rules. Business rules must be precise enough to execute, and when the desired output is hard to describe with rules, two or three few-shot examples are often better than long abstract descriptions.
+:::
+
+## The agent's operating manual
+
+The primary focus of prompt engineering is the **system prompt**: the `role: "system"` message in the API message list. It is the agent's operating manual, defining its identity, behavioral rules, constraints and workflow. A well-designed system prompt lets the model fully leverage its general capabilities in a specific task. Prompt engineering as the first wave of the paradigm shift toward context engineering is covered in lesson 1.6 ([Harness Engineering](/learn-ai-agents/chapter-1/06-harness-engineering/)).
+
+The book offers a practical litmus test. Treat the LLM as a highly capable new team member who is completely unfamiliar with your specific workflows and internal conventions. If that new team member, after reading your system prompt, still doesn't know what to do, neither will the agent.
+
+## Tone and style: behavioral framing
+
+Tone and style are easy to overlook, but they strongly shape the user experience. Consider instructions such as "You MUST answer concisely with fewer than 4 lines." When the agent can't complete a task, constraints such as "keep your response to 1–2 sentences" and "do not explain why you cannot do something" prevent lengthy self-justification.
+
+Uppercase words such as "NEVER do X" increase instruction salience more than softer phrasing such as "Please avoid doing X". Overuse dilutes the effect, though, so reserve them for truly critical constraints.
+
+## Structured prompts: the format
+
+Modern large language models show significant sensitivity to structured input, because their training data contains a large amount of structured content. XML tags follow a hierarchical principle, and the tag names themselves carry semantic information. `<working_directory>` immediately tells the model that this is working directory information. A plain text line like "Current directory: /Users/project/src" makes the model do extra reasoning to infer the relationship between the two sides of the colon.
+
+Markdown provides lightweight structure while staying readable, which makes it particularly suitable for organizing hierarchical instructions and information. Together they form a two-layer structure: XML provides precise, machine-parseable semantics, and Markdown organizes the content for human and machine readers. Here is a system prompt that uses both at once:
+
+```text
+# Tool Usage Guidelines
+
+## File Operations
+<file_operation>
+- Check whether the path exists before reading a file
+- Create a backup before writing a file
+</file_operation>
+
+## Network Requests
+<network_request>
+- Set the timeout to 30 seconds
+- Retry at most 3 times after a failure
+</network_request>
+```
+
+The `#` and `##` headings let a human take in the hierarchy at a glance, which keeps the prompt readable. The `<file_operation>` and `<network_request>` tags tell the model "this block is about file operations" and "this block is about network requests", precise semantics that make its handling more accurate. The same prompt reads clearly for humans and parses precisely for the model.
+
+## Process-driven vs. rule stacking: the organization
+
+Methods that reduce cognitive load for humans are equally effective for large language models, because the model learned human language and reasoning patterns during training. Imagine handing a new team member a manual with hundreds of scattered rules, no flowcharts and no priority instructions. Even a highly capable person would be confused: when several rules apply at once, which one wins? And what about situations the rules don't cover?
+
+A process-driven prompt works like an effective training manual instead. It gives the model a clear Standard Operating Procedure (SOP):
+
+```text
+File Processing Standard Operating Procedure:
+
+Step 1: Validation
+   Check if file exists and is accessible
+   - If not found → log error and stop
+   ↓
+Step 2: Classification
+   Determine file type based on extension and content
+   ↓
+Step 3: Preprocessing
+   Config files → create backup
+   Large files (>1MB) → stream processing
+   ↓
+Step 4: Execution
+   Execute core processing logic based on file type
+   ↓
+Step 5: Verification
+   Ensure integrity of the processed file
+```
+
+<Figure caption="The same file-handling knowledge as a rule pile (left) and as the five-step SOP (right). The pile leaves open which rule applies when several match; the SOP places each rule in a stage, with the not-found branch at Step 1.">
+<RulesVsSOP />
+</Figure>
+
+The process design helps the model track which stage it is in, what the current step is trying to accomplish, and what should happen next. When an exception occurs, the model can choose a response based on the current stage instead of searching a long list of unrelated rules.
+
+The book's prompt ablation study, Experiment 2-4 in lesson 2.6, measures how much tone and information organization each affect task success.
+
+## Business rules as executable instructions
+
+When you build production-grade agent systems, one of the most critical and easily overlooked steps is **turning business policies into precise decision rules**. The book frames this as a product-design problem rather than a technical one, and one that demands deep involvement from product managers.
+
+### The billing example
+
+Consider an agent that makes phone calls to resolve billing issues. The user says they want to lower a subscription fee or get a refund, and the agent calls customer service to negotiate. The product manager's core requirement is "refund the service fee if the task is unsuccessful", which encourages users to try while preventing abuse. The team designed three billing models: a commission on savings, a fixed service fee and a prepayment for difficult tasks.
+
+Vague rules, such as "choose the appropriate billing type based on the task situation", lead to highly unstable agent behavior. Is "Help me return the clothes I bought last month" saving the user money, or retrieving money that rightfully belongs to them? "Help me cancel my Netflix subscription" does prevent future payments, but does that count as saving money? The same task might be classified completely differently at different times, which makes the business logic unpredictable.
+
+Product managers must define the decision rules to the point where they're executable. Commission-based billing applies only where the agent reduces an existing bill through negotiation, using its negotiation skills to convince the merchant. Refunds and service cancellations must never be commission-based, and the prompt has to say so explicitly:
+
+```text
+NEVER use percentage_based_one_time for refunds and service cancellations. Use fixed_fee instead.
+```
+
+The resulting decision rules, task type to fee model:
+
+| Task type | Fee model |
+|---|---|
+| Existing bill reduced through negotiation | Commission on savings, e.g. 20% of the money saved |
+| Refund or service cancellation | `fixed_fee`; never `percentage_based_one_time` |
+| Task that doesn't save money, such as booking a restaurant | Fixed service fee based on complexity |
+| Task with a very low success rate | Non-refundable prepayment, to filter out unrealistic requests |
+
+Success-rate estimation and amount calculation need the same precision. The success rate should be evaluated step by step according to a fixed process, and the estimated probability should map directly to a billing model. Amount calculation must define the billing granularity, and state explicitly that "savings" are calculated only from the existing bill. The book gives these example values:
+
+| Rule | Example value |
+|---|---|
+| Estimated success probability above 60% | Might use the refundable model |
+| Estimated success probability below 30% | Might be rejected |
+| Phone call billing | $0.05 per minute, total rounded to the nearest whole dollar |
+
+Without the existing-bill rule, the model might reason: "If the price rises to $180 next year without negotiation, and I help maintain it at $150, that saves $30." That counts the avoidance of a future price increase as savings.
+
+### Who writes the rules
+
+These rules may seem trivial, but details like these determine the consistency of system behavior. In mature agent teams, prompts are often designed by **product managers**, who iterate on rule definitions based on production data, user feedback and operational experience. The engineer's role is to encode the rules accurately, ensure correct formatting and clear structure, and avoid making arbitrary business-logic decisions.
+
+The underlying philosophy: large language models are strong at following complex instructions and extracting information from long contexts, but they shouldn't be given excessive discretion in formulating business rules. A clear operational framework frees the model's cognitive resources for the parts that truly require reasoning. Effective training doesn't leave people to infer the process on their own; it gives them detailed standard operating procedures to work within.
+
+Putting a policy change into a prompt or Skill, rather than into model weights, is covered in lesson 1.3 ([The LLM as Reasoning Engine](/learn-ai-agents/chapter-1/03-llm-reasoning-engine/)).
+
+## Few-shot examples: when to show the model
+
+Beyond rules and processes, examples (few-shot examples) are another important type of system prompt content. Some desired outputs are hard to describe precisely with rules: copywriting in a specific style, the format of a structured report, or the tone and nuance of customer service replies. There, it's often better to provide two or three high-quality input-output examples than to write long abstract descriptions. The model can adapt to these patterns within the current context, often more effectively than it can follow the same amount of abstract instruction; the mechanism behind this is covered in lesson 2.9.
+
+Conversely, for tasks the model already handles well and whose rules are easy to state, examples waste tokens.
+
+:::note[Engineer's note]
+Lesson 1.7 ([Orchestration Patterns](/learn-ai-agents/chapter-1/07-orchestration-patterns/)) lists few-shot examples among the harness patches that instruction tuning internalized. The two points don't conflict. The book scopes few-shot examples here to outputs that are hard to describe precisely with rules, and says they waste tokens on tasks the model already handles well and whose rules are easy to state. The second case matches what 1.7 describes as internalized; the first is where the book still recommends examples.
+:::
+
+### Where to put them, and keeping them stable
+
+There are two engineering decision points. The first is **where to place the examples**. In the system prompt, they become a static prefix that's effective for all requests. Alternatively, a set of synthetic user/assistant messages can go in the first round of dialogue, which suits scenarios that need different example sets for different conversation types.
+
+The second is **how examples affect KV Cache prefix stability**. Wherever you place them, examples appear early in the context, so once selected they should stay byte-for-byte stable. Dynamically retrieving a different "most relevant" example for every request repeatedly invalidates the cache, because a prefix change forces everything after it to be recomputed (covered in [lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). That's why production systems typically prepare a fixed set of examples for each task type rather than selecting them per request.
+
+More examples are not always better. Two or three carefully selected examples covering boundary cases are usually more useful than ten near-duplicates, which consume context and dilute the model's attention to the rules themselves.
+
+<KeyTakeaways>
+- The system prompt is the agent's operating manual. Test it against a capable new team member: if they wouldn't know what to do after reading it, neither will the agent.
+- Uppercase "NEVER" raises salience more than softer phrasing, but overuse dilutes it; reserve it for truly critical constraints. XML tags carry semantics, and Markdown carries human-readable hierarchy.
+- An SOP lets the model know which stage it's in and handle exceptions from there; a pile of scattered rules leaves it guessing which one applies.
+- Business rules must be executable, down to which task types can be commission-based and how savings are measured. In mature teams, product managers often design them and engineers encode them.
+- Use two or three few-shot examples when the output is hard to describe with rules. Keep them byte-for-byte stable, with a fixed set per task type, not retrieved per request.
+</KeyTakeaways>
+
+## Check yourself
+
+<Quiz question="The book's prompt ablation (Experiment 2-4, lesson 2.6) shows that disorganized information lowers the success rate. System prompts are often maintained by several people over time. What engineering practices keep a prompt from growing disorganized?">
+Enforce structure: organize instructions as an SOP rather than a growing pile of rules, and layer them with Markdown headings for hierarchy and XML tags for semantics. Keep the division of labor clear: product managers define and iterate on business rules from production data, and engineers encode them accurately without making arbitrary business-logic decisions. Keep the cache in mind when editing: content early in the context, such as examples, should stay byte-for-byte stable, and dynamic content belongs after the cache boundary (lesson 2.4). Beyond this lesson, the book also suggests re-running ablations like Experiment 2-4 before and after changes (lesson 2.6) and splitting bloated content into Skills loaded on demand (lesson 2.7).
+</Quiz>
+
+<Quiz question="A user says, &quot;Help me cancel my Netflix subscription.&quot; Commission or fixed fee, and why must the prompt say so explicitly?">
+Fixed fee. Commission-based billing applies only when the agent reduces an existing bill through negotiation; refunds and service cancellations must never be commission-based. Cancelling does prevent future payments, so under a vague rule like "choose the appropriate billing type based on the task situation" the model might count it as saving money, and the same task might be classified differently at different times. The prompt has to state it outright: "NEVER use percentage_based_one_time for refunds and service cancellations. Use fixed_fee instead."
+</Quiz>
+
+<Quiz question="Why does retrieving the 'most relevant' few-shot examples for each request hurt a production agent?">
+Wherever they're placed, in the system prompt or in synthetic first-round messages, examples appear early in the context. Swapping them per request changes the prefix, so the cache is invalidated on every request and everything after the examples is recomputed. Production systems typically prepare a fixed set of examples for each task type and keep it byte-for-byte stable.
+</Quiz>

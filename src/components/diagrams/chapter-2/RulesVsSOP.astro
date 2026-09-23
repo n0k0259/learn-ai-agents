@@ -1,0 +1,114 @@
+---
+// Rule stacking vs a process-driven SOP: a pile of unordered rules leaves the model asking which one applies; the five-step file-processing SOP tells it which stage it is in and what comes next.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 512"
+	role="img"
+	aria-labelledby="d2-rvs-title d2-rvs-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-rvs-title">Rule stacking vs. a process-driven SOP</title>
+	<desc id="d2-rvs-desc">
+		Left: a rule pile of unordered cards with no flowchart and no priority: back up config files, verify file
+		integrity, missing file then stop, stream files over 1MB, check the file type. When several match, which one
+		applies? And what about situations no rule covers? Right: the file processing standard operating procedure as an
+		ordered chain. Step 1 Validation checks the file exists and is accessible; if not found, log error and stop.
+		Step 2 Classification determines the type by extension and content. Step 3 Preprocessing backs up config files
+		and streams files over 1MB. Step 4 Execution runs the core logic by file type. Step 5 Verification ensures the
+		integrity of the processed file.
+	</desc>
+	<defs>
+		<marker id="d2-rvs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Rule stacking vs. a process-driven SOP</text>
+
+	<!-- Left: rule pile -->
+	<g class="dg-container dg-neutral">
+		<rect x="2" y="44" width="250" height="460" rx="12"></rect>
+		<text x="14" y="72" font-weight="700">Rule pile</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="40" y="92" width="200" height="40" rx="6"></rect>
+		<text x="56" y="118">Back up config files</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="14" y="148" width="200" height="40" rx="6"></rect>
+		<text x="30" y="174">Verify file integrity</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="40" y="204" width="200" height="40" rx="6"></rect>
+		<text x="56" y="230">Missing file → stop</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="14" y="260" width="200" height="40" rx="6"></rect>
+		<text x="30" y="286">Stream files &gt;1MB</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="40" y="316" width="200" height="40" rx="6"></rect>
+		<text x="56" y="342">Check the file type</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="14" y="384" width="226" height="98" rx="8"></rect>
+		<text x="30" y="410" class="dg-accent" font-weight="700">Several match:</text>
+		<text x="30" y="432" class="dg-accent" font-weight="700">which applies?</text>
+		<text x="30" y="464" class="dg-sub">Not covered: then what?</text>
+	</g>
+
+	<!-- Right: SOP chain -->
+	<g class="dg-container dg-neutral">
+		<rect x="268" y="44" width="450" height="460" rx="12"></rect>
+		<text x="280" y="72" font-weight="700">Process-driven SOP</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="280" y="92" width="280" height="56" rx="8"></rect>
+		<text x="296" y="115" class="dg-accent" font-weight="700">Step 1: Validation</text>
+		<text x="296" y="137" class="dg-sub">exists and accessible?</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="280" y="176" width="280" height="56" rx="8"></rect>
+		<text x="296" y="199" class="dg-accent" font-weight="700">Step 2: Classification</text>
+		<text x="296" y="221" class="dg-sub">type by extension, content</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="280" y="260" width="280" height="56" rx="8"></rect>
+		<text x="296" y="283" class="dg-accent" font-weight="700">Step 3: Preprocessing</text>
+		<text x="296" y="305" class="dg-sub">back up config; stream &gt;1MB</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="280" y="344" width="280" height="56" rx="8"></rect>
+		<text x="296" y="367" class="dg-accent" font-weight="700">Step 4: Execution</text>
+		<text x="296" y="389" class="dg-sub">core logic by file type</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="280" y="428" width="280" height="56" rx="8"></rect>
+		<text x="296" y="451" class="dg-accent" font-weight="700">Step 5: Verification</text>
+		<text x="296" y="473" class="dg-sub">integrity of processed file</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="594" y="82" width="114" height="76" rx="8"></rect>
+		<text x="606" y="104" class="dg-accent" font-weight="700">Not found:</text>
+		<text x="606" y="126">log error</text>
+		<text x="606" y="148">and stop</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="560" y1="120" x2="592" y2="120" marker-end="url(#d2-rvs-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="420" y1="148" x2="420" y2="174" marker-end="url(#d2-rvs-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="420" y1="232" x2="420" y2="258" marker-end="url(#d2-rvs-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="420" y1="316" x2="420" y2="342" marker-end="url(#d2-rvs-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="420" y1="400" x2="420" y2="426" marker-end="url(#d2-rvs-arrow)"></line>
+	</g>
+</svg>
