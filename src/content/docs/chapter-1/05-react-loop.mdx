@@ -47,7 +47,7 @@ On every LLM call, the complete context the model receives is the **static prefi
 
 > **Agent context = static prefix + trajectory**
 
-Concretely, the static prefix is the first two of the five context components from lesson 1.4 (Context: The Working Set): system prompt and tool definitions. The trajectory is the last three: user messages, assistant messages, and tool results, growing with each interaction. From this complete context the LLM generates its next response, which is appended to the trajectory for the subsequent call.
+Concretely, the static prefix is the first two of the five context components from [lesson 1.4 (Context: The Working Set)](/learn-ai-agents/chapter-1/04-context-working-set/): system prompt and tool definitions. The trajectory is the last three: user messages, assistant messages, and tool results, growing with each interaction. From this complete context the LLM generates its next response, which is appended to the trajectory for the subsequent call.
 
 ## A minimal loop
 

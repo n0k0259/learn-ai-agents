@@ -8,5 +8,21 @@ source:
   url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter1.md
   sections: []
 ---
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 
 This chapter is the conceptual map for the rest of the book. It covers the core formula, the operating loop, the engineering framework, and the design patterns later chapters build on. Aim for the big picture on your first pass; each later chapter expands one idea introduced here.
+
+## Lessons
+
+Each lesson takes 8–12 minutes and ends with a short self-check.
+
+<CardGrid>
+	<LinkCard title="1.1 What an Agent Actually Is" description="Agent = LLM + Context + Tools, and the boundary with the environment." href="/learn-ai-agents/chapter-1/01-what-is-an-agent/" />
+	<LinkCard title="1.2 Observation & Action Spaces, Tools" description="Why widening what an agent sees and does is the main lever." href="/learn-ai-agents/chapter-1/02-observation-action-tools/" />
+	<LinkCard title="1.3 The LLM as Reasoning Engine" description="Model as Agent, the Bitter Lesson, and three ways behavior changes." href="/learn-ai-agents/chapter-1/03-llm-reasoning-engine/" />
+	<LinkCard title="1.4 Context: The Working Set" description="Five parts of every call, and what an ablation study reveals." href="/learn-ai-agents/chapter-1/04-context-working-set/" />
+	<LinkCard title="1.5 The ReAct Loop" description="Reason, act, observe — trajectories and where the loop runs." href="/learn-ai-agents/chapter-1/05-react-loop/" />
+	<LinkCard title="1.6 Harness Engineering" description="Agent = Model + Harness, and where production code really goes." href="/learn-ai-agents/chapter-1/06-harness-engineering/" />
+	<LinkCard title="1.7 Orchestration: Workflow vs. Autonomous" description="Choosing, combining, and stopping orchestration patterns." href="/learn-ai-agents/chapter-1/07-orchestration-patterns/" />
+	<LinkCard title="1.8 Guardrails, Safety & the Big Picture" description="Three guardrail layers, humans in the loop, and recurring patterns." href="/learn-ai-agents/chapter-1/08-guardrails-and-big-picture/" />
+</CardGrid>
