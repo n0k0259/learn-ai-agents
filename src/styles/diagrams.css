@@ -1,3 +1,8 @@
+/* Self-hosted diagram fonts: box widths are tuned to these metrics, so they must not depend on the reader's OS fonts.
+   inter-ui ships the full Inter glyph set (arrows, check marks, circled digits); the fontsource subsets drop those. */
+@import 'inter-ui/inter-variable.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
 /* Concept color system for all diagrams. Change colors here only. */
 :root,
 :root[data-theme='light'] {
@@ -44,7 +49,10 @@ svg.dg {
 	display: block;
 	width: 100%;
 	height: auto;
-	font-family: var(--sl-font, system-ui, sans-serif);
+	font-family: InterVariable, var(--sl-font, system-ui, sans-serif);
+	/* Unhinted, subpixel-positioned glyph advances. Without it Linux Chromium rounds advances to whole
+	   pixels and bold 20px titles come out ~4% wider than on macOS with the very same font file. */
+	text-rendering: geometricPrecision;
 }
 svg.dg text {
 	fill: var(--dg-ink);
@@ -59,7 +67,7 @@ svg.dg .dg-edge-label {
 	fill: var(--dg-muted);
 }
 svg.dg .dg-mono {
-	font-family: var(--sl-font-mono, ui-monospace, monospace);
+	font-family: 'JetBrains Mono Variable', InterVariable, var(--sl-font-mono, ui-monospace, monospace);
 }
 svg.dg :is(.dg-node, .dg-container) > rect {
 	stroke-width: 2;
@@ -94,9 +102,10 @@ svg.dg .dg-guard > rect { fill: var(--dg-guard-fill); stroke: var(--dg-guard-str
 svg.dg .dg-guard > .dg-accent { fill: var(--dg-guard-stroke); }
 svg.dg .dg-neutral > rect { fill: var(--dg-neutral-fill); stroke: var(--dg-neutral-stroke); }
 
-/* Status marks (e.g. ablation matrix): never color alone — always paired with ✓ ✗ △ glyphs. */
-svg.dg .dg-ok { fill: var(--dg-tools-stroke); font-weight: 700; }
-svg.dg .dg-fail { fill: var(--dg-guard-stroke); font-weight: 700; }
+/* Status marks (e.g. ablation matrix): never color alone — always paired with ✓ ✗ △ glyphs.
+   Inter draws ✓ and ✗ at lowercase height, so the standalone marks are set larger to read at a glance. */
+svg.dg .dg-ok { fill: var(--dg-tools-stroke); font-weight: 700; font-size: 22px; }
+svg.dg .dg-fail { fill: var(--dg-guard-stroke); font-weight: 700; font-size: 22px; }
 svg.dg .dg-partial { fill: var(--dg-env-stroke); font-weight: 700; }
 
 /* StepAnimator states */

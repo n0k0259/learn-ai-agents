@@ -7,6 +7,19 @@ const VIEWPORTS = {
 	mobile: { width: 360, height: 800 },
 } as const;
 
+// Diagram box widths are fitted to the self-hosted fonts, so geometry must never be measured
+// (or screenshotted) against fallback metrics. Force-load every face the diagrams use, wait for
+// all pending loads, then assert the real faces are active.
+const DIAGRAM_FONTS = ['16px InterVariable', '700 20px InterVariable', '16px "JetBrains Mono Variable"'];
+async function waitForDiagramFonts(page: Page) {
+	const missing = await page.evaluate(async (fonts) => {
+		await Promise.all(fonts.map((f) => document.fonts.load(f)));
+		await document.fonts.ready;
+		return fonts.filter((f) => !document.fonts.check(f));
+	}, DIAGRAM_FONTS);
+	expect(missing, 'diagram fonts failed to load').toEqual([]);
+}
+
 // Runs in the browser. Returns human-readable problems; an empty array means every diagram passes.
 function auditDiagrams(page: Page) {
 	return page.evaluate(() => {
@@ -199,6 +212,7 @@ for (const path of DIAGRAM_PAGES) {
 				await page.goto(path);
 				await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
 				expect(await page.locator('svg.dg').count()).toBeGreaterThan(0);
+				await waitForDiagramFonts(page);
 
 				const slug = path.replace(/\/$/, '').replace(/\//g, '_') || 'home';
 				const figures = page.locator('figure.dg-figure');

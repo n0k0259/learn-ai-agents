@@ -15,7 +15,9 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/starlight": "^0.42.3",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "astro": "^7.2.10",
+    "inter-ui": "^4.1.1",
     "sharp": "^0.35.3"
   },
   "devDependencies": {
