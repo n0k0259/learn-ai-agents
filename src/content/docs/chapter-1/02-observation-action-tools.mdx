@@ -39,7 +39,7 @@ The book gives two product cases.
 
 **OpenClaw: extending the interface into the user's digital life.** OpenClaw pushes both spaces outward again. It receives tasks and returns results through messaging channels users already inhabit (WhatsApp, Telegram, Slack, Discord, iMessage, and many others), so the agent can be reached from almost anywhere. Its local Gateway connects cloud applications such as Google Drive and Notion, as well as the local file system. With the user's explicit authorization, files scattered across accounts and devices can enter one agent's observation space and be acted on by its tools.
 
-Compare that with the original, cloud-sandbox-centered Manus, where files generally had to be uploaded or a connector configured separately. Local-first OpenClaw spans a broader data boundary. Manus later added its own Google Drive connector and desktop access to local files (My Computer), which only reinforces the point: product evolution often consists precisely of expanding observation and action spaces. The sources for both cases are listed under References below.
+Compare that with the original, cloud-sandbox-centered Manus, where files generally had to be uploaded or a connector configured separately. Local-first OpenClaw spans a broader data boundary. Manus later added its own Google Drive connector and desktop access to local files (My Computer), which only reinforces the point: product evolution often consists precisely of expanding observation and action spaces.
 
 ## Five agent products, three dimensions
 
@@ -59,7 +59,7 @@ These systems share three features:
 - **Internal reasoning.** They plan before acting.
 - **Continuous interaction.** They adjust strategy based on feedback from the environment.
 
-These capabilities come from the interplay of the reasoning engine, working context, and action interfaces: the LLM, context, and tools. The book starts with the most concrete of the three, tools, and works inward to the LLM and context. This lesson does the same.
+These capabilities come from the interplay of the reasoning engine, working context, and action interfaces: the LLM, context, and tools. The book starts with the most concrete of the three, tools, and works inward to the LLM and context. Later lessons follow the same order.
 
 ## Five kinds of tools
 
@@ -75,7 +75,7 @@ The book sorts tools into five types by the direction of the agent's interaction
 | **Event trigger** | Wakes the agent | The outside world | New email, schedule, webhook |
 | **User communication** | Carries information to the user | Agent calls it | Text message, voice call, email |
 
-A few details from the source sharpen the table:
+In more detail:
 
 - **Perception tools** give the agent access to information. Search engines provide real-time web data, file systems read local documents, and APIs and databases connect to external services and enterprise core data.
 - **Execution tools** turn decisions into concrete actions on external systems.
@@ -146,7 +146,7 @@ Treat a tool definition like a public API contract. Its name, description, and p
 
 When you design tools for an agent, start with the narrowest capability the task needs, then expand gradually as the task grows more complex.
 
-**From calculator to code interpreter.** If the task only needs basic arithmetic, a calculator with clearly defined parameters is enough. When the task grows to reading spreadsheets, cleaning missing values, computing statistics, and plotting charts, a constrained Python code interpreter is easier to combine and explore with than an ever-growing collection of specialized tools. But generality also raises the risk of errors and expands the attack surface. Generated code must run with:
+**From calculator to code interpreter.** If the task only needs basic arithmetic, a calculator with clearly defined parameters is enough. When the task grows to reading spreadsheets, cleaning missing values, computing statistics, and plotting charts, a constrained Python code interpreter is easier to combine and explore with than an ever-growing collection of specialized tools. But generality also raises the risk of errors and expands the attack surface. Generated code must run under these constraints:
 
 - an isolated sandbox;
 - network access disabled by default;
