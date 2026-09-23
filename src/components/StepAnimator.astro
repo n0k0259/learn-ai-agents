@@ -7,7 +7,7 @@ const { label } = Astro.props;
 
 <div class="dg-anim" data-animator>
 	<slot />
-	<div class="dg-anim-controls" role="group" aria-label={`Animation controls: ${label}`}>
+	<div class="dg-anim-controls not-content" role="group" aria-label={`Animation controls: ${label}`}>
 		<button type="button" data-action="play">Play</button>
 		<button type="button" data-action="step">Step</button>
 		<button type="button" data-action="reset">Reset</button>

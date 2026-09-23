@@ -43,3 +43,11 @@ test('wide diagrams scroll with a hint on mobile only', async ({ page }) => {
 	await expect(fig).not.toHaveAttribute('data-overflowing', '');
 	await expect(fig.locator('.dg-scroll-hint')).toBeHidden();
 });
+
+test('control buttons share one baseline at rest', async ({ page }) => {
+	await page.goto('style-guide/');
+	const buttons = page.locator('[data-animator]').first().locator('.dg-anim-controls button:visible');
+	await expect(buttons).toHaveCount(3);
+	const ys = await Promise.all((await buttons.all()).map(async (b) => (await b.boundingBox())!.y));
+	for (const y of ys) expect(Math.abs(y - ys[0])).toBeLessThanOrEqual(1);
+});
