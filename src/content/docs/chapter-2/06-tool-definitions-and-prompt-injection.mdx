@@ -42,7 +42,7 @@ Since 2026, though, APIs have begun to support progressive disclosure natively:
 - Anthropic provides Tool Search through `tool_reference` blocks. Claude Code defers MCP tools by default: only tool names and server instructions are injected at session start, and full schemas are added after the model searches for them.
 - Codex CLI similarly uses `tool_search` with BM25 retrieval as part of its default architecture.
 
-All of these follow the same progressive-disclosure principle as Skills (lesson 2.7). The static prefix holds only tool names and brief descriptions, and the full schema is **appended to the end of the context** on demand, where it becomes part of the trajectory.
+All of these follow the same progressive-disclosure principle as Skills ([lesson 2.7](/learn-ai-agents/chapter-2/07-dynamic-prompts-and-skills/)). The static prefix holds only tool names and brief descriptions, and the full schema is **appended to the end of the context** on demand, where it becomes part of the trajectory.
 
 | Turn | What's appended | Cache effect |
 |---|---|---|
@@ -102,7 +102,7 @@ At the context level, the core defensive principle is to help the model distingu
 
 ### New surfaces: Skills and the status bar
 
-A Skill formalizes loading external content as instructions, so a malicious third-party Skill can act more directly than hidden text on a webpage; review an unknown Skill before installing it, just like code that will be executed (lesson 2.7). The model places substantial trust in the Agent Status Bar, so if its information comes from a source an attacker can manipulate, such as an untrusted webpage fragment, the attacker can exploit that trust (lesson 2.8).
+A Skill formalizes loading external content as instructions, so a malicious third-party Skill can act more directly than hidden text on a webpage; review an unknown Skill before installing it, just like code that will be executed ([lesson 2.7](/learn-ai-agents/chapter-2/07-dynamic-prompts-and-skills/)). The model places substantial trust in the Agent Status Bar, so if its information comes from a source an attacker can manipulate, such as an untrusted webpage fragment, the attacker can exploit that trust (lesson 2.8).
 
 ### The first line, not the last
 
@@ -139,7 +139,7 @@ Context-level defenses (source tagging, instruction-data separation, input sanit
 ## Check yourself
 
 <Quiz question="Changes in dynamic information, such as system timestamps or tool list order, can break KV Cache prefix hits. In a production system with many tools and a frequently changing tool set, how would you design the context layout to maximize the cache hit rate?">
-Freeze the tool definitions in the static prefix in a fixed order; reordering them changes the sequence from the first moved tool onward ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). Keep that prefix small: list only tool names and brief descriptions, and let the model discover full schemas on demand, so each schema is appended once at the end of the context, costs a one-time cache write, and then hits the cache as part of the prefix. Don't add or remove `tools` mid-session ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). Sub-agents that inherit the parent's context should match its prompt and tool definitions byte for byte ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). The book's reference answer also suggests a small set of stable core tools (it gives seven as an example) plus a generic executor, with specific capabilities delivered through the progressive disclosure of Skills (lesson 2.7).
+Freeze the tool definitions in the static prefix in a fixed order; reordering them changes the sequence from the first moved tool onward ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). Keep that prefix small: list only tool names and brief descriptions, and let the model discover full schemas on demand, so each schema is appended once at the end of the context, costs a one-time cache write, and then hits the cache as part of the prefix. Don't add or remove `tools` mid-session ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). Sub-agents that inherit the parent's context should match its prompt and tool definitions byte for byte ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). The book's reference answer also suggests a small set of stable core tools (it gives seven as an example) plus a generic executor, with specific capabilities delivered through the progressive disclosure of Skills ([lesson 2.7](/learn-ai-agents/chapter-2/07-dynamic-prompts-and-skills/)).
 </Quiz>
 
 <Quiz question="Mid-session, the model discovers a tool and its full schema is appended to the context. Why don't the earlier cached tokens need recomputing, and does the schema move to the end on later turns?">

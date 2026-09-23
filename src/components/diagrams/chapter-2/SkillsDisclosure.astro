@@ -1,0 +1,98 @@
+---
+// Skills progressive disclosure in three layers: metadata always loaded, SKILL.md core flow on demand, sub-documents selectively (redraw of Fig 2-11).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 716"
+	role="img"
+	aria-labelledby="d2-sd-title d2-sd-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-sd-title">Skills progressive disclosure mechanism</title>
+	<desc id="d2-sd-desc">
+		Three layers loaded in sequence. Layer 1, metadata, is loaded at startup and costs about 300 tokens: a skills list
+		with entries such as name PPTX, description "Create PowerPoint presentations from content", and name PDF,
+		description "Extract and analyze PDF documents". A task trigger, "Generate PPT from paper", leads to Layer 2, the
+		SKILL.md core flow, loaded on demand at about 2K tokens: 1. markitdown extract text, 2. unzip PPTX to access XML,
+		3. modify slide N .xml content, 4. repackage as .pptx, with references to html2pptx.md, reference.md and scripts/.
+		The need for a detailed method, "Create PPT with HTML template", leads to Layer 3, sub-documents, a selective deep
+		dive loaded on demand: html2pptx.md, the complete workflow of HTML template to PPT; reference.md, the XML format
+		specification and technical details; and scripts/*.py, executable tools such as thumbnail.py. Footer: fixed
+		metadata is KV Cache friendly; dynamic content is appended, so the cache is not invalidated.
+	</desc>
+	<defs>
+		<marker id="d2-sd-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Skills progressive disclosure</text>
+
+	<!-- Layer 1 -->
+	<g class="dg-container dg-context">
+		<rect x="4" y="44" width="712" height="164" rx="12"></rect>
+		<text x="20" y="72" class="dg-accent" font-weight="700">Layer 1: Metadata (loaded at startup, ~300 tokens)</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="20" y="86" width="680" height="108" rx="8"></rect>
+		<text x="36" y="114" class="dg-mono">{'skills: [{name: "PPTX",'}</text>
+		<text x="56" y="136" class="dg-mono">{'desc: "Create PowerPoint presentations from content"},'}</text>
+		<text x="56" y="158" class="dg-mono">{'{name: "PDF",'}</text>
+		<text x="56" y="180" class="dg-mono">{'desc: "Extract and analyze PDF documents"}, ...]'}</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="140" y1="210" x2="140" y2="258" marker-end="url(#d2-sd-arrow)"></line>
+		<text x="156" y="240" class="dg-edge-label">Task trigger: “Generate PPT from paper”</text>
+	</g>
+
+	<!-- Layer 2 -->
+	<g class="dg-container dg-context">
+		<rect x="4" y="260" width="712" height="164" rx="12"></rect>
+		<text x="20" y="288" class="dg-accent" font-weight="700">Layer 2: SKILL.md core flow (loaded on demand, ~2K tokens)</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="20" y="302" width="680" height="108" rx="8"></rect>
+		<text x="36" y="330" class="dg-mono">PPTX Skill core flow:</text>
+		<text x="36" y="352" class="dg-mono">1. markitdown extract text → 2. Unzip PPTX to access XML</text>
+		<text x="36" y="374" class="dg-mono">{'3. Modify slide{N}.xml content → 4. Repackage as .pptx'}</text>
+		<text x="36" y="396" class="dg-mono">References: → html2pptx.md | → reference.md | → scripts/</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="140" y1="426" x2="140" y2="474" marker-end="url(#d2-sd-arrow)"></line>
+		<text x="156" y="456" class="dg-edge-label">Need detailed method: “Create PPT with HTML template”</text>
+	</g>
+
+	<!-- Layer 3 -->
+	<g class="dg-container dg-context">
+		<rect x="4" y="476" width="712" height="146" rx="12" stroke-dasharray="8 6"></rect>
+		<text x="20" y="504" class="dg-accent" font-weight="700">Layer 3: Sub-documents (selective deep dive, loaded on demand)</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="20" y="518" width="220" height="90" rx="8"></rect>
+		<text x="130" y="544" text-anchor="middle" class="dg-mono" font-weight="700">html2pptx.md</text>
+		<text x="130" y="568" text-anchor="middle">Complete workflow of</text>
+		<text x="130" y="590" text-anchor="middle">HTML template → PPT</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="250" y="518" width="220" height="90" rx="8"></rect>
+		<text x="360" y="544" text-anchor="middle" class="dg-mono" font-weight="700">reference.md</text>
+		<text x="360" y="568" text-anchor="middle">XML format specification</text>
+		<text x="360" y="590" text-anchor="middle">and technical details</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="480" y="518" width="220" height="90" rx="8"></rect>
+		<text x="590" y="544" text-anchor="middle" class="dg-accent dg-mono" font-weight="700">scripts/*.py</text>
+		<text x="590" y="568" text-anchor="middle">Executable tools:</text>
+		<text x="590" y="590" text-anchor="middle">thumbnail.py etc.</text>
+	</g>
+
+	<!-- Footer -->
+	<g class="dg-node dg-neutral">
+		<rect x="4" y="640" width="712" height="68" rx="8"></rect>
+		<text x="360" y="668" text-anchor="middle">Fixed metadata → KV Cache friendly</text>
+		<text x="360" y="692" text-anchor="middle">Dynamic content appended → Cache not invalidated</text>
+	</g>
+</svg>

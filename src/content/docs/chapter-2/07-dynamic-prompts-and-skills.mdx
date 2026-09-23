@@ -1,0 +1,197 @@
+---
+title: Dynamic Prompts & Agent Skills
+description: Progressive disclosure in three layers, descriptions as routing conditions, the two trigger paths, writing a usable Skill, and how Skills sit in the trajectory and the cache.
+sidebar:
+  order: 7
+  label: 2.7 Dynamic Prompts & Skills
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md#dynamic-prompts-and-agent-skills
+  sections:
+    - 'Dynamic Prompts and Agent Skills'
+    - 'Skills: Composable Units of Domain Capability'
+    - 'How to Write a Usable Skill'
+    - 'Skills in Context'
+    - 'Relationship Between Skills and Tools'
+---
+import Figure from '~/components/Figure.astro';
+import StepAnimator from '~/components/StepAnimator.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import SkillsDisclosure from '~/components/diagrams/chapter-2/SkillsDisclosure.astro';
+import SkillsTrajectory from '~/components/diagrams/chapter-2/SkillsTrajectory.astro';
+import KVCacheGrowth from '~/components/diagrams/chapter-2/KVCacheGrowth.astro';
+
+:::tip[TL;DR]
+Instead of loading all knowledge into one system prompt, let the agent load it on demand. Agent Skills do this in three layers: a small catalog of names and descriptions stays visible, the full `SKILL.md` loads when a Skill is selected, and sub-documents are read only when needed. Loaded content is appended to the trajectory, so the cached prefix survives.
+:::
+
+## From static prompts to dynamic prompts
+
+As an agent is asked to handle more scenarios, the system prompt tends to grow: refund rules for customer service, coding standards for programming tasks, formatting requirements for documentation tasks, and so on. Putting everything into a single prompt creates two problems:
+
+- **Wasted tokens:** most of the content is irrelevant to the current task.
+- **Diluted attention:** too much irrelevant information dilutes the model's attention to the key content. The book returns to this under the name "context rot" in its context compression section (lesson 2.9).
+
+The natural next step is dynamic prompts: **instead of loading all knowledge into the agent at once, let it load knowledge on demand**. The Agent Skills system is the engineering implementation of this idea.
+
+## Skills: composable units of domain capability
+
+The core idea of Agent Skills (Anthropic, "Equipping Agents for the Real World with Agent Skills", 2025) is to modularize an agent's capabilities into independent, loadable knowledge packages. Each Skill is essentially a collection of prompts and files with specialized domain guidance, like an operating manual for a specific task. Instead of loading every manual into the context at once, the framework provides a directory and lets the agent retrieve the relevant manual as needed.
+
+This is **Progressive Disclosure**: show a table-of-contents summary first, and load the full content only when it's needed. [Guardrails, Safety & the Big Picture](/learn-ai-agents/chapter-1/08-guardrails-and-big-picture/) names it as one of the book's recurring design patterns and calls Agent Skills its archetype.
+
+<Figure caption="Layer 1, the metadata catalog, is loaded at startup (about 300 tokens). A task such as &quot;Generate PPT from paper&quot; loads Layer 2, the SKILL.md core flow (about 2K tokens). A need for a detailed method loads only the relevant Layer 3 sub-document or script. Fixed metadata keeps the prefix cache-friendly, and dynamic content is appended." credit="Redrawn from Figure 2-11, AI Agent Book by Bojie Li (Apache 2.0).">
+<SkillsDisclosure />
+</Figure>
+
+### Layer 1: metadata
+
+Each Skill should provide a `SKILL.md` file that starts with YAML frontmatter, a metadata block at the top of the file delimited by `---`, containing `name` and `description` fields. The catalog should be visible to the agent before any body is loaded, so it can decide whether a capability is relevant without paying the full context cost of every Skill. Runtimes may place the catalog in different context layers; what they share is its purpose, which is discoverability, not carrying the complete domain workflow.
+
+The `description` field matters for routing. Keep it short, to limit the always-present token count, but write it as a **routing condition** rather than a feature summary. It can state clear "Use when" and "Do not use when" boundaries and include representative negative examples, to reduce false triggers from broad matches. A description such as "help with backend" can activate on almost any backend task; an effective description says when the Skill should be used, not merely what it can do.
+
+```yaml title="SKILL.md frontmatter (illustrative)"
+---
+name: pptx
+description: >
+  Use when the task is to create, edit or read a PowerPoint (.pptx) file.
+  Do not use when the user only wants a text summary or an outline;
+  for example, "summarize this paper" alone should not trigger it.
+---
+```
+
+The book calls this writing advice for routing prompts, not an additional required field.
+
+### Layer 2: the core workflow
+
+When the agent determines that a specific Skill is needed, the runtime loads the complete `SKILL.md`, and only then. The loading has two triggers. In Claude Code, both land in the same place, as a user message at the invocation point:
+
+| Trigger | What enters the trajectory | Extra ReAct round? |
+|---|---|---|
+| The user types a slash command such as `/pptx` | The client intercepts and expands it locally; only the Skill body arrives, as a user message | No; the model never issues a tool call |
+| The model reads the catalog and decides it needs a Skill | A call to the dedicated Skill tool, a tool result that is only a placeholder announcing the Skill is launching, then the body as a user message | Yes, one round trip |
+
+Runtimes without a dedicated activation tool work differently. The model reads `SKILL.md` with a general file-read tool, and the body enters the context as a tool result.
+
+Take the PPTX Skill from Anthropic's official Skills repository. Its `SKILL.md` holds the core workflow for PowerPoint files: how to extract text via markitdown (Microsoft's open-source document-to-Markdown tool), how to unzip the PPTX file to reach the raw XML structure, and the path conventions for key files.
+
+### Layer 3: details
+
+File references allow deeper navigation into more detailed sub-documents. The PPTX main file references `html2pptx.md`, a detailed workflow for creating PowerPoint from HTML templates, `reference.md`, the technical details of the file format, and others. The agent selectively reads the sub-documents relevant to its specific needs.
+
+## How to write a usable Skill
+
+The runtime structure solves "when to load" and "how much to load". The content still has to turn experience into instructions a model can execute. A useful Skill should tell a new team member what task it applies to, what order to follow, when to stop and ask for confirmation, and what counts as complete.
+
+Based on the writing guidance in Baoyu's *A Visual Guide to Skills*, the book suggests starting with four parts:
+
+- **Role and reader:** who the Skill serves, which tasks it covers, and what quality standards its output must meet.
+- **Core principles:** three to five important judgments, with positive and negative examples for the key ones.
+- **Prohibitions:** common errors, out-of-scope actions and confusing wording, including legitimate exceptions.
+- **References:** glossaries, templates, examples and more detailed sub-documents.
+
+Prefer rules written as "scope + action + exception + verification" over an ever-growing list of forbidden words.
+
+### Iterate from real edits
+
+A writing Skill can start from three to five pieces of your own work. Have the agent infer word choice, sentence patterns, paragraph structure and tone, and generate a short first draft. Then apply it to a real task and revise the output sentence by sentence.
+
+The differences between the original and your revision say more than "make it more natural": which words were removed, which long sentences were split, where facts were added. Fold recurring changes back into the Skill, keeping positive examples, negative examples and scope for each rule.
+
+Skills can also bundle executable code tools and template files. A presentation Skill, for example, can include slide templates and scripts for parsing presentations.
+
+### A path for accumulating domain knowledge
+
+The value of Skills lies not only in context management. Each Skill is a self-contained knowledge module that can be independently developed, tested, version-controlled and shared. That turns capability expansion from centralized system-prompt editing into a distributed Skill ecosystem, similar in spirit to package managers such as Python's pip or Node.js's npm. Anthropic's official Skills repository already covers document processing (PPTX, PDF, DOCX), data analysis, code generation and other domains, so developers can use and customize them or create entirely new Skills.
+
+This points to an important principle for agent developers: **when choosing an agent interaction mode, align with the model vendor's training methodology**. The agent usage patterns that foundation-model companies promote often reflect modes their models were specifically trained to support.
+
+## Skills in context
+
+When you assess what a Skill costs in context, separate the metadata catalog from the full Skill instructions. It also helps to separate what the standard fixes from what each harness chooses.
+
+**The standard fixes the loading sequence, not message roles.** The catalog must be discoverable before the body, and the body loads on demand after a Skill is selected. Message roles, wrappers, and whether the catalog is rebuilt each turn are harness choices.
+
+**Claude Code, conceptually,** exposes a small catalog as runtime context and appends the full instructions at the point where the Skill is invoked. "System prompt" can describe the logical, stable instruction layer, but don't read it as a claim that every client uses an API `system` role. In the model-triggered case, the trajectory contains the full round trip: a `Skill(skill: "pptx")` tool_use, a placeholder tool_result, then the body appended as a separate user message. When the user types `/pptx`, that pair of tool messages never appears and only the final user message remains.
+
+**Codex, conceptually,** renders the Skills catalog in developer context while it builds the turn context. An explicitly selected Skill is injected as user context marked with `<skill>`, and Skills from other sources may be read on demand through tools.
+
+Harnesses evolve quickly, so these concrete representations may change. The stable principle is **a small catalog kept discoverable and the full body loaded on demand**, which is what lets Skills combine dynamic loading with controlled context cost.
+
+<Figure caption="The model-triggered case in Claude Code. The system prompt and tools are the fixed prefix. The Skill listing (ⓐ, about 300 tokens) arrives once as a meta user message; the Skill tool call returns only a placeholder, and the Skill content (ⓑ, about 2k tokens) follows as a separate meta user message. Later tool calls and results are appended after it." credit="Redrawn from Figure 2-12, AI Agent Book by Bojie Li (Apache 2.0).">
+<SkillsTrajectory />
+</Figure>
+
+<StepAnimator label="KV Cache as the trajectory grows">
+<Figure caption="Each column is the cache state after one turn. Turn 1 loads the PPTX Skill and writes everything, about 2.5k tokens. Turn 2 reads the PDF: the first seven slots hit, and only the new call and result are written, about 0.5k tokens. Turn 3 writes HTML, about 0.4k tokens. No slot moves; new content is only appended." credit="Redrawn from Figure 2-13, AI Agent Book by Bojie Li (Apache 2.0).">
+<KVCacheGrowth />
+</Figure>
+</StepAnimator>
+
+### Cache-friendly is not zero cost
+
+Figure 2-13 is the append-only rule from [lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/) applied to Skills: content appended at the end changes nothing cached before it, so each block is written to the cache once and hit on later turns. A common misconception needs correcting, though: "KV Cache-friendly" does not mean "zero cost". The catalog must be processed the first time it enters a request, and loading a Skill body adds computation when it is first needed. Later requests can reuse the cache while the established prefix stays stable.
+
+Harnesses differ in how they rebuild the catalog. The shared benefit is that none of them has to preload every Skill body or rewrite established context whenever a new Skill is invoked.
+
+:::note[Engineer's note]
+This is the same mechanism as deferred tool loading in [lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/): names and short descriptions sit in the prefix, and the full content is appended once when it is needed and then stays where it landed. Loaded Skill content is also a security surface: [lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/) covers why a third-party Skill should be reviewed before you install it.
+:::
+
+## Skills and tools
+
+From a context-management perspective, the Skills mechanism is highly KV Cache-friendly. If every specialized code-tool definition went into the system prompt, their proliferation would consume many tokens and interfere with the model's attention. Under the **Skill + generic executor** model, the tool set stays small (Chapter 5 of the book shows that only seven core tools are required), and Skill content loads on demand through progressive disclosure without affecting the cached prefix.
+
+Chapter 4 of the book compares these two forms in detail and gives a selection framework. Chapter 9 examines how a continuously evolving agent decides whether an experience should be encoded as knowledge, instructions, a program or model parameters, the capability-update paths introduced in [The LLM as Reasoning Engine](/learn-ai-agents/chapter-1/03-llm-reasoning-engine/).
+
+:::note[Experiment 2-6: Generate a Presentation from a Paper Using Agent Skills]
+**What is tested.** Whether an agent can complete a complex task by dynamically loading a specialized domain Skill. Use Claude Code, or another runtime that supports a Skills metadata catalog and on-demand loading, with Anthropic's official PPTX Skill to generate a 10–15 slide presentation from an academic paper PDF. The experiment tests the Skill, so you can substitute a compatible runtime without needing Anthropic credentials.
+
+**The execution flow** demonstrates progressive loading:
+
+1. The agent finds the PPTX Skill in the runtime's metadata catalog, available before the full instructions are loaded.
+2. It identifies that the task requires this Skill.
+3. It invokes the Skill, or reads `SKILL.md`, to load the core workflow.
+4. It selectively loads `html2pptx.md` for detailed methods.
+5. It uses bundled tool scripts (for example `scripts/thumbnail.py`) to generate previews, and template files as a design starting point.
+
+**Acceptance criteria.** The presentation covers the paper's main content (title page, problem background, method overview, key results, conclusion), includes at least 3 figures extracted from the paper that match the text, and opens properly in PowerPoint or compatible software with correct formatting. The book gives this as an experiment design; it reports no results.
+:::
+
+:::note[Experiment 2-7: Creating a Writing Skill That Avoids Generic AI Phrasing]
+**What is tested.** Whether a loadable, inspectable writing Skill generated from a few human-written samples can reproduce the author's main stylistic preferences in new articles. Prepare three to five original articles and let a runtime that supports Agent Skills generate a first-draft `SKILL.md`. Draft an article on a new topic, edit it by hand, compare before and after, and write the stable patterns back into the Skill.
+
+**Acceptance criteria.** The Skill has clear trigger conditions, three to five principles with examples, a scope, and exceptions, without treating a single subjective judgment as a universal rule.
+
+**Takeaway.** The value of a Skill lies in externalizing personal experience into instructions that load on demand. A short, readable first draft that survives a real task is a better starting point for iteration than listing dozens of rules up front.
+:::
+
+<KeyTakeaways>
+- A single system prompt for every scenario wastes tokens and dilutes attention. Dynamic prompts load knowledge on demand, and Agent Skills implement this.
+- Progressive disclosure has three layers: a catalog of `name` and `description` that is visible before any body loads, the full `SKILL.md` loaded when a Skill is selected, and sub-documents read selectively.
+- Write `description` as a routing condition ("Use when", "Do not use when", negative examples), not a feature summary.
+- A slash command is expanded by the client with no tool call; a model-triggered Skill costs one extra ReAct round. In Claude Code, both add the body as a user message at the invocation point. The standard fixes only the loading order.
+- Loaded content is appended, so it is written to the cache once and then reused. Cache-friendly still isn't zero cost: the catalog and each body are computed the first time they appear.
+</KeyTakeaways>
+
+### References
+
+- Anthropic, ["PPTX Skill"](https://github.com/anthropics/skills/), 2025.
+- Claude Code Docs, ["How Claude Code uses prompt caching"](https://code.claude.com/docs/en/prompt-caching), "Invoking skills and commands".
+- Agent Skills, ["How to add skills support to your agent"](https://agentskills.io/client-implementation/adding-skills-support), "User-explicit activation".
+- OpenAI, ["Build skills"](https://developers.openai.com/codex/skills/), Codex documentation.
+- Baoyu, ["Stop Using Prompts to Remove the AI Flavor; the Direction Is Wrong"](https://baoyu.io/blog/2026-02-14/remove-ai-writing-flavor), February 14, 2026.
+
+## Check yourself
+
+<Quiz question="Progressive disclosure loads a Skill's full content only when the agent judges it's needed. But if the model doesn't know what it doesn't know, it can't trigger the right Skill. How can this metacognition problem be addressed?">
+Make sure the model always knows what it has: keep the Skill metadata, `name` and `description`, visible in the context before any body is loaded, so every available capability is discoverable. Then make the judgment easier: write each `description` as a routing condition rather than a feature summary, with "Use when" and "Do not use when" boundaries and representative negative examples, instead of a vague line like "help with backend" that activates on almost anything.
+</Quiz>
+
+<Quiz question="After an agent dynamically loads instructions from SKILL.md, can its subsequent operations reliably follow them? How does model support for the Skills pattern differ?">
+Reliability depends on model support, not only on the mechanism. The agent patterns that foundation-model companies promote often reflect modes their models were specifically trained to support, which is why you should align with the vendor's training methodology. Deferred tool loading has the same constraint: only newer models trained on tool definitions appearing mid-conversation support it ([lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/)). Where the body lands is a harness choice: Claude Code adds it as a user message at the invocation point, while runtimes without an activation tool deliver it as a tool result from a file read. Either way it is appended, so it is computed once when first loaded and then reused from the cache on later turns. It would be recomputed on every call only in a design that re-injects it every turn.
+</Quiz>
+
+<Quiz question="In Claude Code, a user types /pptx in one session; in another, the model reads the catalog and decides on its own that it needs the PPTX Skill. What ends up in the trajectory in each case?">
+With `/pptx`, the client intercepts and expands the command locally, so the model never issues a tool call: only the Skill body appears, as a user message. When the model decides, the trajectory holds the full round trip: a `Skill(skill: "pptx")` tool_use, a tool_result that is only a placeholder announcing the Skill is launching, and then the body as a separate user message. The model-triggered path costs one extra ReAct round trip; both paths end with the body at the same place.
+</Quiz>

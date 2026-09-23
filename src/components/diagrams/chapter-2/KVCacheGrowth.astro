@@ -1,0 +1,251 @@
+---
+// KV Cache as the trajectory grows over three turns: each turn's new messages pay cache_creation once, then hit on every later turn; nothing earlier moves (redraw of Fig 2-13).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 860"
+	role="img"
+	aria-labelledby="d2-kcg-title d2-kcg-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-kcg-title">Evolution of KV Cache as the agent trajectory grows</title>
+	<desc id="d2-kcg-desc">
+		Three columns, one per completed turn, each listing the same eleven message slots. Turn 1 (first load of the
+		PPTX skill): system, tools, user_q1, the starred skill_listing, asst: Skill(pptx), its tool_result and the
+		starred skill_content are all NEW, and the last four slots are not yet generated; cache_creation for the turn is
+		about 2.5k tokens. Turn 2 (read the PDF file): those seven slots are now HIT, and asst: Read(pdf) and its
+		tool_result are NEW; cache_creation is about 0.5k tokens. Turn 3 (write HTML): everything through the Read
+		result is HIT, and asst: Write(html) and its tool_result are NEW; cache_creation is about 0.4k tokens. Legend:
+		NEW means new tokens added this turn, which pay cache_creation once; HIT means already in the cache prefix, a
+		free hit this turn; a dash means content not yet generated this turn. The starred attachments are marked
+		emit-once: they pay cache_creation only on Turn 1, then are a permanent HIT for all subsequent turns, with
+		marginal cost zero. Once inserted, the index position of each message never moves; new content is only appended
+		to the end of the array.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">KV Cache as the trajectory grows</text>
+
+	<!-- Turn 1 completed -->
+	<g data-step="1" data-step-label="Turn 1: system, tools, user_q1, the skill listing, the Skill call, its placeholder result and the skill content are all NEW; cache_creation ≈ 2.5k tokens">
+		<g class="dg-container dg-neutral">
+			<rect x="4" y="44" width="232" height="566" rx="12"></rect>
+			<text x="120" y="72" text-anchor="middle" font-weight="700">Turn 1 completed</text>
+			<text x="120" y="94" text-anchor="middle" class="dg-sub">(first load PPTX skill)</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="8" y="108" width="224" height="32" rx="4"></rect>
+			<text x="16" y="130">system</text>
+			<text x="224" y="130" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="8" y="144" width="224" height="32" rx="4"></rect>
+			<text x="16" y="166">tools</text>
+			<text x="224" y="166" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="8" y="180" width="224" height="32" rx="4"></rect>
+			<text x="16" y="202">user_q1</text>
+			<text x="224" y="202" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="8" y="216" width="224" height="32" rx="4"></rect>
+			<text x="16" y="238">★ skill_listing</text>
+			<text x="224" y="238" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="8" y="252" width="224" height="32" rx="4"></rect>
+			<text x="16" y="274">asst: Skill(pptx)</text>
+			<text x="224" y="274" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="8" y="288" width="224" height="32" rx="4"></rect>
+			<text x="16" y="310">tool_result</text>
+			<text x="224" y="310" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="8" y="324" width="224" height="32" rx="4"></rect>
+			<text x="16" y="346">★ skill_content</text>
+			<text x="224" y="346" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="8" y="360" width="224" height="32" rx="4"></rect>
+			<text x="16" y="382" class="dg-sub">—</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="8" y="396" width="224" height="32" rx="4"></rect>
+			<text x="16" y="418" class="dg-sub">—</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="8" y="432" width="224" height="32" rx="4"></rect>
+			<text x="16" y="454" class="dg-sub">—</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="8" y="468" width="224" height="32" rx="4"></rect>
+			<text x="16" y="490" class="dg-sub">—</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="8" y="510" width="224" height="88" rx="8"></rect>
+			<text x="120" y="536" text-anchor="middle" class="dg-mono" font-weight="700">cache_creation</text>
+			<text x="120" y="560" text-anchor="middle" font-weight="700">for this turn</text>
+			<text x="120" y="584" text-anchor="middle" class="dg-accent" font-weight="700">≈ 2.5k tokens</text>
+		</g>
+	</g>
+	<!-- Turn 2 completed -->
+	<g data-step="2" data-step-label="Turn 2: the first seven rows HIT the cache; only Read(pdf) and its result are NEW; cache_creation ≈ 0.5k tokens">
+		<g class="dg-container dg-neutral">
+			<rect x="244" y="44" width="232" height="566" rx="12"></rect>
+			<text x="360" y="72" text-anchor="middle" font-weight="700">Turn 2 completed</text>
+			<text x="360" y="94" text-anchor="middle" class="dg-sub">(read PDF file)</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="248" y="108" width="224" height="32" rx="4"></rect>
+			<text x="256" y="130">system</text>
+			<text x="464" y="130" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="248" y="144" width="224" height="32" rx="4"></rect>
+			<text x="256" y="166">tools</text>
+			<text x="464" y="166" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="248" y="180" width="224" height="32" rx="4"></rect>
+			<text x="256" y="202">user_q1</text>
+			<text x="464" y="202" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="248" y="216" width="224" height="32" rx="4"></rect>
+			<text x="256" y="238">★ skill_listing</text>
+			<text x="464" y="238" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="248" y="252" width="224" height="32" rx="4"></rect>
+			<text x="256" y="274">asst: Skill(pptx)</text>
+			<text x="464" y="274" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="248" y="288" width="224" height="32" rx="4"></rect>
+			<text x="256" y="310">tool_result</text>
+			<text x="464" y="310" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="248" y="324" width="224" height="32" rx="4"></rect>
+			<text x="256" y="346">★ skill_content</text>
+			<text x="464" y="346" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="248" y="360" width="224" height="32" rx="4"></rect>
+			<text x="256" y="382">asst: Read(pdf)</text>
+			<text x="464" y="382" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="248" y="396" width="224" height="32" rx="4"></rect>
+			<text x="256" y="418">tool_result</text>
+			<text x="464" y="418" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="248" y="432" width="224" height="32" rx="4"></rect>
+			<text x="256" y="454" class="dg-sub">—</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="248" y="468" width="224" height="32" rx="4"></rect>
+			<text x="256" y="490" class="dg-sub">—</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="248" y="510" width="224" height="88" rx="8"></rect>
+			<text x="360" y="536" text-anchor="middle" class="dg-mono" font-weight="700">cache_creation</text>
+			<text x="360" y="560" text-anchor="middle" font-weight="700">for this turn</text>
+			<text x="360" y="584" text-anchor="middle" class="dg-accent" font-weight="700">≈ 0.5k tokens</text>
+		</g>
+	</g>
+	<!-- Turn 3 completed -->
+	<g data-step="3" data-step-label="Turn 3: everything through Read(pdf) HITs; only Write(html) and its result are NEW; cache_creation ≈ 0.4k tokens">
+		<g class="dg-container dg-neutral">
+			<rect x="484" y="44" width="232" height="566" rx="12"></rect>
+			<text x="600" y="72" text-anchor="middle" font-weight="700">Turn 3 completed</text>
+			<text x="600" y="94" text-anchor="middle" class="dg-sub">(write HTML)</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="488" y="108" width="224" height="32" rx="4"></rect>
+			<text x="496" y="130">system</text>
+			<text x="704" y="130" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="488" y="144" width="224" height="32" rx="4"></rect>
+			<text x="496" y="166">tools</text>
+			<text x="704" y="166" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="488" y="180" width="224" height="32" rx="4"></rect>
+			<text x="496" y="202">user_q1</text>
+			<text x="704" y="202" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="488" y="216" width="224" height="32" rx="4"></rect>
+			<text x="496" y="238">★ skill_listing</text>
+			<text x="704" y="238" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="488" y="252" width="224" height="32" rx="4"></rect>
+			<text x="496" y="274">asst: Skill(pptx)</text>
+			<text x="704" y="274" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="488" y="288" width="224" height="32" rx="4"></rect>
+			<text x="496" y="310">tool_result</text>
+			<text x="704" y="310" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="488" y="324" width="224" height="32" rx="4"></rect>
+			<text x="496" y="346">★ skill_content</text>
+			<text x="704" y="346" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="488" y="360" width="224" height="32" rx="4"></rect>
+			<text x="496" y="382">asst: Read(pdf)</text>
+			<text x="704" y="382" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="488" y="396" width="224" height="32" rx="4"></rect>
+			<text x="496" y="418">tool_result</text>
+			<text x="704" y="418" text-anchor="end" class="dg-sub" font-weight="700">HIT</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="488" y="432" width="224" height="32" rx="4"></rect>
+			<text x="496" y="454">asst: Write(html)</text>
+			<text x="704" y="454" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="488" y="468" width="224" height="32" rx="4"></rect>
+			<text x="496" y="490">tool_result</text>
+			<text x="704" y="490" text-anchor="end" class="dg-accent" font-weight="700">NEW</text>
+		</g>
+		<g class="dg-node dg-env">
+			<rect x="488" y="510" width="224" height="88" rx="8"></rect>
+			<text x="600" y="536" text-anchor="middle" class="dg-mono" font-weight="700">cache_creation</text>
+			<text x="600" y="560" text-anchor="middle" font-weight="700">for this turn</text>
+			<text x="600" y="584" text-anchor="middle" class="dg-accent" font-weight="700">≈ 0.4k tokens</text>
+		</g>
+	</g>
+
+	<!-- Legend -->
+	<g class="dg-node dg-env">
+		<rect x="4" y="628" width="60" height="30" rx="4"></rect>
+		<text x="34" y="649" text-anchor="middle" class="dg-accent" font-weight="700">NEW</text>
+	</g>
+	<text x="76" y="649">new tokens added this turn, pay cache_creation once</text>
+	<g class="dg-node dg-neutral">
+		<rect x="4" y="666" width="60" height="30" rx="4"></rect>
+		<text x="34" y="687" text-anchor="middle" class="dg-sub" font-weight="700">HIT</text>
+	</g>
+	<text x="76" y="687">already in cache prefix, free hit this turn</text>
+	<g class="dg-node dg-harness">
+		<rect x="4" y="704" width="60" height="30" rx="4"></rect>
+		<text x="34" y="725" text-anchor="middle" class="dg-sub">—</text>
+	</g>
+	<text x="76" y="725">content not yet generated this turn</text>
+	<text x="4" y="766">★ Mark attachment with emit-once: pay cache_creation only on Turn 1,</text>
+	<text x="24" y="790">then permanent HIT for all subsequent turns, marginal cost zero.</text>
+	<text x="4" y="826" font-style="italic">Note: once inserted, the index position of each message never moves;</text>
+	<text x="4" y="850" font-style="italic">new content is only appended to the end of the array.</text>
+</svg>

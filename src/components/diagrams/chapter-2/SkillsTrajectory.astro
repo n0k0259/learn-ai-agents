@@ -1,0 +1,105 @@
+---
+// The messages array after enabling Skills, model-triggered case: fixed prefix, user question, emit-once Skill listing, Skill round trip with a placeholder, emit-once Skill content, then later rounds appended (redraw of Fig 2-12).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 1000"
+	role="img"
+	aria-labelledby="d2-st-title d2-st-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-st-title">Complete structure of the agent trajectory after enabling Skills</title>
+	<desc id="d2-st-desc">
+		A messages array, top to bottom. Fixed, in the KV Cache: a system message, "You are Claude Code assistant...",
+		and the tools list: Skill, Read, Bash, Edit, Write and more. Then the user message "Help me generate a PPT from
+		this PDF". Then a: the Skill listing, emitted once by the harness at about 300 tokens, as a user message with
+		isMeta true whose content is a system-reminder, "Available skills: pdf, pptx, ...". Then an assistant message
+		with the tool call Skill(skill: "pptx"), and a tool message, "Launching skill: pptx", which is only a
+		placeholder. Then b: the Skill content, emitted once by the Skill tool at about 2k tokens, as a user message
+		with isMeta true whose content starts "Base directory: ... # PPTX Skill ## Workflow: 1. Use markitdown...".
+		Subsequent tool_use and tool_result pairs continue, appended to the end: an assistant Read of input.pdf with
+		the PDF text as its tool result, and an assistant Write of slides.html with the tool result "Wrote 12345
+		bytes", followed by subsequent rounds. Note: a and b are both emit-once; after paying cache_creation once,
+		they permanently reside in the cache prefix and will not move with subsequent tool_use.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">The trajectory after enabling Skills</text>
+	<text x="4" y="62" class="dg-mono" font-weight="700">messages: [</text>
+
+	<!-- Fixed prefix -->
+	<text x="12" y="92" class="dg-sub">fixed (KV Cache)</text>
+	<g class="dg-node dg-harness dg-solid">
+		<rect x="12" y="102" width="704" height="40" rx="6"></rect>
+		<text x="26" y="128" class="dg-mono">{'{ role: "system", content: "You are Claude Code assistant..." }'}</text>
+	</g>
+	<g class="dg-node dg-harness dg-solid">
+		<rect x="12" y="148" width="704" height="40" rx="6"></rect>
+		<text x="26" y="174" class="dg-mono">tools: [Skill, Read, Bash, Edit, Write, ...]</text>
+	</g>
+
+	<g class="dg-node dg-neutral">
+		<rect x="12" y="204" width="704" height="40" rx="6"></rect>
+		<text x="26" y="230" class="dg-mono">{'{ role: "user", content: "Help me generate a PPT from this PDF" }'}</text>
+	</g>
+
+	<!-- (a) Skill listing -->
+	<text x="12" y="276" font-weight="700">ⓐ Skill listing</text>
+	<text x="152" y="276" class="dg-sub">Harness emit-once · ~300 tokens</text>
+	<g class="dg-node dg-context">
+		<rect x="12" y="286" width="704" height="84" rx="6"></rect>
+		<text x="26" y="312" class="dg-mono">{'{ role: "user", isMeta: true,'}</text>
+		<text x="26" y="336" class="dg-mono">{'content: "<system-reminder>'}</text>
+		<text x="46" y="360" class="dg-mono">{'Available skills: pdf, pptx, ...</system-reminder>" }'}</text>
+	</g>
+
+	<!-- Skill round trip -->
+	<g class="dg-node dg-model">
+		<rect x="12" y="386" width="704" height="40" rx="6"></rect>
+		<text x="26" y="412" class="dg-mono">{'{ role: "assistant", tool_calls: [Skill(skill: "pptx")] }'}</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="12" y="432" width="704" height="40" rx="6"></rect>
+		<text x="26" y="458" class="dg-mono">{'{ role: "tool", content: "Launching skill: pptx" }'}</text>
+		<text x="702" y="458" text-anchor="end" class="dg-accent" font-weight="700">← placeholder</text>
+	</g>
+
+	<!-- (b) Skill content -->
+	<text x="12" y="504" font-weight="700">ⓑ Skill content</text>
+	<text x="156" y="504" class="dg-sub">Skill tool emit-once · ~2k tokens</text>
+	<g class="dg-node dg-context">
+		<rect x="12" y="514" width="704" height="84" rx="6"></rect>
+		<text x="26" y="540" class="dg-mono">{'{ role: "user", isMeta: true,'}</text>
+		<text x="26" y="564" class="dg-mono">{'content: "Base directory: ...\\n# PPTX Skill'}</text>
+		<text x="46" y="588" class="dg-mono">{'## Workflow: 1. Use markitdown..." }'}</text>
+	</g>
+
+	<!-- Subsequent rounds -->
+	<text x="12" y="630" class="dg-sub">Subsequent tool_use / tool_result continues: append to end</text>
+	<g class="dg-node dg-model">
+		<rect x="12" y="640" width="704" height="40" rx="6"></rect>
+		<text x="26" y="666" class="dg-mono">{'{ role: "assistant", tool_calls: [Read(file: "input.pdf")] }'}</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="12" y="686" width="704" height="40" rx="6"></rect>
+		<text x="26" y="712" class="dg-mono">{'{ role: "tool", content: "...PDF text content..." }'}</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="12" y="732" width="704" height="40" rx="6"></rect>
+		<text x="26" y="758" class="dg-mono">{'{ role: "assistant", tool_calls: [Write(file: "slides.html")] }'}</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="12" y="778" width="704" height="40" rx="6"></rect>
+		<text x="26" y="804" class="dg-mono">{'{ role: "tool", content: "Wrote 12345 bytes" }'}</text>
+	</g>
+	<text x="360" y="848" text-anchor="middle" class="dg-sub">... subsequent rounds ...</text>
+	<text x="4" y="880" class="dg-mono" font-weight="700">]</text>
+
+	<!-- Note -->
+	<g class="dg-node dg-neutral">
+		<rect x="4" y="900" width="712" height="92" rx="8"></rect>
+		<text x="20" y="926">ⓐ and ⓑ are both emit-once: after paying cache_creation once,</text>
+		<text x="20" y="950">they permanently reside in the cache prefix and will not move</text>
+		<text x="20" y="974">with subsequent tool_use.</text>
+	</g>
+</svg>
