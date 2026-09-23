@@ -104,7 +104,7 @@ How the lines map to the three roles:
 - **Harness:** everything around that call. It rebuilds `messages` from the system prompt, tool schemas, and trajectory on every round; appends each reply and each tool result; rejects a tool name that doesn't exist; and stops the loop after `MAX_ROUNDS`.
 - **Environment:** `tool.run(...)`, where state actually changes and the observation comes from.
 
-The system prompt and tool schemas are passed on every call but never appended to `trajectory`: they are the static prefix. `MAX_ROUNDS` is a stop condition, a topic covered in lesson 1.7 (Orchestration: Workflow vs. Autonomous).
+The system prompt and tool schemas are passed on every call but never appended to `trajectory`: they are the static prefix. `MAX_ROUNDS` is a stop condition, a topic covered in [lesson 1.7 (Orchestration: Workflow vs. Autonomous)](/learn-ai-agents/chapter-1/07-orchestration-patterns/).
 
 ## Walkthrough: multi-currency revenue
 

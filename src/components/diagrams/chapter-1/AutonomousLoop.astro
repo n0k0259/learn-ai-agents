@@ -1,0 +1,83 @@
+---
+// Redraw of Figure 1-6: think → act → observe, then check the exit conditions and either loop again or return.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 380"
+	role="img"
+	aria-labelledby="d-al-title d-al-desc"
+	style="min-width: 630px"
+>
+	<title id="d-al-title">Execution loop of an autonomous agent</title>
+	<desc id="d-al-desc">
+		The agent thinks, for example "need more info", acts by calling a tool such as web_search, and observes the tool
+		result. It then checks whether an exit condition is met. Any one of five conditions ends the loop: task complete,
+		final_answer called, no tool call, error limit exceeded, or max rounds reached. If none is met, it continues the
+		loop back to Think; if one is met, it returns the final result.
+	</desc>
+	<defs>
+		<marker id="d-al-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<g class="dg-node dg-model" data-step="1" data-step-label="The agent reasons about the next step">
+		<rect x="16" y="16" width="200" height="62" rx="10"></rect>
+		<text x="116" y="42" text-anchor="middle" class="dg-accent" font-weight="700">① Think</text>
+		<text x="116" y="66" text-anchor="middle" class="dg-mono">"need more info"</text>
+	</g>
+
+	<g class="dg-edge" data-step="2">
+		<line x1="116" y1="78" x2="116" y2="106" marker-end="url(#d-al-arrow)"></line>
+	</g>
+	<g class="dg-node dg-tools" data-step="2" data-step-label="It calls a tool">
+		<rect x="16" y="108" width="200" height="62" rx="10"></rect>
+		<text x="116" y="134" text-anchor="middle" class="dg-accent" font-weight="700">② Act</text>
+		<text x="116" y="158" text-anchor="middle" class="dg-mono">web_search(…)</text>
+	</g>
+
+	<g class="dg-edge" data-step="3">
+		<line x1="116" y1="170" x2="116" y2="198" marker-end="url(#d-al-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context" data-step="3" data-step-label="It reads the result">
+		<rect x="16" y="200" width="200" height="62" rx="10"></rect>
+		<text x="116" y="226" text-anchor="middle" class="dg-accent" font-weight="700">③ Observe</text>
+		<text x="116" y="250" text-anchor="middle" class="dg-mono">tool_result: …</text>
+	</g>
+
+	<g class="dg-edge" data-step="4">
+		<line x1="216" y1="231" x2="254" y2="231" marker-end="url(#d-al-arrow)"></line>
+	</g>
+	<g class="dg-node dg-neutral" data-step="4" data-step-label="It checks the exit conditions">
+		<rect x="256" y="200" width="190" height="62" rx="31"></rect>
+		<text x="351" y="237" text-anchor="middle" font-weight="700">Exit condition met?</text>
+	</g>
+	<g class="dg-edge" data-step="4">
+		<line x1="484" y1="231" x2="448" y2="231" marker-end="url(#d-al-arrow)"></line>
+	</g>
+	<g class="dg-node dg-guard" data-step="4">
+		<rect x="486" y="140" width="226" height="226" rx="12"></rect>
+		<text x="502" y="170" class="dg-accent" font-weight="700">Exit conditions (any one)</text>
+		<text x="502" y="206">task complete</text>
+		<text x="502" y="236">final_answer called</text>
+		<text x="502" y="266">no tool call</text>
+		<text x="502" y="296">error limit exceeded</text>
+		<text x="502" y="326">max rounds reached</text>
+	</g>
+
+	<g class="dg-edge" data-step="5" data-step-label="Not done: loop again">
+		<path d="M351,200 V47 H218" marker-end="url(#d-al-arrow)"></path>
+		<text x="361" y="190" class="dg-edge-label">No</text>
+		<text x="361" y="104" class="dg-edge-label">continue the loop</text>
+	</g>
+
+	<g class="dg-edge" data-step="6">
+		<line x1="351" y1="262" x2="351" y2="308" marker-end="url(#d-al-arrow)"></line>
+		<text x="361" y="290" class="dg-edge-label">Yes</text>
+	</g>
+	<g class="dg-node dg-tools" data-step="6" data-step-label="Done: return the final result">
+		<rect x="256" y="310" width="190" height="56" rx="10"></rect>
+		<text x="351" y="344" text-anchor="middle" class="dg-accent" font-weight="700">Return final result</text>
+	</g>
+</svg>

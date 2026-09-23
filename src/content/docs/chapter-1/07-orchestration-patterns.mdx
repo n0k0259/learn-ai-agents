@@ -1,0 +1,227 @@
+---
+title: "Orchestration: Workflow vs. Autonomous"
+description: When to use a single call, a deterministic workflow, or an autonomous agent — with the flight-booking example both ways, stop conditions, mixing patterns, and frameworks.
+sidebar:
+  order: 7
+  label: "1.7 Orchestration: Workflow vs. Autonomous"
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter1.md#orchestration-patterns-workflow-vs-autonomous
+  sections:
+    - "Orchestration Patterns: Workflow vs. Autonomous"
+    - "Workflow Pattern: Deterministic Orchestration"
+    - "Autonomous Agent: Runtime Decision-Making"
+    - Choosing and Mixing the Two Patterns
+    - Brief Comparison of Mainstream Agent Frameworks
+---
+import Figure from '~/components/Figure.astro';
+import StepAnimator from '~/components/StepAnimator.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import WorkflowVsAutonomous from '~/components/diagrams/chapter-1/WorkflowVsAutonomous.astro';
+import AutonomousLoop from '~/components/diagrams/chapter-1/AutonomousLoop.astro';
+import N8nWorkflow from '~/components/diagrams/chapter-1/N8nWorkflow.astro';
+
+:::tip[TL;DR]
+Start with the simplest thing that works: a single call, then a workflow, and only then an autonomous agent. Workflows buy ordering guarantees and a small attack surface; autonomy buys flexibility at the cost of latency, money, and compounding errors. Most real systems mix both.
+:::
+
+## Start simple
+
+Orchestration patterns are how the Harness organizes its "context and tools" layer. They determine how context flows between LLM calls, how tools are scheduled, and whether the agent's execution path is fixed in advance or generated dynamically. Agent orchestration has evolved from simple to complex, and each pattern has its own use cases and trade-offs.
+
+In Anthropic's experience working with dozens of teams building LLM agents ([Building effective agents](https://www.anthropic.com/engineering/building-effective-agents)), the most successful implementations rarely use complex frameworks. They use simple, composable patterns.
+
+When you build an LLM application, progress from simple to complex. Start with a single LLM call, and move down a row only when the one above can't do the job:
+
+| Situation | Start with |
+|---|---|
+| One transformation, solvable with better prompts or examples | a single LLM call |
+| Fixed, decomposable steps; ordering is a compliance rule | workflow |
+| Unknown number of steps; open-ended exploration | autonomous agent |
+| Strict core process with flexible edges | workflow backbone + autonomous nodes |
+| Unfamiliar tasks where you want deterministic execution | agent writes the workflow, then the workflow runs |
+
+Agent systems typically trade latency and cost for better task performance, so weigh carefully whether that trade is worthwhile.
+
+A common counterexample is to begin with a highly complex workflow or multi-agent system. Ask some AI models to design an agent that "extracts personal memories from a million chat messages", and they will quickly sketch a seemingly rigorous pipeline:
+
+1. segment the conversations;
+2. run extraction, evidence verification, identity resolution, memory curation, and merge-review agents in sequence;
+3. build a fact graph, a coverage ledger, and immutable versions.
+
+Each component makes sense in isolation, yet together they form a highly inefficient and unreliable system. A complex workflow has a fixed execution topology, so each new exception readily leads to another node. The architecture grows more complex while becoming less general, and semantic judgments the model could have made from context get hard-coded into the workflow.
+
+The importance of the Harness does not mean that a more complex Harness is better. The [Manus website](https://manus.im/) summarizes the trade-off as "Less structure, more intelligence." Start by giving a capable agent a clear goal, the necessary context, and composable tools. Use natural language to tell it how a person would verify evidence, make comparisons, and resolve conflicts.
+
+Hard-code only the boundaries that must always hold, such as permissions, never overwriting source material, and atomic publication. Promote a step into a dedicated verifier, an independent agent, or a deterministic process only when business constraints inherently require it, or when evaluations repeatedly expose a stable failure mode. Good structure does not rehearse all of the agent's thinking for it; it guards the boundaries and returns the decision space within them to the model.
+
+## Workflows: the path lives in code
+
+A **workflow** orchestrates LLMs and tools through predefined code paths. Its execution path is deterministic and designed in advance by you, the developer: code defines the behavior of each step and each transition. The LLM handles only the understanding and generation inside each node.
+
+A flight-booking agent, for example, can run as a workflow with four fixed nodes:
+
+1. **Verify user identity:** call the identity verification API to confirm who the user is.
+2. **Search for available flights:** query the flight database based on the user's requirements.
+3. **Complete payment:** call the payment interface to deduct the amount.
+4. **Confirm booking:** call the booking API to lock the seat and send the user a confirmation.
+
+Each node can use an LLM, for example to understand the user's travel needs in natural language. The sequence between nodes, though, is fixed by code: the system will not book a seat before payment completes, nor start searching for flights before identity verification.
+
+The pattern has two core advantages:
+
+- **Strict process control.** You can guarantee that critical steps are never skipped or run out of order. Business rules like "no booking before payment" are enforced by code, not left to the LLM's judgment.
+- **Security.** Because the execution path is deterministic, prompt injection or a model error can at most affect the processing inside the current node. It cannot make the agent jump to a branch it should not reach. The attack surface is confined to a single node.
+
+The main limitation is a **lack of flexibility**. Suppose the user changes the booking during payment, or a flight is canceled and the system needs to recommend an alternative. The fixed path cannot adapt to such unanticipated events on its own; it can only follow a preset exception branch or hand control back to a human.
+
+### The simplest workflow: text-to-image
+
+The user's need is usually one plain-language sentence, such as "Draw me a scene of programmers at work after AGI is achieved". Text-to-image models like Stable Diffusion only accept prompts in a specific style: comma-separated English tags, quality words, negative prompts. So the workflow places two fixed nodes between the user and the image model:
+
+1. **Prompt rewriting.** An LLM rewrites the natural-language request into the prompt format the text-to-image model expects. "Programmers at work after AGI" is a very broad requirement, so the LLM also has to think it through, for example: after AGI, programmers no longer need to write code, so show a programmer sunbathing on a beach, directing AI employees through a brain-computer interface. It then produces a concrete scene description.
+2. **Image generation.** The workflow calls the text-to-image model with the rewritten prompt.
+
+The execution path is hard-coded. The LLM node performs **translation**, converting human language into an input format the tool understands, and it exists because text-to-image models "don't understand plain speech". Harness code that patches a capability shortcoming of a tool or model like this is an **adapter layer**.
+
+Swap the image tool for a multimodal model with **native image generation**, such as Nano Banana 2 or GPT-Image 2, and prompt rewriting is no longer needed. However the user phrases the request, the model understands it and produces the image directly.
+
+Experiment 1-4 in the book sends the same plain-language request down both routes:
+
+- **Workflow route:** an LLM rewrites the request into a Stable Diffusion-style prompt, then the text-to-image model produces the image.
+- **Native route:** the sentence goes as-is to a multimodal model with native image generation, such as GPT-Image 2, in a single call.
+
+You compare what the rewriting node turns the request into, and which route's image stays closer to the original request. Try a concrete request, such as a poster with specified copy, and a broad one, such as the AGI scene. For broad requests the workflow route may still have advantages of its own.
+
+The experiment shows that **the parts of a Harness that patch the model's capability shortcomings get internalized by the model as it grows stronger**. This chapter alone has seen it happen several times:
+
+- few-shot examples and prompting tricks like "let's think step by step" were internalized by instruction tuning and reasoning models;
+- output-format repair and JSON parsing tolerance were internalized by structured output and native tool calling;
+- text-to-image prompt rewriting was absorbed by the model's native multimodal understanding and generation.
+
+Each round of internalization eliminates adapter-layer code of the "translation" and "scaffolding" kind.
+
+## Autonomous agents: the path is chosen at run time
+
+When a workflow's fixed path is insufficient, you need an **autonomous agent**. The core difference is that the execution path is not predefined: the agent determines it at run time based on **environmental feedback**.
+
+Back to flight booking. An autonomous agent needs no four predefined nodes. The user says, "Book me a flight to Shanghai next Wednesday," and the agent determines the sequence dynamically. It searches for flights, discovers that login is required, verifies identity, and resumes the search. If the cheapest flight has a layover, it can ask whether that is acceptable; if the user says no, it adjusts the search criteria.
+
+The agent therefore has to plan for itself, choosing its own execution steps. It also has to recognize failure and change strategy rather than simply halting on an error. But autonomy is not unbounded. You must design in explicit **stopping conditions** (task complete, maximum iterations reached, unrecoverable error hit); otherwise the agent can enter an infinite loop or keep executing after the task is already done.
+
+In implementation terms, an autonomous agent is an LLM using tools in a loop, continuously taking in environmental feedback to make progress on the task. This is the ReAct loop from lesson 1.5. Common exit conditions are calling a final output tool, the model returning a response with no tool calls, and hitting an error or the maximum number of rounds.
+
+<StepAnimator label="Autonomous agent loop">
+<Figure caption="The autonomous agent loop: think, act, observe, then check the exit conditions. Any one condition ends the loop." credit="Redrawn from Figure 1-6, AI Agent Book by Bojie Li (Apache 2.0).">
+<AutonomousLoop />
+</Figure>
+</StepAnimator>
+
+Autonomous agents suit open-ended problems, where the number of steps is hard to predict. Typical use cases:
+
+- coding agents solving SWE-bench tasks (the Software Engineering Benchmark, which evaluates an agent's ability to automatically fix real GitHub issues);
+- "Computer Use" agents that operate computer interfaces like a human;
+- research tasks that need iterative search and analysis.
+
+Autonomy also costs more and lets errors compound. Deploying an autonomous agent therefore demands thorough testing in a sandbox, appropriate guardrails and monitoring, and human-in-the-loop checkpoints at critical decision points.
+
+## The same task, both ways
+
+<Figure caption="Flight booking both ways. The workflow fixes the order of four nodes in code; the autonomous agent chooses its next tool at run time.">
+<WorkflowVsAutonomous />
+</Figure>
+
+In code, the workflow is a straight-line function. The LLM appears only inside a node:
+
+```python title="flight_workflow.py (illustrative)"
+def book_flight_workflow(request, user):
+    identity = verify_identity(user)                          # node 1 — order is enforced by code
+    options = search_flights(llm_extract_criteria(request))  # node 2 — the LLM only parses the request
+    payment = charge(identity, choose_flight(options))       # node 3
+    return confirm_booking(payment)                          # node 4 — can never run before payment
+```
+
+The autonomous version hands the same functions to the model as tools:
+
+```python title="flight_autonomous.py (illustrative)"
+tools = {t.name: t for t in [search_flights, verify_identity, charge, confirm_booking, ask_user]}
+answer = run_agent(llm, tools, system_prompt=FLIGHT_POLICY,
+                   user_request="Book me a flight to Shanghai next Wednesday")
+# The model chooses the order at run time. Rules like "no booking before payment"
+# are no longer guaranteed by the code path — the harness must enforce them (lesson 1.8).
+```
+
+`run_agent` is the loop from [lesson 1.5 (The ReAct Loop)](/learn-ai-agents/chapter-1/05-react-loop/). Its `MAX_ROUNDS` limit and its "no tool call means final answer" check are two of the exit conditions above.
+
+## Mixing the two
+
+In practice, workflows and autonomous agents are not mutually exclusive, and many systems mix them. Critical processes with strict compliance requirements run as workflows for reliability, while the parts that need flexible decisions switch to autonomous mode.
+
+n8n, for example, is a mature open-source workflow automation framework. Developers build agents by arranging functional components on a visual canvas, and workflow nodes and autonomous agent nodes can coexist in the same system.
+
+<Figure caption="An n8n workflow: deterministic nodes handle the Telegram message, and an AI agent node with its own model, memory, and tools writes the reply." credit="Redrawn from Figure 1-7 (n8n screenshot), AI Agent Book by Bojie Li (Apache 2.0).">
+<N8nWorkflow />
+</Figure>
+
+Another way to mix them is to **have the autonomous agent write the workflow first, then let the workflow do the executing**. After reading the task, the agent decides the topology itself and generates a piece of orchestration code. Once that code exists, execution falls back to the determinism of a workflow. You keep the agent's flexibility in the face of unfamiliar tasks while sparing the model from making a decision at every dispatch. The book discusses this form in detail in Chapter 10.
+
+## Frameworks at a glance
+
+These widely used agent frameworks and platforms can help you identify the right one for your scenario:
+
+| Framework/Platform | Core positioning | Orchestration pattern | Development approach | Suitable scenarios |
+|---|---|---|---|---|
+| **Codex Harness** | Open-source agent runtime behind Codex | Autonomous | Code-first, embeddable in your own app | Coding agents, embedding an agent into your own product |
+| **Claude Agent SDK** | Production-grade agent development framework | Autonomous | Code-first | Complex autonomous tasks, coding agents |
+| **LangChain / LangGraph** | General LLM application framework | Workflow + autonomous | Code-first | Complex reasoning chains, multi-step workflows |
+| **n8n** | Visual workflow automation | Workflow + autonomous | Low-code | Business automation, nontechnical teams |
+| **Dify** | LLM application development platform | Workflow + conversational | Low-code + API | Enterprise RAG, knowledge-base applications |
+| **CrewAI** | Role-based multi-agent orchestration | Multi-agent collaboration | Code-first | Team-style task decomposition and execution |
+| **OpenClaw** | Open-source all-purpose personal agent | Autonomous + event-driven | Configuration + code | Personal assistants, Deep Research, Computer Use, multiplatform messaging |
+| **DeepSeek Harness** | Agent self-evolution framework | Everything is a plugin | Code-first, easy to customize | Agent developers, researchers |
+| **Pi** | Minimal coding agent framework | Autonomous | Code-first, easy to customize | Agent developers |
+
+The first two rows need a clarification. Codex is OpenAI's coding agent product (App, CLI, IDE extension), and the Codex Harness is the runtime layer that drives all of those forms. It offers three integration paths:
+
+- `codex exec` suits one-off tasks in scripts and CI;
+- the Codex SDK suits third-party application code that starts, resumes, and streams tasks;
+- the app-server provides persistent sessions, event streams, and approval callbacks over the JSON-RPC protocol, which suits building an agent directly into a product.
+
+Claude Agent SDK and Claude Code stand in a similar relationship, except that what Claude opens up is the SDK interface; the Harness implementation itself is not open source.
+
+Agent frameworks evolve rapidly. By the time you read this, some of these may be obsolete and new ones popular, so learning one framework's API is not what matters. When choosing, the key question is not a framework's sophistication but whether its abstraction is thin enough to let you focus on business logic.
+
+Orchestration patterns organize context and tools within the Harness: how LLM calls, tools, and data flows connect. But completing a task is not enough; it must also be completed correctly and safely. That is the job of guardrails, the subject of lesson 1.8 (Guardrails, Safety & the Big Picture).
+
+<KeyTakeaways>
+- Orchestration patterns decide how context flows between LLM calls, how tools are scheduled, and whether the execution path is fixed in advance or generated at run time.
+- Progress from simple to complex: a single LLM call, then a workflow, then an autonomous agent. Agent systems trade latency and cost for task performance.
+- "Less structure, more intelligence": hard-code only boundaries that must always hold, and promote a step to a verifier, agent, or deterministic process only when constraints or evaluations demand it.
+- A workflow fixes the path in code. It gives strict process control and confines prompt injection to one node, but it cannot adapt to unanticipated events.
+- Adapter layers, such as text-to-image prompt rewriting, get internalized as models grow stronger.
+- An autonomous agent chooses its path at run time from environmental feedback. It is the ReAct loop and needs explicit stopping conditions, sandbox testing, guardrails, monitoring, and human checkpoints.
+- Real systems mix the two, as n8n does, or let an agent write a workflow that then executes deterministically.
+- Pick the framework whose abstraction is thin enough to let you focus on business logic.
+</KeyTakeaways>
+
+### References
+
+- Anthropic, ["Building effective agents"](https://www.anthropic.com/engineering/building-effective-agents), December 2024.
+- Manus, ["Less structure, more intelligence"](https://manus.im/).
+- OpenAI, "Codex as a platform: build on the open agent harness", August 2026.
+
+## Check yourself
+
+<Quiz question="Would you build a flight-booking customer-service system as a workflow or an autonomous agent? Can you mix them?">
+Use a workflow as the backbone: identity verification → search → payment → booking. That guarantees compliant ordering such as "no booking before payment" and confines the prompt-injection attack surface to a single node. Switch to autonomous segments for the open-ended parts: understanding requirements, rebooking, and recommending alternatives when a flight is canceled. Add human confirmation for high-risk operations such as large payments and refunds.
+</Quiz>
+
+<Quiz question="Why is a workflow more resistant to prompt injection?">
+Its execution path is deterministic. A prompt injection or model error can at most affect the processing inside the current node; it cannot make the system jump to a branch it should not reach. The attack surface is confined to a single node.
+</Quiz>
+
+<Quiz question="Name an agent engineering method likely to become obsolete as models improve, and explain why.">
+Using constrained sampling to force tool calls into a strict format. It is a reliability patch for models that often emit invalid JSON or omit parameters, so its benefit shrinks as models follow formats more reliably. High-risk scenarios should still keep deterministic format validation.
+
+Requiring prompts and all tool definitions at the beginning of the context. Early models often failed to recognize or execute them outside familiar fixed positions. Skills now load prompts into the middle of the context on demand, and dynamic tool discovery appends new tool definitions after the existing trajectory. As instruction following improves and models are post-trained for these dynamic-loading patterns, the fixed position is no longer required.
+</Quiz>

@@ -18,6 +18,9 @@ import TrajectoryRounds from '~/components/diagrams/chapter-1/TrajectoryRounds.a
 import ModelAsAgent from '~/components/diagrams/chapter-1/ModelAsAgent.astro';
 import ModelHarnessSplit from '~/components/diagrams/chapter-1/ModelHarnessSplit.astro';
 import EngineeringParadigms from '~/components/diagrams/chapter-1/EngineeringParadigms.astro';
+import WorkflowVsAutonomous from '~/components/diagrams/chapter-1/WorkflowVsAutonomous.astro';
+import AutonomousLoop from '~/components/diagrams/chapter-1/AutonomousLoop.astro';
+import N8nWorkflow from '~/components/diagrams/chapter-1/N8nWorkflow.astro';
 
 This page documents the building blocks every lesson uses. It is not part of the tutorial itself.
 
@@ -114,4 +117,20 @@ Each lesson adds its diagrams below, grouped by lesson.
 
 <Figure caption="Five nested engineering paradigms. Each layer widens the scope of the one inside it.">
 <EngineeringParadigms />
+</Figure>
+
+### Lesson 1.7
+
+<Figure caption="Flight booking both ways. The workflow fixes the order of four nodes in code; the autonomous agent chooses its next tool at run time.">
+<WorkflowVsAutonomous />
+</Figure>
+
+<StepAnimator label="Autonomous agent loop">
+<Figure caption="The autonomous agent loop: think, act, observe, then check the exit conditions. Any one condition ends the loop." credit="Redrawn from Figure 1-6, AI Agent Book by Bojie Li (Apache 2.0).">
+<AutonomousLoop />
+</Figure>
+</StepAnimator>
+
+<Figure caption="An n8n workflow: deterministic nodes handle the Telegram message, and an AI agent node with its own model, memory, and tools writes the reply." credit="Redrawn from Figure 1-7 (n8n screenshot), AI Agent Book by Bojie Li (Apache 2.0).">
+<N8nWorkflow />
 </Figure>

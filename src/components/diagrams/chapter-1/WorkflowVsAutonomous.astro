@@ -1,0 +1,92 @@
+---
+// Flight booking two ways: a workflow with four fixed nodes vs. an autonomous agent that picks its next tool at run time.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 420"
+	role="img"
+	aria-labelledby="d-wva-title d-wva-desc"
+	style="min-width: 630px"
+>
+	<title id="d-wva-title">Workflow vs. autonomous agent for flight booking</title>
+	<desc id="d-wva-desc">
+		Left, the workflow: four fixed nodes run in order, verify identity, search flights, complete payment, confirm
+		booking. The path is fixed in code and the LLM works inside each node. Right, the autonomous agent: the agent sits
+		at the center and calls search, verify identity when login is required, and ask user when a layover needs
+		approval, returning to itself after each call. The path is chosen at run time and stops on a stop condition.
+	</desc>
+	<defs>
+		<marker id="d-wva-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<g class="dg-container dg-neutral">
+		<rect x="10" y="10" width="340" height="400" rx="14"></rect>
+		<text x="26" y="40" font-weight="700">Workflow: path fixed in code</text>
+		<text x="180" y="394" text-anchor="middle" class="dg-sub">LLM works inside each node</text>
+	</g>
+
+	<g class="dg-node dg-tools">
+		<rect x="42" y="64" width="276" height="56" rx="10"></rect>
+		<text x="180" y="98" text-anchor="middle" class="dg-accent" font-weight="700">1 Verify identity</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="180" y1="120" x2="180" y2="144" marker-end="url(#d-wva-arrow)"></line>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="42" y="146" width="276" height="56" rx="10"></rect>
+		<text x="180" y="180" text-anchor="middle" class="dg-accent" font-weight="700">2 Search flights</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="180" y1="202" x2="180" y2="226" marker-end="url(#d-wva-arrow)"></line>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="42" y="228" width="276" height="56" rx="10"></rect>
+		<text x="180" y="262" text-anchor="middle" class="dg-accent" font-weight="700">3 Complete payment</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="180" y1="284" x2="180" y2="308" marker-end="url(#d-wva-arrow)"></line>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="42" y="310" width="276" height="56" rx="10"></rect>
+		<text x="180" y="344" text-anchor="middle" class="dg-accent" font-weight="700">4 Confirm booking</text>
+	</g>
+
+	<g class="dg-container dg-neutral">
+		<rect x="370" y="10" width="340" height="400" rx="14"></rect>
+		<text x="386" y="40" font-weight="700">Autonomous: path chosen at run time</text>
+		<text x="540" y="394" text-anchor="middle" class="dg-sub">stops on a stop condition</text>
+	</g>
+
+	<g class="dg-node dg-model">
+		<rect x="390" y="187" width="100" height="56" rx="10"></rect>
+		<text x="440" y="221" text-anchor="middle" class="dg-accent" font-weight="700">Agent</text>
+	</g>
+
+	<g class="dg-node dg-tools">
+		<rect x="546" y="64" width="150" height="56" rx="10"></rect>
+		<text x="621" y="98" text-anchor="middle" class="dg-accent" font-weight="700">verify identity</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="546" y="187" width="150" height="56" rx="10"></rect>
+		<text x="621" y="221" text-anchor="middle" class="dg-accent" font-weight="700">search</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="546" y="310" width="150" height="56" rx="10"></rect>
+		<text x="621" y="344" text-anchor="middle" class="dg-accent" font-weight="700">ask user</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="492" y1="215" x2="544" y2="215" marker-start="url(#d-wva-arrow)" marker-end="url(#d-wva-arrow)"></line>
+	</g>
+	<g class="dg-edge">
+		<line x1="476" y1="185" x2="560" y2="122" marker-start="url(#d-wva-arrow)" marker-end="url(#d-wva-arrow)"></line>
+		<text x="524" y="140" text-anchor="end" class="dg-edge-label">login required</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="476" y1="245" x2="560" y2="308" marker-start="url(#d-wva-arrow)" marker-end="url(#d-wva-arrow)"></line>
+		<text x="522" y="300" text-anchor="end" class="dg-edge-label">layover OK?</text>
+	</g>
+</svg>

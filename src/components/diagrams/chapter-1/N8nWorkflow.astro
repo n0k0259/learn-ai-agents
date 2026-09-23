@@ -1,0 +1,122 @@
+---
+// Schematic redraw of Figure 1-7 (n8n screenshot): deterministic workflow nodes feeding an AI agent node with its own model, memory, and tools.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 430"
+	role="img"
+	aria-labelledby="d-n8n-title d-n8n-desc"
+	style="min-width: 630px"
+>
+	<title id="d-n8n-title">An n8n workflow mixing deterministic nodes with an agent node</title>
+	<desc id="d-n8n-desc">
+		A Telegram trigger receives an incoming message. A Process request group checks voice or text, branches if voice,
+		and gets the voice file. Speech to text transcribes it and passes it to an AI agent node, the "Angie" assistant,
+		which sends its reply through Telegram. The agent node is connected to a chat model, a window memory, and four
+		tools: get email, calendar, tasks, and contacts. Workflow nodes and an autonomous agent node sit in one system.
+	</desc>
+	<defs>
+		<marker id="d-n8n-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<g class="dg-node dg-env">
+		<rect x="12" y="64" width="156" height="56" rx="10"></rect>
+		<text x="90" y="88" text-anchor="middle" class="dg-accent" font-weight="700">Telegram trigger</text>
+		<text x="90" y="110" text-anchor="middle" class="dg-sub">incoming message</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="168" y1="92" x2="194" y2="92" marker-end="url(#d-n8n-arrow)"></line>
+	</g>
+
+	<g class="dg-container dg-neutral">
+		<rect x="196" y="12" width="512" height="130" rx="14"></rect>
+		<text x="212" y="42" font-weight="700">Process request</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="212" y="64" width="148" height="56" rx="10"></rect>
+		<text x="286" y="98" text-anchor="middle" class="dg-accent" font-weight="700">Voice or text?</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="360" y1="92" x2="378" y2="92" marker-end="url(#d-n8n-arrow)"></line>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="380" y="64" width="148" height="56" rx="10"></rect>
+		<text x="454" y="98" text-anchor="middle" class="dg-accent" font-weight="700">If voice</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="528" y1="92" x2="546" y2="92" marker-end="url(#d-n8n-arrow)"></line>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="548" y="64" width="148" height="56" rx="10"></rect>
+		<text x="622" y="98" text-anchor="middle" class="dg-accent" font-weight="700">Get voice file</text>
+	</g>
+
+	<g class="dg-edge">
+		<path d="M622,142 V166 H86 V188" marker-end="url(#d-n8n-arrow)"></path>
+	</g>
+
+	<g class="dg-node dg-tools">
+		<rect x="12" y="190" width="148" height="66" rx="10"></rect>
+		<text x="86" y="228" text-anchor="middle" class="dg-accent" font-weight="700">Speech to text</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="160" y1="223" x2="198" y2="223" marker-end="url(#d-n8n-arrow)"></line>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="200" y="190" width="300" height="66" rx="10"></rect>
+		<text x="350" y="217" text-anchor="middle" class="dg-accent" font-weight="700">AI agent node</text>
+		<text x="350" y="242" text-anchor="middle" class="dg-sub">("Angie" assistant)</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="500" y1="223" x2="546" y2="223" marker-end="url(#d-n8n-arrow)"></line>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="548" y="190" width="160" height="66" rx="10"></rect>
+		<text x="628" y="217" text-anchor="middle" class="dg-accent" font-weight="700">Telegram</text>
+		<text x="628" y="242" text-anchor="middle" class="dg-sub">send reply</text>
+	</g>
+
+	<g class="dg-edge">
+		<path d="M65,338 V296 H250 V258" stroke-dasharray="6 5" marker-end="url(#d-n8n-arrow)"></path>
+		<text x="238" y="282" text-anchor="end" class="dg-edge-label">model</text>
+	</g>
+	<g class="dg-edge">
+		<path d="M207,338 V324 H310 V258" stroke-dasharray="6 5" marker-end="url(#d-n8n-arrow)"></path>
+		<text x="322" y="282" class="dg-edge-label">memory</text>
+	</g>
+	<g class="dg-edge">
+		<path d="M341,338 V310 M448,338 V310 M555,338 V310 M662,338 V310 M341,310 H662" stroke-dasharray="6 5"></path>
+		<path d="M448,310 V258" stroke-dasharray="6 5" marker-end="url(#d-n8n-arrow)"></path>
+		<text x="460" y="282" class="dg-edge-label">tools</text>
+	</g>
+
+	<g class="dg-node dg-model">
+		<rect x="9" y="340" width="112" height="52" rx="10"></rect>
+		<text x="65" y="371" text-anchor="middle" class="dg-accent" font-weight="700">Chat model</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="132" y="340" width="150" height="52" rx="10"></rect>
+		<text x="207" y="371" text-anchor="middle" class="dg-accent" font-weight="700">Window memory</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="293" y="340" width="96" height="52" rx="10"></rect>
+		<text x="341" y="371" text-anchor="middle" class="dg-accent" font-weight="700">Get email</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="400" y="340" width="96" height="52" rx="10"></rect>
+		<text x="448" y="371" text-anchor="middle" class="dg-accent" font-weight="700">Calendar</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="507" y="340" width="96" height="52" rx="10"></rect>
+		<text x="555" y="371" text-anchor="middle" class="dg-accent" font-weight="700">Tasks</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="614" y="340" width="96" height="52" rx="10"></rect>
+		<text x="662" y="371" text-anchor="middle" class="dg-accent" font-weight="700">Contacts</text>
+	</g>
+
+	<text x="360" y="420" text-anchor="middle" class="dg-sub">workflow nodes and an autonomous agent node in one system</text>
+</svg>
