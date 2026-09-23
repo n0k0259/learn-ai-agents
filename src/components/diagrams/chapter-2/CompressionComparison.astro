@@ -1,0 +1,100 @@
+---
+// Experiment 2-10 outcomes per compression strategy: tokens, ratio, iterations, result and a token-usage bar (redraw of Fig 2-16, prose numbers only).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 484"
+	role="img"
+	aria-labelledby="d2-cc-title d2-cc-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-cc-title">Comparison of context compression strategies</title>
+	<desc id="d2-cc-desc">
+		A table of six strategies with tokens, compression ratio, iterations, result and a token-usage bar. No
+		compression: about 165,000 tokens, overflow at iteration 5, failed. Individual summary: 276,608 tokens, 10.9%, 12
+		iterations, success. Combined summary: 93,449 tokens, 4.3%, 10 iterations, success. Context-aware, highlighted:
+		40,157 tokens, about 3.0%, 7 iterations, success. Aware plus citation: no figures given. Adaptive window: 174,601
+		tokens. Key: incorporate query intent and existing information into compression decisions.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">Comparison of context compression strategies</text>
+
+	<!-- Header -->
+	<text x="12" y="66" font-weight="700">Strategy</text>
+	<text x="282" y="66" text-anchor="end" font-weight="700">Tokens</text>
+	<text x="348" y="66" text-anchor="end" font-weight="700">Ratio</text>
+	<text x="400" y="66" text-anchor="end" font-weight="700">Iters</text>
+	<text x="416" y="66" font-weight="700">Result</text>
+	<text x="540" y="66" font-weight="700">Token usage</text>
+	<g class="dg-edge">
+		<line x1="4" y1="78" x2="716" y2="78"></line>
+	</g>
+
+	<!-- 1. No compression -->
+	<text x="12" y="113">No compression</text>
+	<text x="282" y="113" text-anchor="end">≈165,000</text>
+	<text x="348" y="113" text-anchor="end">—</text>
+	<text x="400" y="113" text-anchor="end">5</text>
+	<text x="416" y="113" class="dg-fail" style="font-size: 16px">✗ Overflow</text>
+	<g class="dg-node dg-guard">
+		<rect x="540" y="92" width="95" height="32" rx="3"></rect>
+	</g>
+
+	<!-- 2. Individual summary -->
+	<text x="12" y="165">Individual summary</text>
+	<text x="282" y="165" text-anchor="end">276,608</text>
+	<text x="348" y="165" text-anchor="end">10.9%</text>
+	<text x="400" y="165" text-anchor="end">12</text>
+	<text x="416" y="165" class="dg-ok" style="font-size: 16px">✓ Success</text>
+	<g class="dg-node dg-context">
+		<rect x="540" y="144" width="160" height="32" rx="3"></rect>
+	</g>
+
+	<!-- 3. Combined summary -->
+	<text x="12" y="217">Combined summary</text>
+	<text x="282" y="217" text-anchor="end">93,449</text>
+	<text x="348" y="217" text-anchor="end">4.3%</text>
+	<text x="400" y="217" text-anchor="end">10</text>
+	<text x="416" y="217" class="dg-ok" style="font-size: 16px">✓ Success</text>
+	<g class="dg-node dg-context">
+		<rect x="540" y="196" width="54" height="32" rx="3"></rect>
+	</g>
+
+	<!-- 4. Context-aware (highlighted) -->
+	<g class="dg-container dg-model">
+		<rect x="4" y="236" width="712" height="48" rx="6"></rect>
+		<text x="12" y="269" font-weight="700">Context-aware</text>
+		<text x="282" y="269" text-anchor="end">40,157</text>
+		<text x="348" y="269" text-anchor="end">≈3.0%</text>
+		<text x="400" y="269" text-anchor="end">7</text>
+		<text x="416" y="269" class="dg-ok" style="font-size: 16px">✓ Success</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="540" y="248" width="23" height="32" rx="3"></rect>
+	</g>
+
+	<!-- 5. Aware + citation -->
+	<text x="12" y="321">Aware + citation</text>
+	<text x="282" y="321" text-anchor="end">—</text>
+	<text x="348" y="321" text-anchor="end">—</text>
+	<text x="400" y="321" text-anchor="end">—</text>
+	<text x="416" y="321">—</text>
+
+	<!-- 6. Adaptive window -->
+	<text x="12" y="373">Adaptive window</text>
+	<text x="282" y="373" text-anchor="end">174,601</text>
+	<text x="348" y="373" text-anchor="end">—</text>
+	<text x="400" y="373" text-anchor="end">—</text>
+	<text x="416" y="373">—</text>
+	<g class="dg-node dg-context">
+		<rect x="540" y="352" width="101" height="32" rx="3"></rect>
+	</g>
+
+	<!-- Key -->
+	<g class="dg-node dg-neutral">
+		<rect x="4" y="404" width="712" height="72" rx="8"></rect>
+		<text x="360" y="432" text-anchor="middle" font-weight="700">Key: incorporate query intent and existing information</text>
+		<text x="360" y="458" text-anchor="middle">into compression decisions</text>
+	</g>
+</svg>

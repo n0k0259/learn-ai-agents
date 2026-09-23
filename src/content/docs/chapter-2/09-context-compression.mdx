@@ -1,0 +1,151 @@
+---
+title: Why and How to Compress Context
+description: Three reasons to compress, lookup vs aggregation, context rot, compressing between calls without losing the prefix cache, and six strategies compared.
+sidebar:
+  order: 9
+  label: 2.9 Context Compression
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md#context-compression-strategies
+  sections:
+    - 'Context Compression Strategies'
+    - 'Why Compression Is Needed: Not Just a Length Issue'
+    - 'The Internal Mechanism of In-Context Learning: Retrieval, Not Reasoning'
+    - 'Compression and KV Cache: Apparent Contradiction, Practical Complementarity'
+---
+import Figure from '~/components/Figure.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import LookupVsAggregation from '~/components/diagrams/chapter-2/LookupVsAggregation.astro';
+import CompressionComparison from '~/components/diagrams/chapter-2/CompressionComparison.astro';
+import CompressionFlows from '~/components/diagrams/chapter-2/CompressionFlows.astro';
+
+:::tip[TL;DR]
+Compress for length and cost, but also because distilled knowledge is easier for the model to use than raw records, and to ease context anxiety. Compression replaces raw tool results with computed conclusions between API calls, so the static prefix stays cached; batch it near a threshold. In Experiment 2-10, context-aware compression reported the fewest tokens and iterations.
+:::
+
+## Reducing what's in the context
+
+Prompt engineering determines what to write, Skills determine what to load on demand, and the Agent Status Bar determines what meta-information to inject. As multi-turn interactions deepen, though, the context keeps expanding. The opposite problem is **how to reduce content in the context**: when to compress, how to compress, and why compression can be useful even before the window is full.
+
+## Three reasons to compress
+
+**Length and cost.** This is the most intuitive reason. The context window is limited (for example, 128K tokens), tool results routinely run to tens of thousands of characters, and the trajectory grows with every round ([lesson 1.5](/learn-ai-agents/chapter-1/05-react-loop/)), so a few rounds can fill the window and cut the task short. More tokens also mean higher API costs and sharply higher inference latency.
+
+**Reasoning quality.** This runs deeper and is more easily overlooked: summarized knowledge is more usable by the model than its raw form. Even when the window is large enough, piling in all the raw information isn't optimal. The raw results of a dozen search rounds end up scattered through the context, so at every decision the model searches repeatedly through tens of thousands of tokens for the relevant fragments, its attention is dispersed, and key information is easily missed.
+
+If a single LLM call first summarizes what has accumulated into a structured form ("Known so far: A is…, B is…, still missing information about C"), subsequent reasoning can use that distilled representation directly.
+
+**Context anxiety.** When a model believes its context window is about to run out, it may start wrapping up before the task is complete (Rajasekaran, 2026). Compressing well before the window is close to full may improve the quality of its decisions.
+
+## Retrieval, not reasoning
+
+As [lesson 2.8](/learn-ai-agents/chapter-2/08-agent-status-bar/) showed, attention is good at looking up existing content but not at computing aggregate summaries in a single forward pass. That describes one forward pass; it doesn't negate multi-step reasoning through chain-of-thought.
+
+The implication for compression follows. The status bar **adds** computed conclusions **into** the context, while compression **replaces** bloated raw records **with** computed conclusions. They are two sides of the same coin, both supplying the missing distillation layer to an engine that performs only half the job. The difference is that the status bar is usually maintained deterministically, step by step, by code, while compression more often uses an LLM call to distill a large block of original text.
+
+### Lookup vs aggregation
+
+Suppose the context contains a pet store inspection log:
+
+> Cage 1: Black cat. Cage 2: White cat. Cage 3: Black cat. Cage 4: Black cat. Cage 5: White cat.
+> ... (100 cages total, 90 black cats, 10 white cats)
+
+Ask "How many black cats and how many white cats are there?" and a model without chain-of-thought will struggle to answer correctly. **Lookup** ("Which cat is in cage 37?") is where attention excels. **Aggregation** ("How many black cats are there in total?") requires traversing every record while maintaining a count, which is essentially reasoning rather than retrieval.
+
+Chain-of-thought can get the count right, but it has to start counting from scratch every time it's asked. Agents often reuse statistics like this, so the accumulated reasoning cost is high. Summarize once instead, writing "Current statistics: 90 black cats, 10 white cats" into the context, and the model retrieves the conclusion immediately. That is the second value of compression: **turning conclusions that require reasoning into knowledge that can be retrieved directly.**
+
+<Figure caption="One log, three questions. Which cat is in cage 37 is a one-hop lookup. How many black cats there are needs a pass over all 100 records with a running count, which is reasoning rather than retrieval. Once a summary with the totals is written into the context, the same question becomes a one-hop lookup again.">
+<LookupVsAggregation />
+</Figure>
+
+### Context rot
+
+Long contexts also reduce retrieval precision. Even when the window is far from full, the agent may suddenly fail to find key information, or keep focusing on a problem it has already solved. This is **context rot**.
+
+Rot differs from context overflow. Overflow means "cannot fit any more"; rot means "it fits but cannot be found." Rot is more insidious, because the agent appears to be working normally while its decision quality quietly deteriorates.
+
+As context length increases, attention weights are spread across more tokens, and each token receives less weight. More importantly, once irrelevant content dominates the context, decision quality declines. Knowledge needed only occasionally is loaded every time, stable rules are mixed with dynamic state, and the model sees more content while the useful parts become harder to notice. Think of searching for one book in a large library: the more irrelevant books on the shelves, the harder the target is to find.
+
+The design principle follows. Rather than expecting the model to learn automatically from lengthy context, distill that knowledge explicitly: summarization costs extra computation, but it produces compact, information-dense representations. **Don't make the model search passively through vast amounts of raw material; provide refined, structured knowledge instead.**
+
+### Temporary customization
+
+Seen this way, in-context learning lets the model quickly adjust its behavior during inference to suit a task, but the adjustment is temporary and shallow, and it disappears when the session ends. This is the contextual adaptation of [lesson 1.3](/learn-ai-agents/chapter-1/03-llm-reasoning-engine/), which changes nothing about the next session.
+
+Recent theoretical research (Dherin et al., 2025) supports this judgment. When the model sees examples in the context, it behaves as if it has been "temporarily customized": its parameters don't change, but the effect resembles a small, specialized training session. That explains why the few-shot examples of [lesson 2.5](/learn-ai-agents/chapter-2/05-system-prompts/) can significantly improve output quality, and also why the improvement doesn't accumulate across sessions.
+
+## Compressing without losing the cache
+
+There's an apparent contradiction. The KV Cache requires the context prefix to stay unchanged ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)), yet compression modifies content in the middle of the context.
+
+The resolution is the **timing and location** of compression. It never modifies the context during a single API call. It happens **between two API calls**, when the agent framework preprocesses the message list:
+
+1. **The system prompt and tool definitions are never touched.** They are the static prefix at the very front, so the cached prefix remains reusable.
+2. **The target is the tool results in the conversation history.** When the framework replaces an original tool output with a compressed summary, the cache after the replacement point becomes invalid, but the cache before it stays valid.
+3. **It's a conscious trade-off.** Without compression, the context expands beyond the window and the task fails outright. With it, some cache is lost, but context length stays under control and information density rises.
+
+So weigh how often you compress: frequent compression frequently breaks the cache. It's best to batch-compress when the context approaches a threshold, rather than compressing every round.
+
+### When thinking is bound to the prefix
+
+If the model binds thinking to the prefix, as preserved thinking does ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)), compression costs more than cache. The common approach of "summarize older turns, keep the last few verbatim" breaks down. The thinking in the retained turns was produced with the original history in front of it, not the summary, so its prefix has changed and all of it becomes invalid. Truncating old tool results in place fails for the same reason.
+
+Anthropic recommends one of two approaches. Either compress the entire session into a single summary message and pass back no old thinking at all, letting the model reason afresh from the summary. Or let the server compact or clear the context: server-side edits of this kind don't count as modifying the prefix.
+
+## Six strategies compared
+
+:::note[Experiment 2-10: Comparison of Context Compression Strategies]
+**What is tested.** A research task: identify and track the employment status of OpenAI co-founders. It needs multi-step information aggregation, search results vary greatly in length (from a few thousand to over a hundred thousand characters), and success criteria are clear. The model is Kimi K3, a reasoning model with a native context of about 1 million tokens; the experiment deliberately limited its budget to a 128K window to trigger compression. Throughout, **compression ratio** means compressed volume / original volume, so a smaller number means more aggressive compression.
+
+**Strategy 1: no compression.** All original tool results are kept intact. Seven tool calls returned about 367,000 characters in total, averaging about 52,000 characters each. By the fifth iteration the cumulative context exceeded the 128K limit (about 165,000 tokens), triggering overflow protection and failing the task.
+
+**Strategies 2 and 3: non-task-aware compression.** Individual summarization writes a 2–3 paragraph summary of each search result independently, at a ratio of 10.9%. It completes the task but needs 12 iterations and 276,608 tokens, and it fragments information: several pages describe the same event over and over, wasting context space. Combined summarization merges all results into one comprehensive summary, at 4.3%, in 10 iterations and 93,449 tokens, but very long input has to be truncated, potentially losing information at the end. Both lack semantic understanding, so neither can tell relevant information from irrelevant.
+
+**Strategy 4: context-aware compression.** The compression prompt includes the current query intent and the accumulated information ("Given the search query: `{query}`" and "Current context: `{context}`"), guiding the model toward targeted summaries. It needed only 7 iterations and 40,157 tokens, at an overall ratio of about 3.0%. In one instance, roughly 150K characters were compressed to 2K while keeping what the later task needed, such as founder names and position changes.
+
+**Strategy 5: context-aware with citations.** Each fact carries a source URL citation marker. The content is compressed semantically (lossy), but the retained links provide a lossless index that can theoretically return to the original information at any time.
+
+**Strategy 6: adaptive windowing.** Early in a task, context space is abundant, so there's no need to rush compression. A threshold trigger activates compression only when the prompt token count exceeds 80% of the window. Batch compression then compresses every unmarked tool result at once (for example, all 10 uncompressed tool messages after the context crosses the 102,400-token threshold), and a `[COMPRESSED]` marker prevents compressed content from being processed again.
+
+**Result.** Of the reported figures, context-aware compression's 7 iterations and 40,157 tokens are the lowest. Adaptive windowing's total token usage was relatively high (174,601), but its first few iterations keep the complete original information, which gives maximum flexibility for broad initial information gathering.
+
+**Takeaway.** Bringing the query intent and the accumulated information into the compression decision produced targeted summaries, where non-task-aware summaries couldn't tell relevant information from irrelevant. Deferring compression keeps the original information longer, at a higher total token cost.
+:::
+
+<Figure caption="Experiment 2-10 by strategy: total tokens, compression ratio (compressed / original), iterations and result, with bars scaled to token usage. Context-aware compression, highlighted, uses the fewest tokens. The prose gives no figures for strategy 5, and no ratio or iteration count for adaptive windowing." credit="Redrawn from Figure 2-16, AI Agent Book by Bojie Li (Apache 2.0).">
+<CompressionComparison />
+</Figure>
+
+<Figure caption="What each strategy does with a search result of about 52K characters before it enters the context: keep it whole, summarize it alone, merge it with the rest, compress it against the query and current context, do the same while keeping URL citations, or keep it until 80% of the window and then batch-compress it with a [COMPRESSED] marker." credit="Redrawn from Figure 2-17, AI Agent Book by Bojie Li (Apache 2.0).">
+<CompressionFlows />
+</Figure>
+
+<KeyTakeaways>
+- Compress for three reasons: length and cost, reasoning quality (distilled knowledge is easier to use than raw records), and context anxiety.
+- Attention handles lookup, not aggregation. Compression replaces raw records with computed conclusions, turning reasoning into retrievable knowledge; the status bar adds them.
+- Context rot is "it fits but cannot be found": it degrades decisions long before overflow, as irrelevant content dominates.
+- Compress between API calls, on tool results only. The static prefix stays cached and only the cache after the replacement point is lost, so batch near a threshold instead of every round.
+- With thinking bound to the prefix, summarize the whole session into one message or use server-side compaction, not "summarize old turns, keep recent ones verbatim".
+</KeyTakeaways>
+
+### References
+
+- Prithvi Rajasekaran, ["Harness design for long-running application development"](https://www.anthropic.com/engineering/harness-design-long-running-apps), Anthropic Engineering, 2026.
+
+## Check yourself
+
+<Quiz question="In the context-aware compression experiment, about 150K characters were compressed to about 2K. Does this extreme compression risk irreversible information loss, and how do you address it?">
+Yes. Semantic compression is lossy; the book's reference answer calls it a lossy projection, so if a later question falls on a dimension that wasn't preserved, the answer breaks. Strategy 5's mitigation is lossy content with a lossless index: each fact keeps its source URL, which can theoretically lead back to the original. Adaptive windowing postpones compression until 80% of the window, so early iterations keep the original text. The book's reference answer adds storing raw outputs on disk with only summary previews in context, and explicit retention priorities: architectural decisions, semantic integrity (times, company names), verification status, and identifiers such as UUIDs and hashes kept verbatim.
+</Quiz>
+
+<Quiz question="If in-context learning is essentially retrieval rather than reasoning, optimizations that just put more information into the context need rethinking. How would you work around the limit?">
+Supply the distillation layer the model lacks, so conclusions that need reasoning become knowledge it can retrieve. Precompute state with code, as the status bar does ([lesson 2.8](/learn-ai-agents/chapter-2/08-agent-status-bar/)), and actively compress, replacing raw records with dense, structured knowledge. The book's reference answer adds sub-agent isolation to keep noise out of the main context, interaction with external tools that bring back information the model couldn't think up, and frontier directions such as editable, composable KV Cache "notes" ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)) and cross-session memory consolidation.
+</Quiz>
+
+<Quiz question="Your agent has plenty of context window left but keeps missing a fact it saw earlier, or returns to a problem it already solved. Overflow or rot, and what helps?">
+Rot. Overflow means the content cannot fit; rot means it fits but cannot be found. As context grows, attention is spread across more tokens, and once irrelevant content dominates, decision quality declines while the agent appears to work normally. The fix is not waiting for the window to fill: distill the raw material explicitly into compact, structured knowledge, replacing bloated tool results with conclusions so the useful parts are easy to find.
+</Quiz>
+
+<Quiz question="Why batch-compress when the context nears a threshold instead of compressing every round?">
+Compression happens between API calls and replaces tool results in the history. The static prefix stays cached, but the cache after each replacement point becomes invalid. Compressing every round would break the cache every round; batching all uncompressed tool results near a threshold (such as 80% of the window) breaks it far less often, and keeps the original text intact until then. Not compressing at all isn't an option either: the context outgrows the window and the task fails outright.
+</Quiz>

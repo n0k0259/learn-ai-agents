@@ -1,0 +1,133 @@
+---
+// Experiment 2-10: how each of the six strategies turns a search result into what enters the context (redraw of Fig 2-17; outcome numbers live in Fig 2-16).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 544"
+	role="img"
+	aria-labelledby="d2-cf-title d2-cf-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-cf-title">Processing flow of six compression strategies</title>
+	<desc id="d2-cf-desc">
+		Each search returns about 52K characters on average, and each strategy handles it differently. 1, no compression:
+		directly keep, the full original text goes into the context. 2, individual summary: independent summary, each
+		result independently generates a 2–3 paragraph summary. 3, combined summary: merged summary, all results are
+		concatenated and then summarized together. 4, context-aware: intelligent compression, given the query and the
+		current context, targeted compression. 5, context-aware plus citation: intelligent plus traceability, compressed
+		content that retains URL citation markers. 6, adaptive window: deferred compression, keep the original text below
+		80% of the window, and once it is exceeded batch-compress and mark the results [COMPRESSED].
+	</desc>
+	<defs>
+		<marker id="d2-cf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Processing flow of six compression strategies</text>
+
+	<g class="dg-node dg-tools">
+		<rect x="4" y="44" width="712" height="40" rx="8"></rect>
+		<text x="20" y="70">Search result: ~52K characters on average → each strategy differs</text>
+	</g>
+
+	<!-- Bus from the search result down to each strategy -->
+	<g class="dg-edge">
+		<path d="M16,84 V494"></path>
+		<path d="M16,134 H34" marker-end="url(#d2-cf-arrow)"></path>
+		<path d="M16,206 H34" marker-end="url(#d2-cf-arrow)"></path>
+		<path d="M16,278 H34" marker-end="url(#d2-cf-arrow)"></path>
+		<path d="M16,350 H34" marker-end="url(#d2-cf-arrow)"></path>
+		<path d="M16,422 H34" marker-end="url(#d2-cf-arrow)"></path>
+		<path d="M16,494 H34" marker-end="url(#d2-cf-arrow)"></path>
+	</g>
+
+	<!-- 1 -->
+	<g class="dg-node dg-harness">
+		<rect x="38" y="104" width="250" height="60" rx="6"></rect>
+		<text x="52" y="128" font-weight="700">① No compression</text>
+		<text x="52" y="152" class="dg-sub">Directly keep</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="288" y1="134" x2="316" y2="134" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="320" y="104" width="396" height="60" rx="6"></rect>
+		<text x="336" y="140">Full original text into context</text>
+	</g>
+
+	<!-- 2 -->
+	<g class="dg-node dg-harness">
+		<rect x="38" y="176" width="250" height="60" rx="6"></rect>
+		<text x="52" y="200" font-weight="700">② Individual summary</text>
+		<text x="52" y="224" class="dg-sub">Independent summary</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="288" y1="206" x2="316" y2="206" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="320" y="176" width="396" height="60" rx="6"></rect>
+		<text x="336" y="200">Each result independently generates</text>
+		<text x="336" y="224">a 2–3 paragraph summary</text>
+	</g>
+
+	<!-- 3 -->
+	<g class="dg-node dg-harness">
+		<rect x="38" y="248" width="250" height="60" rx="6"></rect>
+		<text x="52" y="272" font-weight="700">③ Combined summary</text>
+		<text x="52" y="296" class="dg-sub">Merged summary</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="288" y1="278" x2="316" y2="278" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="320" y="248" width="396" height="60" rx="6"></rect>
+		<text x="336" y="272">All results concatenated,</text>
+		<text x="336" y="296">then one unified summary</text>
+	</g>
+
+	<!-- 4 -->
+	<g class="dg-node dg-harness dg-solid">
+		<rect x="38" y="320" width="250" height="60" rx="6"></rect>
+		<text x="52" y="344" font-weight="700">④ Context-aware</text>
+		<text x="52" y="368" class="dg-sub">Intelligent compression</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="288" y1="350" x2="316" y2="350" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="320" y="320" width="396" height="60" rx="6"></rect>
+		<text x="336" y="356">Given query + context → targeted compression</text>
+	</g>
+
+	<!-- 5 -->
+	<g class="dg-node dg-harness">
+		<rect x="38" y="392" width="250" height="60" rx="6"></rect>
+		<text x="52" y="416" font-weight="700">⑤ Context-aware + citation</text>
+		<text x="52" y="440" class="dg-sub">Intelligent + traceability</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="288" y1="422" x2="316" y2="422" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="320" y="392" width="396" height="60" rx="6"></rect>
+		<text x="336" y="416">Compressed content +</text>
+		<text x="336" y="440">retained URL citation markers</text>
+	</g>
+
+	<!-- 6 -->
+	<g class="dg-node dg-harness">
+		<rect x="38" y="464" width="250" height="60" rx="6"></rect>
+		<text x="52" y="488" font-weight="700">⑥ Adaptive window</text>
+		<text x="52" y="512" class="dg-sub">Deferred compression</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="288" y1="494" x2="316" y2="494" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="320" y="464" width="396" height="60" rx="6"></rect>
+		<text x="336" y="488">&lt; 80% of window: keep original text</text>
+		<text x="336" y="512" style="font-variant-ligatures: none">Exceeded: batch-compress, mark <tspan class="dg-mono">[COMPRESSED]</tspan></text>
+	</g>
+</svg>

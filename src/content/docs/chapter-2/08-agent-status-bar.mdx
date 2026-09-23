@@ -164,7 +164,7 @@ The meta-information is human-readable, so you can inspect what the agent receiv
 1. **Maintain the status bar with code whenever possible.** If an LLM is unavoidable, have it extract items one by one and aggregate them with code; never ask it for a batch count in one shot. Experiments find that models trust the status bar almost unconditionally: write "3 calls made" and the model accepts three without recalculating. LLMs are already prone to counting errors, and this trust is also why the status-bar poisoning risk from [lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/) deserves to be taken seriously.
 2. **Be cautious when deleting the original context.** A status bar is a **lossy projection** of the original context: it precomputes only the dimensions you expected to be queried. If the bar is sufficient, as it is for counting and state tracking, you can delete the raw records and save many tokens. But if even one question falls outside its dimensions, accuracy collapses when only the status bar remains.
 
-The Agent Status Bar is one form of **context compression**; lesson 2.9 introduces further compression techniques.
+The Agent Status Bar is one form of **context compression**; [lesson 2.9](/learn-ai-agents/chapter-2/09-context-compression/) introduces further compression techniques.
 
 <KeyTakeaways>
 - The model has no automatic distillation layer, so counts, limits and progress get recomputed from raw records at every decision, at a cost that grows with the context.

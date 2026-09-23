@@ -30,7 +30,7 @@ Instead of loading all knowledge into one system prompt, let the agent load it o
 As an agent is asked to handle more scenarios, the system prompt tends to grow: refund rules for customer service, coding standards for programming tasks, formatting requirements for documentation tasks, and so on. Putting everything into a single prompt creates two problems:
 
 - **Wasted tokens:** most of the content is irrelevant to the current task.
-- **Diluted attention:** too much irrelevant information dilutes the model's attention to the key content. The book returns to this under the name "context rot" in its context compression section (lesson 2.9).
+- **Diluted attention:** too much irrelevant information dilutes the model's attention to the key content. The book returns to this under the name "context rot" in its context compression section ([lesson 2.9](/learn-ai-agents/chapter-2/09-context-compression/)).
 
 The natural next step is dynamic prompts: **instead of loading all knowledge into the agent at once, let it load knowledge on demand**. The Agent Skills system is the engineering implementation of this idea.
 
