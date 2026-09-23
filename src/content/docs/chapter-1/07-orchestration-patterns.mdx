@@ -31,7 +31,7 @@ Orchestration patterns are how the Harness organizes its "context and tools" lay
 
 In Anthropic's experience working with dozens of teams building LLM agents ([Building effective agents](https://www.anthropic.com/engineering/building-effective-agents)), the most successful implementations rarely use complex frameworks. They use simple, composable patterns.
 
-When you build an LLM application, progress from simple to complex. Start with a single LLM call, and move down a row only when the one above can't do the job:
+When you build an LLM application, progress from simple to complex. Start with a single LLM call; if better prompts and in-context examples solve the problem, don't introduce an agent system. Add structure only when the simpler option can't do the job:
 
 | Situation | Start with |
 |---|---|
@@ -51,7 +51,7 @@ A common counterexample is to begin with a highly complex workflow or multi-agen
 
 Each component makes sense in isolation, yet together they form a highly inefficient and unreliable system. A complex workflow has a fixed execution topology, so each new exception readily leads to another node. The architecture grows more complex while becoming less general, and semantic judgments the model could have made from context get hard-coded into the workflow.
 
-The importance of the Harness does not mean that a more complex Harness is better. The [Manus website](https://manus.im/) summarizes the trade-off as "Less structure, more intelligence." Start by giving a capable agent a clear goal, the necessary context, and composable tools. Use natural language to tell it how a person would verify evidence, make comparisons, and resolve conflicts.
+**The importance of the Harness does not mean that a more complex Harness is better.** The [Manus website](https://manus.im/) summarizes the trade-off as "Less structure, more intelligence." Start by giving a capable agent a clear goal, the necessary context, and composable tools. Use natural language to tell it how a person would verify evidence, make comparisons, and resolve conflicts.
 
 Hard-code only the boundaries that must always hold, such as permissions, never overwriting source material, and atomic publication. Promote a step into a dedicated verifier, an independent agent, or a deterministic process only when business constraints inherently require it, or when evaluations repeatedly expose a stable failure mode. Good structure does not rehearse all of the agent's thinking for it; it guards the boundaries and returns the decision space within them to the model.
 
