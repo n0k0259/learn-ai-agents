@@ -16,6 +16,8 @@ import ContextAblation from '~/components/diagrams/chapter-1/ContextAblation.ast
 import ReActLoop from '~/components/diagrams/chapter-1/ReActLoop.astro';
 import TrajectoryRounds from '~/components/diagrams/chapter-1/TrajectoryRounds.astro';
 import ModelAsAgent from '~/components/diagrams/chapter-1/ModelAsAgent.astro';
+import ModelHarnessSplit from '~/components/diagrams/chapter-1/ModelHarnessSplit.astro';
+import EngineeringParadigms from '~/components/diagrams/chapter-1/EngineeringParadigms.astro';
 
 This page documents the building blocks every lesson uses. It is not part of the tutorial itself.
 
@@ -102,4 +104,14 @@ Each lesson adds its diagrams below, grouped by lesson.
 
 <Figure caption="Model as Agent: the model decides the tool calls and native tools run server-side. The loop runs on the server only on the Responses API path." credit="Redrawn from Figure 1-5, AI Agent Book by Bojie Li (Apache 2.0).">
 <ModelAsAgent />
+</Figure>
+
+### Lesson 1.6
+
+<Figure caption="Agent = Model + Harness. A minimal demo needs context and tools; production adds constrain, verify, and correct inside the same boundary.">
+<ModelHarnessSplit />
+</Figure>
+
+<Figure caption="Five nested engineering paradigms. Each layer widens the scope of the one inside it.">
+<EngineeringParadigms />
 </Figure>
