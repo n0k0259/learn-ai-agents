@@ -1,0 +1,65 @@
+---
+// What each model call carries: a static prefix (system prompt + tool definitions) above a trajectory that grows (redraw of Fig 2-4).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 488"
+	role="img"
+	aria-labelledby="d2-cpc-title d2-cpc-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-cpc-title">Context composition each time the agent calls the model</title>
+	<desc id="d2-cpc-desc">
+		Every call sends the same two blocks at the top, the system prompt and the tool definitions, which remain
+		unchanged throughout the conversation and form a static prefix. Below them is the conversation history, the
+		trajectory: user messages, model replies with tool calls, and tool execution results. The trajectory grows with
+		each interaction.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">Context composition each time the agent calls the model</text>
+
+	<g class="dg-container dg-neutral">
+		<rect x="12" y="48" width="472" height="426" rx="14"></rect>
+		<text x="28" y="78" font-weight="700">Context sent on each call</text>
+		<text x="28" y="458" class="dg-sub">… more user, assistant and tool messages</text>
+	</g>
+
+	<g class="dg-node dg-context">
+		<rect x="28" y="96" width="440" height="56" rx="8"></rect>
+		<text x="44" y="119" class="dg-accent" font-weight="700">System Prompt</text>
+		<text x="44" y="141" class="dg-sub">developer-written instructions</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="28" y="160" width="440" height="56" rx="8"></rect>
+		<text x="44" y="183" class="dg-accent" font-weight="700">Tool Definitions</text>
+		<text x="44" y="205" class="dg-sub">names, descriptions, parameter schemas</text>
+	</g>
+
+	<g class="dg-node dg-env">
+		<rect x="28" y="240" width="440" height="56" rx="8"></rect>
+		<text x="44" y="263" class="dg-accent" font-weight="700">User message</text>
+		<text x="44" y="285" class="dg-sub">user input</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="28" y="304" width="440" height="56" rx="8"></rect>
+		<text x="44" y="327" class="dg-accent" font-weight="700">Assistant message</text>
+		<text x="44" y="349" class="dg-sub">model reply or tool_calls</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="28" y="368" width="440" height="56" rx="8"></rect>
+		<text x="44" y="391" class="dg-accent" font-weight="700">Tool messages</text>
+		<text x="44" y="413" class="dg-sub">execution results, linked by tool_call_id</text>
+	</g>
+
+	<g class="dg-edge">
+		<path d="M492,96 H500 V216 H492 M500,156 H508"></path>
+		<path d="M492,240 H500 V466 H492 M500,353 H508"></path>
+	</g>
+	<text x="516" y="138" font-weight="700">Static prefix</text>
+	<text x="516" y="160" class="dg-edge-label">unchanged throughout</text>
+	<text x="516" y="182" class="dg-edge-label">the conversation</text>
+	<text x="516" y="335" font-weight="700">Trajectory</text>
+	<text x="516" y="357" class="dg-edge-label">grows with each</text>
+	<text x="516" y="379" class="dg-edge-label">interaction</text>
+</svg>

@@ -1,0 +1,106 @@
+---
+// The Vancouver time-and-weather example as a sequence: two model API calls, with both tools run in parallel between them (redraw of Fig 2-3).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 632"
+	role="img"
+	aria-labelledby="d2-tcs-title d2-tcs-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-tcs-title">Complete interaction sequence for two model API calls</title>
+	<desc id="d2-tcs-desc">
+		Four lanes: user, agent framework, model API and tools. The user asks for the current time and weather in
+		Vancouver. The framework makes API call 1 with the system message, the user message and the tool definitions. The
+		model API returns two tool_calls, get_current_time and get_weather, and no text. The framework executes both
+		tools in parallel and gets two tool results. It makes API call 2 with the full history plus the tool results.
+		The model API returns a final text reply with no tool_calls, and the framework gives the answer to the user.
+	</desc>
+	<defs>
+		<marker id="d2-tcs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Complete interaction sequence for two model API calls</text>
+
+	<!-- Lane headers -->
+	<g class="dg-node dg-env">
+		<rect x="20" y="48" width="100" height="48" rx="8"></rect>
+		<text x="70" y="78" text-anchor="middle" class="dg-accent" font-weight="700">User</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="180" y="48" width="160" height="48" rx="8"></rect>
+		<text x="260" y="78" text-anchor="middle" class="dg-accent" font-weight="700">Agent framework</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="410" y="48" width="120" height="48" rx="8"></rect>
+		<text x="470" y="78" text-anchor="middle" class="dg-accent" font-weight="700">Model API</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="590" y="48" width="110" height="48" rx="8"></rect>
+		<text x="645" y="78" text-anchor="middle" class="dg-accent" font-weight="700">Tools</text>
+	</g>
+
+	<!-- Lifelines -->
+	<g class="dg-edge">
+		<line x1="70" y1="96" x2="70" y2="620" stroke-dasharray="4 6"></line>
+		<line x1="260" y1="96" x2="260" y2="620" stroke-dasharray="4 6"></line>
+		<line x1="470" y1="96" x2="470" y2="620" stroke-dasharray="4 6"></line>
+		<line x1="645" y1="96" x2="645" y2="620" stroke-dasharray="4 6"></line>
+	</g>
+
+	<!-- 1. User question -->
+	<g class="dg-edge" data-step="1" data-step-label="The user asks for the time and weather in Vancouver">
+		<line x1="70" y1="150" x2="257" y2="150" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="165" y="138" text-anchor="middle" class="dg-edge-label">user question</text>
+	</g>
+
+	<!-- 2. API call 1 -->
+	<g class="dg-edge" data-step="2" data-step-label="API call 1: system, user and tool definitions">
+		<line x1="260" y1="214" x2="467" y2="214" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="365" y="182" text-anchor="middle" class="dg-edge-label">API call 1</text>
+		<text x="365" y="202" text-anchor="middle" class="dg-edge-label">system + user + tools</text>
+	</g>
+
+	<!-- 3. tool_calls back -->
+	<g class="dg-edge" data-step="3" data-step-label="The model returns two tool_calls, not a final reply">
+		<line x1="470" y1="278" x2="263" y2="278" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="365" y="246" text-anchor="middle" class="dg-edge-label dg-mono">tool_calls:</text>
+		<text x="365" y="266" text-anchor="middle" class="dg-edge-label">time + weather</text>
+	</g>
+
+	<!-- 4. Execute both -->
+	<g class="dg-edge" data-step="4" data-step-label="The framework executes both tools in parallel">
+		<line x1="260" y1="342" x2="642" y2="342" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="558" y="310" text-anchor="middle" class="dg-edge-label">execute both</text>
+		<text x="558" y="330" text-anchor="middle" class="dg-edge-label">in parallel</text>
+	</g>
+
+	<!-- 5. Results -->
+	<g class="dg-edge" data-step="5" data-step-label="Both tool results come back to the framework">
+		<line x1="645" y1="406" x2="263" y2="406" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="558" y="394" text-anchor="middle" class="dg-edge-label">2 tool results</text>
+	</g>
+
+	<!-- 6. API call 2 -->
+	<g class="dg-edge" data-step="6" data-step-label="API call 2: full history plus tool results">
+		<line x1="260" y1="470" x2="467" y2="470" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="365" y="438" text-anchor="middle" class="dg-edge-label">API call 2</text>
+		<text x="365" y="458" text-anchor="middle" class="dg-edge-label">full history + results</text>
+	</g>
+
+	<!-- 7. Final reply -->
+	<g class="dg-edge" data-step="7" data-step-label="The model returns a text reply with no tool_calls">
+		<line x1="470" y1="534" x2="263" y2="534" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="365" y="502" text-anchor="middle" class="dg-edge-label">final text reply</text>
+		<text x="365" y="522" text-anchor="middle" class="dg-edge-label">no tool_calls</text>
+	</g>
+
+	<!-- 8. Answer -->
+	<g class="dg-edge" data-step="8" data-step-label="The framework gives the answer to the user">
+		<line x1="260" y1="598" x2="73" y2="598" marker-end="url(#d2-tcs-arrow)"></line>
+		<text x="165" y="586" text-anchor="middle" class="dg-edge-label">answer</text>
+	</g>
+</svg>

@@ -1,0 +1,380 @@
+---
+title: "Tool Calls: The Agent's Core Loop"
+description: The two-call Vancouver example on the wire, the book's OpenAI-SDK loop, how the messages list grows, and the static prefix plus trajectory layout.
+sidebar:
+  order: 2
+  label: 2.2 Tool Calls & the Core Loop
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md#multi-turn-interaction-with-tool-calls-the-core-loop-of-an-agent
+  sections:
+    - 'Multi-Turn Interaction with Tool Calls: The Core Loop of an Agent'
+    - "Implementing the Agent's Core Loop in Code"
+    - 'How Context Is Composed at the API Level'
+---
+import Figure from '~/components/Figure.astro';
+import StepAnimator from '~/components/StepAnimator.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import TwoCallSequence from '~/components/diagrams/chapter-2/TwoCallSequence.astro';
+import MessagesGrowth from '~/components/diagrams/chapter-2/MessagesGrowth.astro';
+import ContextPerCall from '~/components/diagrams/chapter-2/ContextPerCall.astro';
+import LocalToolCalling from '~/components/diagrams/chapter-2/LocalToolCalling.astro';
+
+:::tip[TL;DR]
+The ReAct loop at the wire level: the model requests tool calls, the framework executes them, appends the results, and calls the model again until a response carries no `tool_calls`. The framework's central job is maintaining the `messages` list. Each request is a static prefix (system prompt + tool definitions) followed by a growing trajectory.
+:::
+
+## Two calls, not two tools
+
+Real agent workflows are usually more complex than a single-turn Q&A like the one in [lesson 2.1](/learn-ai-agents/chapter-2/01-context-and-message-roles/). Ask "What's the current time and weather in Vancouver?" and the model cannot answer from its own knowledge: it does not know what time "now" is, much less the weather. It must call external tools. The example below walks through each interaction between the agent framework and the model.
+
+This is the same loop as [The ReAct Loop](/learn-ai-agents/chapter-1/05-react-loop/), seen at the wire level. The Thought/Action/Observation stages aren't re-taught here; the focus is on what actually goes over the API.
+
+<StepAnimator label="Two model API calls">
+<Figure caption="The Vancouver example as a sequence: API call 1 returns two tool_calls, the framework runs both tools in parallel, and API call 2 returns the final text reply." credit="Redrawn from Figure 2-3, AI Agent Book by Bojie Li (Apache 2.0).">
+<TwoCallSequence />
+</Figure>
+</StepAnimator>
+
+The two calls in the figure are both **calls to the model API**, not two tools called one after the other. The timezone argument for `get_current_time` and the city and unit arguments for `get_weather` can all be determined up front. The weather service returns the city's latest weather itself and does not depend on the time tool's output, so the framework can execute the two tools in parallel.
+
+The rule for the other case: if a later tool's arguments must come from an earlier tool's result, the model must request that tool in a subsequent round, and the two tools must execute serially.
+
+## The first request
+
+The framework builds the first request from a system message, the user message and the `tools` list:
+
+```jsonc
+// ═══ Request constructed by the Agent framework (1st call) ═══
+{
+  "model": "Qwen3-0.6B",
+  "messages": [
+    {
+      "role": "system",                           // ← Written by developer
+      "content": "You are a helpful assistant. Use the provided tools to get real-time information when needed."
+    },
+    {
+      "role": "user",                              // ← User input
+      "content": "What's the current time and weather in Vancouver?"
+    }
+  ],
+  "tools": [                                       // ← Tools defined by developer
+    {
+      "type": "function",
+      "function": {
+        "name": "get_current_time",
+        "description": "Get the current date and time in a specific timezone",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "timezone": { "type": "string", "description": "Timezone name, e.g. America/Vancouver" }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the current weather for a specific city",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": { "type": "string", "description": "City name" },
+            "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+This `tools` list is static tool metadata the developer registered ahead of time. The names, descriptions and parameter schemas are written into the code and have nothing to do with what the user happens to ask this time. Whether the user asks about the weather in Vancouver or asks the agent to book a flight, the same list goes out. The example lists only the two relevant tools to keep the request short; a real agent often declares dozens of them at once.
+
+**The agent did not first split the input into a "look up the time" subtask and a "look up the weather" subtask and then write matching tool descriptions.** That decomposition happens on the model's side, and it is exactly the `tool_calls` in the response below. (For the tool-schema format itself, see [Observation & Action Spaces, Tools](/learn-ai-agents/chapter-1/02-observation-action-tools/).)
+
+## The model asks for tools
+
+The response is a tool-call request, not a final reply:
+
+```jsonc
+// ═══ Response returned by the API (model decides to call tools) ═══
+{
+  "choices": [{
+    "message": {
+      "role": "assistant",                         // ← Generated by model
+      "content": null,                             // No text response
+      "tool_calls": [                              // Model requests two tool calls
+        {
+          "id": "call_abc123",
+          "type": "function",
+          "function": {
+            "name": "get_current_time",
+            "arguments": "{\"timezone\": \"America/Vancouver\"}"
+          }
+        },
+        {
+          "id": "call_def456",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"city\": \"Vancouver\", \"unit\": \"celsius\"}"
+          }
+        }
+      ]
+    }
+  }]
+}
+```
+
+The model does not answer the user's question yet. It returns two **tool call requests**, one for the current time and one for the weather. Because these requests are independent, the framework can execute them in parallel.
+
+**The model issues the call requests; the agent framework performs the actual execution.** This division of responsibility is central to agent architecture. The model decides which tool to call and what arguments to pass. The framework calls APIs, runs code and returns the results.
+
+## The second request
+
+After receiving the tool-call requests, the framework executes the two tools, for example by calling a time API and a weather API. Then it sends the **complete conversation history along with the tool execution results** back to the model:
+
+```jsonc
+// ═══ Request constructed by the Agent framework (2nd call) ═══
+{
+  "model": "Qwen3-0.6B",
+  "messages": [
+    // … system and user messages, same as 1st call
+    {
+      "role": "assistant",                         // ← Model output from 1st call, included verbatim
+      "content": null,
+      "tool_calls": [
+        { "id": "call_abc123", "function": { "name": "get_current_time", "arguments": "{\"timezone\": \"America/Vancouver\"}" } },
+        { "id": "call_def456", "function": { "name": "get_weather", "arguments": "{\"city\": \"Vancouver\", \"unit\": \"celsius\"}" } }
+      ]
+    },
+    {
+      "role": "tool",                              // ← Generated by Agent framework (tool execution result)
+      "tool_call_id": "call_abc123",
+      "content": "{\"timezone\": \"America/Vancouver\", \"datetime\": \"2025-09-13T05:18:47\", \"day_of_week\": \"Saturday\"}"
+    },
+    {
+      "role": "tool",                              // ← Generated by Agent framework (tool execution result)
+      "tool_call_id": "call_def456",
+      "content": "{\"city\": \"Vancouver\", \"temperature\": 13.2, \"unit\": \"celsius\", \"conditions\": \"clear\", \"humidity\": 93}"
+    }
+  ],
+  "tools": [ ... ]                                 // ← Same tool definitions as above, omitted
+}
+```
+
+Three details matter here:
+
+1. **The second request includes the full conversation history from the first request**: the system message, the user message, the assistant message with the tool calls, and the new tool results. This is the stateless API from lesson 2.1 in action: the framework must include the relevant history in every request.
+2. **The first assistant message goes back into the message list verbatim.** That gives the next model call access to the tool-call decisions made in the previous call.
+3. **Tool messages are linked to their tool calls through `tool_call_id`.** This tells the model which result belongs to which requested call.
+
+## The final reply
+
+The model now answers from the tool results:
+
+```jsonc
+// ═══ Response returned by the API (final reply) ═══
+{
+  "choices": [{
+    "message": {
+      "role": "assistant",                         // ← Generated by model
+      "content": "It's currently 5:18 AM on Saturday, September 13, 2025 in Vancouver.\n\nWeather: 13.2°C with clear skies and 93% humidity. It's quite cool this morning - you might want to grab a jacket."
+    }
+  }]
+}
+```
+
+This time the model returns no `tool_calls`. It returns a text response because it judges that it has enough information to answer, and the agent stops. **This "request → tool call → execution → return results → next request" cycle is the API-level implementation of the ReAct loop introduced in Chapter 1.**
+
+If the user wants more, say "What about Tokyo?", the framework appends the follow-up to the end of the conversation history and calls the model API again. The model starts returning `tool_calls` again, and the framework executes them, sends back the results, and repeats the cycle.
+
+## The core loop in code
+
+With the JSON structure clear, the steps connect into a single Python loop. This is a deliberate difference from lesson 1.5, where the loop is Python-style pseudocode. The book includes this chapter's loop as the full API loop, a reference for the protocol, and it uses the real OpenAI SDK. Other chapters use simplified Python-style code to explain individual mechanisms.
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+# ── Tool definitions ──
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_current_time",
+            "description": "Get the current date and time in a specific timezone",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "timezone": {"type": "string", "description": "Timezone name, e.g. America/Vancouver"}
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get the current weather for a specific city",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {"type": "string", "description": "City name"},
+                    "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                },
+            },
+        },
+    },
+]
+
+# ── Tool execution function (stub with canned results; a real implementation
+#    must parse the JSON `arguments` and call actual APIs) ──
+def execute_tool(name, arguments):
+    if name == "get_current_time":
+        return '{"datetime": "2025-09-13T05:18:47", "day_of_week": "Saturday"}'
+    elif name == "get_weather":
+        return '{"temperature": 13.2, "unit": "celsius", "conditions": "clear", "humidity": 93}'
+
+# ── Initial message list ──
+messages = [
+    {"role": "system", "content": "You are a helpful assistant. Use tools to get real-time information when needed."},
+    {"role": "user", "content": "What's the current time and weather in Vancouver?"},
+]
+
+# ── Agent core loop ──
+# Production code needs a max_iterations cap here: as discussed later in
+# this chapter, Agents can become stuck repeating the same tool calls forever
+while True:
+    response = client.chat.completions.create(
+        model="Qwen3-0.6B", messages=messages, tools=tools
+    )
+    assistant_message = response.choices[0].message
+
+    # Append model's response to message list (whether text or tool calls)
+    messages.append(assistant_message)
+
+    # If no tool calls requested, the model has produced its final response
+    if not assistant_message.tool_calls:
+        print(assistant_message.content)
+        break
+
+    # Execute each tool requested by the model, append results to message list
+    for tool_call in assistant_message.tool_calls:
+        result = execute_tool(tool_call.function.name, tool_call.function.arguments)
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": result,
+        })
+    # Return to top of loop, call model again with updated message list
+```
+
+The loop has one main branch: **if the model returns `tool_calls`, execute the tools and continue; otherwise, output the result and exit.** Along the way, the `messages` list keeps growing, since each round appends the model's reply and any tool execution results.
+
+:::note[Engineer's note]
+- **No iteration cap.** The book's loop is `while True`, and its own comment says production code needs a `max_iterations` cap, because agents can become stuck repeating the same tool calls forever. The minimal loop in [The ReAct Loop](/learn-ai-agents/chapter-1/05-react-loop/) has one (`MAX_ROUNDS`), and [Orchestration: Workflow vs. Autonomous](/learn-ai-agents/chapter-1/07-orchestration-patterns/) covers it as a stop condition. Add the cap in your own code; the book's listing leaves it out.
+- **A local endpoint.** `OpenAI()` with `model="Qwen3-0.6B"` only works against an OpenAI-compatible endpoint serving that locally deployed model, such as a vLLM or Ollama server (see Experiment 2-1 below). Point the client at that server rather than at OpenAI's hosted API.
+- **A stub executor.** `execute_tool` returns canned results and ignores `arguments`. As its comment says, a real implementation must parse the JSON `arguments` and call actual APIs.
+:::
+
+## How `messages` grows
+
+Each round appends to the list: the model's output as an assistant message, then, if it asked for tools, one `tool` message per result, added by the framework.
+
+<Figure caption="The messages list before the first call, after call 1 (model returns tool calls) and after call 2 (final reply, loop ends). New rows are colored and tagged by who adds them; carried-over rows are plain.">
+<MessagesGrowth />
+</Figure>
+
+This process shows that **one central responsibility of an agent framework is maintaining the message list**, appending messages at the right time and sending the relevant history to the model. The context engineering techniques in this chapter are largely about improving the content and structure of that list.
+
+## Context at the API level
+
+Put the pieces together and you get the complete composition of context each time the agent calls the model.
+
+<Figure caption="Every call carries a static prefix (system prompt + tool definitions) that stays unchanged, followed by the trajectory, which grows with each interaction." credit="Redrawn from Figure 2-4, AI Agent Book by Bojie Li (Apache 2.0).">
+<ContextPerCall />
+</Figure>
+
+The upper part, system prompt plus tool definitions, remains unchanged throughout the conversation. The lower part, the conversation history, is the **trajectory** from [The ReAct Loop](/learn-ai-agents/chapter-1/05-react-loop/), and it grows with each interaction. This is how the five context components from [Context: The Working Set](/learn-ai-agents/chapter-1/04-context-working-set/) appear at the API level: the system prompt and tool definitions form a static prefix, while user messages, model replies and tool results form a dynamically growing message history.
+
+This "static prefix + trajectory" structure is the foundation for KV Cache optimization, context compression and related techniques. The prefix should remain stable, while later trajectory segments can be summarized or replaced when the trade-off is worthwhile.
+
+The rest of this chapter examines each layer of the structure:
+
+- a stable static prefix to accelerate inference with the KV Cache (lessons 2.3–2.4);
+- designing an effective system prompt (lesson 2.5);
+- stopping external content from hijacking the context, that is, prompt injection defense (lesson 2.6);
+- loading specialized knowledge on demand with Agent Skills (lesson 2.7);
+- injecting dynamic state at the end of the conversation with the Agent Status Bar (lesson 2.8);
+- compressing conversation history when it grows too large (lessons 2.9–2.10).
+
+Those techniques go by many names, but at each request they amount to a single context-construction decision. The book's Python-style pseudocode below keeps the minimal skeleton of that decision. It complements the full API loop by emphasizing context layout; it doesn't replace protocol details such as message roles and `tool_call_id`.
+
+```python title="build context (book pseudocode)"
+stable_prefix = system_message
+stable_tools = core_tool_schemas
+trajectory = load_message_history(session)
+status_message = make_status_message(derive_current_state(trajectory))
+
+if estimated_tokens(stable_prefix, trajectory, status_message) > budget:
+    trajectory = compress_old_evidence(
+        trajectory,
+        preserve = [decisions, constraints, failures, citations]
+    )
+
+request.messages = [stable_prefix] + trajectory + [status_message]
+request.tools = stable_tools
+response = call_model(request)
+```
+
+Three guidelines follow from it. Keep the system prompt and core tool definitions as stable as possible. Compress older tool outputs in batches as context usage approaches the token budget. And place the current state at the tail of the trajectory, so the model does not have to re-derive it from a long history.
+
+:::note[Experiment 2-1: Local LLM Service Deployment and Tool Calling]
+**What was tested.** The book's `local_llm_serving` project runs a 0.6B-parameter model locally and has it call tools. The point: models capable of Chain of Thought (CoT) reasoning and tool calling do not necessarily require a large number of parameters. Even a 0.6B model can perform tool calling reliably when paired with sensible prompt design and system architecture.
+
+**What to observe.**
+- **Small-model capability:** with appropriate prompt engineering, a 0.6B model can accurately understand and execute tool calls.
+- **Performance:** on the Apple M2 chip used by the book's author, the model can generate more than 100 tokens per second, which the author calls sufficient for real-time interactive applications. By the book's rule of thumb, one Chinese character typically corresponds to 1–2 tokens and one English word to 1–3 tokens.
+- **The ReAct loop:** the model solves complex problems through multiple rounds of reasoning and tool calling.
+- **Streaming:** users see the model's reasoning in real time, including decisions about tool calls and the processing of results.
+- **KV Cache, as an incidental observation:** compare the time to first token (TTFT) with the system prompt unchanged and with a few characters changed at its start. The unchanged prefix is significantly faster; lesson 2.3 explains why.
+
+**What the token stream shows.** In a local deployment, the server (vLLM or Ollama, for example) converts the API messages into the model's internal token format. The project lets you inspect the raw input and output token stream, including details normally hidden at the API level:
+
+- Models that support chain-of-thought, such as Qwen3, first reason inside `<think>` tags before generating tool calls: analyzing user intent, evaluating which tools fit, and planning the call order. This reasoning is valuable for debugging agent behavior.
+- The model's output tokens come in a fixed order: first the `<think>` reasoning, then the text reply to the user, and finally the tool call request. For streaming, that means the interface can switch to a "reasoning" state when `<think>` appears. As soon as the first tool call's parameters are fully generated and validated, it can start executing, without waiting for the rest.
+- In the Vancouver example, the model found no dependency between the two sub-problems, so it generated both tool calls in one output. The framework can detect this and run both in parallel, reducing total latency.
+- When the tool results come back, the model decides whether it has enough to answer. If so, it outputs the final reply; otherwise it issues more tool calls and starts another ReAct round.
+
+**Takeaway.** A 0.6B model with reasonable prompt design can complete tool calls reliably. Model size matters, but it is not the only determining factor. Some high-end mobile devices can already run 0.6B-level models, and on-device agents are closer than many people expect.
+:::
+
+<Figure caption="Experiment 2-1: the agent framework sends API messages to a local server, which feeds tokens to Qwen3-0.6B. In this experiment the output runs &lt;think&gt; reasoning, then text, then the tool call; the framework executes the tool and the results go back into the messages." credit="Redrawn from Figure 2-5, AI Agent Book by Bojie Li (Apache 2.0).">
+<LocalToolCalling />
+</Figure>
+
+<KeyTakeaways>
+- The two calls in the Vancouver example are two model API calls. Independent tools whose arguments are known up front can run in parallel; a tool whose arguments come from an earlier result must be requested in a later round and run serially.
+- The `tools` list is static metadata, the same whatever the user asks. The model, not the framework, decomposes the task into `tool_calls`; the framework executes them.
+- The second request resends the full history, puts the previous assistant message back verbatim, and links each `tool` message by `tool_call_id`. A response with no `tool_calls` ends the loop.
+- One central responsibility of the framework is maintaining the `messages` list. Every call carries a static prefix (system prompt + tool definitions) plus a growing trajectory.
+- The book's loop is real OpenAI-SDK code with no iteration cap; production code needs one.
+</KeyTakeaways>
+
+## Check yourself
+
+<Quiz question="The model returns get_current_time and get_weather in one response. When may the framework run them in parallel, and when must they be serial?">
+In parallel when every argument is known up front and neither depends on the other's output, as here: the timezone, city and unit are all determined in advance, and the weather service doesn't need the time. Serially when a later tool's arguments must come from an earlier tool's result; then the model must request that tool in a subsequent round.
+</Quiz>
+
+<Quiz question="Who decided to split 'time and weather in Vancouver' into two lookups: the framework or the model?">
+The model. The framework sends the same static `tools` list whatever the user asks and doesn't split the input into subtasks. The decomposition happens on the model's side and shows up as the two `tool_calls` in its response. The framework then executes them.
+</Quiz>
+
+<Quiz question="The book's loop is while True. What does production code need to add, and why?">
+A `max_iterations` cap (like `MAX_ROUNDS` in lesson 1.5), because agents can become stuck repeating the same tool calls forever. The cap is a stop condition, the topic of lesson 1.7.
+</Quiz>
