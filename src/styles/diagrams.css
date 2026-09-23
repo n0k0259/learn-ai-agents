@@ -67,6 +67,9 @@ svg.dg :is(.dg-node, .dg-container) > rect {
 svg.dg .dg-harness > rect {
 	stroke-dasharray: 8 6;
 }
+svg.dg .dg-solid > rect {
+	stroke-dasharray: none;
+}
 svg.dg .dg-edge :is(path, line) {
 	stroke: var(--dg-line);
 	stroke-width: 2;
