@@ -1,0 +1,175 @@
+---
+title: Attention, KV Cache Intuition & Chat Templates
+description: The {{now}} incident, three cache-friendly rules, how attention works and what heatmaps show, and how a chat template turns messages into tokens.
+sidebar:
+  order: 3
+  label: 2.3 Attention & Chat Templates
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md#kv-cache-friendly-context-design
+  sections:
+    - 'KV Cache-Friendly Context Design'
+    - 'From API Messages to Model Tokens: Chat Template'
+---
+import Figure from '~/components/Figure.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import TimestampIncident from '~/components/diagrams/chapter-2/TimestampIncident.astro';
+import AttentionIntuition from '~/components/diagrams/chapter-2/AttentionIntuition.astro';
+import AttentionHeatmapSchematic from '~/components/diagrams/chapter-2/AttentionHeatmapSchematic.astro';
+import ChatTemplateTokens from '~/components/diagrams/chapter-2/ChatTemplateTokens.astro';
+import MessagesToTokens from '~/components/diagrams/chapter-2/MessagesToTokens.astro';
+
+:::tip[TL;DR]
+The KV Cache reuses earlier tokens' key-value states only up to the first token that differs. So freeze the system prompt and tools, append dynamic information at the end, and use the standard API format. The Chat Template turns messages into the fixed token sequence the model saw in training, which is what gets cached.
+:::
+
+## The intuition behind KV Cache
+
+Every time the model generates a token, it refers back to intermediate results for the preceding tokens, and recomputing them every round gets more expensive as the context grows. **KV Cache** stores the intermediate key-value states so later computation can reuse them.
+
+**The prerequisite is that the token prefix you want to reuse stays unchanged.** If the token sequence first differs at some position, the KV states for that token and everything after it must be recomputed. The KV states before that position are unaffected.
+
+A note on terms: when the book discusses "cache hits" across requests, API providers usually call this **Prompt Cache**, a cross-request cache built on top of the inference engine's KV Cache. Lesson 2.4 distinguishes the two levels.
+
+## The `{{now}}` incident
+
+A team's customer service agent handled 100,000 conversations a day. Then an engineer, wanting the agent to know the current time, added the line `Current time: {{now}}` to the system prompt, injecting the timestamp in real time. The next day, monitoring alerts fired: TTFT for every conversation rose from 0.5 seconds to 3–5 seconds, and the monthly inference bill nearly doubled. The code looked correct and the model had not changed. The issue was in the context.
+
+<Figure caption="Request A keeps its system prompt stable, so the whole prefix is reused and only the new message is computed. Request B puts Current time: {{now}} near the start of the system prompt; from that first differing token on, the KV states are recomputed on every request. The bottom panel shows the incident's result.">
+<TimestampIncident />
+</Figure>
+
+That line made the token sequence differ from the timestamp onward on every request, so the KV states from there on could not be reused. Because the system prompt sits near the beginning of the context, the model often still had to recompute the key-value pairs for most of the input tokens that followed it.
+
+This kind of invisible cost appears repeatedly in agent systems: a seemingly harmless line of code can slow down the entire inference pipeline by an order of magnitude.
+
+## Three rules if you skip the internals
+
+The book says you can skip the attention and KV Cache internals if you remember three conclusions:
+
+1. **Once the system prompt and tool definitions are finalized, do not change them.** Any modification, even a single added space, may change the token sequence and prevent the cache from being reused from the first differing token onward. The earlier the change, the greater its typical impact on latency and cost; the exact magnitude depends on the model and configuration.
+2. **Always append dynamic information to the end.** Changing content like timestamps and user status belongs in new messages at the end of the conversation, not in edits to the existing system prompt.
+3. **Use the standard API format; do not manually concatenate messages.** The Chat Template translates structured messages into a fixed token sequence the model saw during training. Hand-built strings like `"USER: ... ASSISTANT: ..."` deviate from that training format, which weakens the model's multi-step reasoning.
+
+Rule 3 is about reasoning quality, not caching. Caching depends only on the resulting token sequence, so a manually concatenated prefix can still be cached if it stays byte-for-byte stable. The cache is invalidated only when that prefix changes, for example when dynamic content is inserted into it.
+
+:::note[Engineer's note]
+[Context: The Working Set](/learn-ai-agents/chapter-1/04-context-working-set/) lists "dynamically injected environmental state" among what the system prompt carries. Rule 2 refines where that state goes: appended as a new message at the end, not edited into the system prompt, so the prefix stays cacheable. Lesson 2.8 (the Agent Status Bar) covers the mechanism.
+:::
+
+## How attention works
+
+Suppose the model is processing the Chinese sentence "北京 的 天气 怎么样" ("How's the weather in Beijing?"), whose words are 北京 (Beijing), 的 (a possessive particle, like "of"), 天气 (weather) and 怎么样 (how is it). When it reads 怎么样, it has to decide which preceding words matter most for understanding it.
+
+Attention uses three types of vectors to decide which earlier tokens are most relevant:
+
+| Vector | Meaning | In this example |
+|---|---|---|
+| **Query** | The "search request" issued by the current word | 怎么样 (how is it) asks: which word is most relevant to me? |
+| **Key** | The "label" of each word, used for matching the search | The label of 北京 (Beijing) leans toward "place name"; the label of 天气 (weather) leans toward "meteorology" |
+| **Value** | The "content" of each word, extracted upon a successful match | After matching 天气 (weather), extract its semantic information |
+
+Each new word scores the preceding words by relevance, then uses the most relevant information to build its current representation, in three steps:
+
+1. 怎么样 generates its own Query vector, representing what the current token is looking for.
+2. The Query is compared with the Key of each preceding word using a dot product, producing a relevance score; higher scores mean stronger matches.
+3. The scores become attention weights, which are used to compute a weighted sum of the Values. Words with higher weights contribute more to the final representation.
+
+<Figure caption="Top: the Query of 怎么样 matched against each Key, with the book's weights: 天气 0.55, 北京 0.35, 的 0.05, and about 0.05 for 怎么样 itself. Bottom: the 4×4 lower-triangular heatmap, rows as Queries and columns as Keys (illustrative weights except the 怎么样 row)." credit="Redrawn from Figure 2-6, AI Agent Book by Bojie Li (Apache 2.0).">
+<AttentionIntuition />
+</Figure>
+
+All weights sum to 1, and the output draws mainly on 天气, which matches intuition.
+
+An **attention heatmap** arranges these weights into a matrix. Each row is a Query (the word being processed), each column is a Key (the word being attended to), and darker cells mean higher weights. The heatmap is triangular because the model generates text left to right: each word can attend only to itself and the words before it, not to content that has yet to be generated.
+
+**Why cache Key and Value?** Every new word's Query must be matched against the Keys of **all** preceding words, then a weighted sum of all their Values is computed. Recalculating every K and V each time would make the computation grow with the context length, so the KV Cache stores them for reuse.
+
+:::note[Experiment 2-2: Attention Mechanism Visualization]
+**What was tested.** The book's `attention_visualization` experiment observes the attention distribution of a real model.
+
+**The result.** The heatmap reveals four patterns:
+
+- **Attention sink.** The first token often absorbs an abnormally high amount of attention weight, sometimes exceeding 70% of the total: residual attention that does not strongly correspond to any other token. It is a systematic phenomenon, not a model defect.
+- **Reasoning triangle.** The chain of thought inside `<think>` tags shows a triangular self-attention pattern: when generating new reasoning, the model frequently attends to earlier reasoning and to the tool definitions.
+- **Output triangle.** The output after reasoning ends forms another triangle: the model uses the reasoning trace as a prompt to generate the answer.
+- **Position bias.** The model has higher recall accuracy for information at the beginning and end of the context, while information in the middle is more likely to be overlooked (Liu et al., "Lost in the Middle", TACL 2024). Placing the most critical information at the beginning or end is therefore an important practical principle.
+
+**Why the sink exists.** Softmax forces all attention weights to sum to exactly 100%, so the model cannot express "not attending to anything". Even when the current word is not very relevant to any earlier word, the weight must go somewhere, and the fixed position at the start of the sequence is the most natural container: an inevitable consequence of softmax when processing many tokens.
+
+**Takeaway.** Long chain-of-thought generation and tool calling both depend heavily on **in-context learning**: the model's ability to adapt to a task from the instructions and examples in its input, without retraining.
+:::
+
+<Figure caption="A schematic of the heatmap's structure, not measured values: a lower-triangular grid banded system/tools, user, <think> and answer, with callouts for the attention sink, the reasoning triangle, the output triangle and position bias." credit="Redrawn from Figure 2-7, AI Agent Book by Bojie Li (Apache 2.0).">
+<AttentionHeatmapSchematic />
+</Figure>
+
+## From API messages to tokens: the Chat Template
+
+The book calls the Chat Template a foundational concept: it affects KV Cache behavior, multi-turn tool calls, chain-of-thought retention and status bar injection. The token sequences in the attention experiment, with special tokens like `<|im_start|>` and `<|im_end|>`, look very different from the JSON messages in [lesson 2.2](/learn-ai-agents/chapter-2/02-tool-calls-core-loop/). Structured API messages must be converted into a linear token stream the model can process, and the Chat Template is the component that does it.
+
+<Figure caption="Each message becomes an envelope: the special token <|im_start|> plus the role, then the content, then <|im_end|> to mark the boundary." credit="Redrawn from Figure 2-8, AI Agent Book by Bojie Li (Apache 2.0).">
+<ChatTemplateTokens />
+</Figure>
+
+Think of it as an **envelope format**: the API message is the letter, and the Chat Template specifies how the sender, recipient and boundaries are written on the envelope, using special tokens such as `<|im_start|>system` and `<|im_end|>`. Different model families (Qwen, Llama, Gemma) use different envelope formats. The API server (vLLM, Ollama and others) performs the conversion automatically from the model's Chat Template.
+
+With the Qwen model series as the example, the same conversation looks completely different at the API level and inside the model:
+
+<Figure caption="Left: the structured JSON messages. Right: the linear Qwen token stream the model processes, where <|im_start|> and <|im_end|> mark each message's role and boundaries." credit="Redrawn from Figure 2-9, AI Agent Book by Bojie Li (Apache 2.0).">
+<MessagesToTokens />
+</Figure>
+
+You don't need to write or modify the Chat Template yourself; the API server handles it. But knowing it exists explains two things: why the standard API format matters, and why the KV Cache is so sensitive to the prefix.
+
+## Why the standard API format matters
+
+If you bypass the API and concatenate messages by hand, for example passing tool results as ordinary user messages instead of `tool` messages, the Chat Template may misidentify a tool response as a new user query. That disrupts the model's chain-of-thought retention.
+
+Take Qwen3's Chat Template. In multi-turn tool calls, it can retain earlier reasoning inside `<think>` tags, like derivations on scratch paper. When it detects a new user query, it assumes the user changed the subject and clears that reasoning. A tool result mislabelled as a user message can trigger the reset at the wrong time, as though the scratch paper were taken away halfway through a calculation, severely weakening multi-step reasoning.
+
+Model families differ greatly in how they handle historical chain-of-thought, and the strategies are evolving rapidly. As the book describes them:
+
+- **DeepSeek R1:** the official guidance was to **strip all historical reasoning**, passing back only `content`, not `reasoning_content`. Historical CoT never appeared in R1's training input, so feeding it back is out-of-distribution input that may interfere with the output; stripping also saves tokens. The flaw for agents: intermediate reasoning carries critical state, such as why a tool was called and which hypotheses were ruled out. Stripped, the model reasons from scratch every turn, prone to repeating mistakes and losing long-range plans.
+- **DeepSeek V4** completely reversed the policy. Whenever the request carries `tools`, the `reasoning_content` of every assistant message between two user messages, even one that made no tool call, must be passed back verbatim, or the API returns a 400 error. Plain chat without `tools` still ignores it. An agent always carries `tools`, so there's no escaping this. Kimi K2, GLM-5 and others have adopted the same protocol.
+- **Claude** likewise requires thinking blocks back verbatim with their signatures. The signature binds each block to the prefix it was produced under; once that prefix changes, the block is invalidated (lesson 2.4).
+
+Consult the model's latest documentation before use. In multi-turn dialogue these differences only decide whether tokens are saved; when a half-finished trajectory is handed to another vendor's model, they turn into real API errors (Experiment 5-1 in Chapter 5 of the book).
+
+:::note[Engineer's note]
+The quiz in [Context: The Working Set](/learn-ai-agents/chapter-1/04-context-working-set/) says reasoning can be dropped from history at little cost. That is an ablation result: when the *why* can be reconstructed from the tool results, removing it costs almost nothing. Whether you *may* drop it is a separate question, set by the model family's pass-back protocol: R1 wanted it stripped, while V4 with `tools` returns a 400 error unless it comes back. Follow the protocol of the model you're calling.
+:::
+
+## Why the cache is so sensitive to the prefix
+
+The Chat Template converts system messages and tool definitions into a fixed token sequence near the beginning of the input, whose key-value states can be cached and reused across requests. If a token in this prefix changes, even through an extra space in the system prompt, the cache from the first differing token onward can no longer be reused. In the terms lesson 2.4 introduces, this cross-request reuse happens at the Prompt Cache level, and what gets reused is the prefix's KV Cache.
+
+<KeyTakeaways>
+- KV Cache reuse holds only up to the first differing token; everything from there on is recomputed. A `Current time: {{now}}` line in the system prompt took TTFT from 0.5 s to 3–5 s and nearly doubled the bill.
+- Freeze the system prompt and tool definitions, append dynamic information as new messages at the end, and use the standard API format. Hand-concatenation hurts reasoning; it breaks caching only if the prefix changes.
+- Attention matches the current Query against every earlier Key; the weights sum to 1. Each new token needs all earlier K and V, which is why they are cached.
+- Heatmaps show an attention sink on the first token, a reasoning triangle, an output triangle, and position bias toward the beginning and end.
+- The Chat Template wraps each message in special tokens. Misrolled tool results can reset Qwen3's retained reasoning; model families differ on passing reasoning back.
+</KeyTakeaways>
+
+### References
+
+- Liu et al., ["Lost in the Middle: How Language Models Use Long Contexts"](https://aclanthology.org/2024.tacl-1.9/), TACL, 2024.
+
+## Check yourself
+
+<Quiz question="An engineer adds 'Current time: {{now}}' to the system prompt. Why does TTFT jump across every conversation, and where should the time go instead?">
+The timestamp changes on every request, so the token sequence differs from that point onward and the KV states there and after can't be reused. Because the system prompt sits near the start of the context, the model often has to recompute most of the input on every request, in every conversation. Append the time as a new message at the end of the conversation instead of editing the system prompt.
+</Quiz>
+
+<Quiz question="Your harness sends tool results as ordinary user messages. What breaks with Qwen3's Chat Template?">
+The template can take the tool result for a new user query. It then assumes the user changed the subject and clears the reasoning it was retaining inside the think tags, mid-task. That weakens the coherence of multi-step reasoning. Send tool results as `tool` messages through the standard API format.
+</Quiz>
+
+<Quiz question="Why does the first token soak up so much attention?">
+Softmax forces all attention weights to sum to exactly 100%, so the model can't express "attend to nothing". The residual weight has to go somewhere, and the fixed position at the start of the sequence is the most natural container. It's a systematic consequence of softmax, not a model defect.
+</Quiz>
+
+<Quiz question="Qwen3's template keeps reasoning only after the last real user message. For a ReAct loop of hundreds of tool calls, how would you change that, and what does DeepSeek's move from R1 stripping to V4 pass-back tell you?">
+The book's reference answer: keep the most recent rounds of reasoning in full, and outside that window compress on a token budget into a structured status bar (current goal, confirmed facts, ruled-out paths, to-dos). Compress once, at a fixed position, so the cache rebuild is paid once rather than every round. R1 stripping saves tokens, keeps the prefix stable and matches the training distribution, but the model reasons from scratch each round, loses long-range plans and repeats mistakes. V4 pass-back keeps thinking coherent across long agentic tasks, at a high token cost and a prefix that grows every round. The reversal says that for pure dialogue reasoning is waste, while for agents reasoning is state.
+</Quiz>

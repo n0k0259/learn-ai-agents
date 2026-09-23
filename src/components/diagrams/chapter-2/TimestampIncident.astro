@@ -1,0 +1,66 @@
+---
+// The Current time: {{now}} incident: a stable prefix is reused across requests; a timestamp early in the system prompt forces everything after it to be recomputed.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 420"
+	role="img"
+	aria-labelledby="d2-ti-title d2-ti-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-ti-title">One timestamp line breaks prefix reuse</title>
+	<desc id="d2-ti-desc">
+		Two requests compared as token sequences. Request A has a stable system prompt: the system prompt, tool
+		definitions and history are unchanged from the previous request, so their KV states are reused from the cache and
+		only the new message is computed. Request B adds the line Current time: &#123;&#123;now&#125;&#125; near the start of the system
+		prompt. The part of the system prompt before it is still reused, but the timestamp differs on every request, so
+		it and everything after it must be recomputed every request. Result for a customer service agent handling
+		100,000 conversations a day: TTFT rose from 0.5 seconds to 3 to 5 seconds for every conversation, and the
+		monthly inference bill nearly doubled.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">One timestamp line breaks prefix reuse</text>
+
+	<text x="6" y="70" font-weight="700">Request A: stable system prompt</text>
+	<g class="dg-node dg-context">
+		<rect x="6" y="84" width="538" height="62" rx="8"></rect>
+		<text x="22" y="110" class="dg-accent" font-weight="700">System prompt, tools, history</text>
+		<text x="22" y="132" class="dg-sub">unchanged prefix: reused from the cache</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="552" y="84" width="162" height="62" rx="8"></rect>
+		<text x="568" y="110" font-weight="700">New message</text>
+		<text x="568" y="132" class="dg-sub">computed</text>
+	</g>
+
+	<text x="6" y="188" font-weight="700">Request B: timestamp in the system prompt</text>
+	<g class="dg-node dg-context">
+		<rect x="6" y="202" width="152" height="62" rx="8"></rect>
+		<text x="22" y="228" class="dg-accent" font-weight="700">System prompt</text>
+		<text x="22" y="250" class="dg-sub">reused</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="166" y="202" width="206" height="62" rx="8"></rect>
+		<text x="182" y="228" class="dg-accent" font-weight="700">Current time: &#123;&#123;now&#125;&#125;</text>
+		<text x="182" y="250" class="dg-sub">differs every request</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="378" y="202" width="166" height="62" rx="8"></rect>
+		<text x="394" y="228" class="dg-accent" font-weight="700">Everything after</text>
+		<text x="394" y="250" class="dg-sub">recomputed</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="552" y="202" width="162" height="62" rx="8"></rect>
+		<text x="568" y="228" font-weight="700">New message</text>
+		<text x="568" y="250" class="dg-sub">computed</text>
+	</g>
+	<text x="166" y="290" class="dg-sub">first differing token: KV states from here on can't be reused</text>
+
+	<g class="dg-node dg-guard">
+		<rect x="6" y="310" width="708" height="100" rx="8"></rect>
+		<text x="22" y="338" class="dg-accent" font-weight="700">The next day (100,000 conversations a day)</text>
+		<text x="22" y="364">TTFT for every conversation: 0.5 s → 3–5 s</text>
+		<text x="22" y="390">Monthly inference bill: nearly doubled</text>
+	</g>
+</svg>

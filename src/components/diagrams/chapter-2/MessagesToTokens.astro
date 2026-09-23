@@ -1,0 +1,64 @@
+---
+// The same conversation as structured JSON messages (left) and as the linear Qwen token stream the model processes (right) (redraw of Fig 2-9).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 356"
+	role="img"
+	aria-labelledby="d2-mtt-title d2-mtt-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-mtt-title">From API messages to the model's token stream</title>
+	<desc id="d2-mtt-desc">
+		Left: the conversation at the API level, as structured JSON messages, each with a role (system, user, assistant)
+		and its content. An arrow labelled Chat Template points right. Right: the same conversation inside a Qwen model,
+		as one linear token stream: im_start system, the system prompt, im_end; im_start user, the user message, im_end;
+		im_start assistant, the model reply, im_end. The im_start and im_end special tokens tell the model the role and
+		boundaries of each message.
+	</desc>
+	<defs>
+		<marker id="d2-mtt-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">From API messages to the model's token stream</text>
+
+	<text x="6" y="68" font-weight="700">API messages (JSON)</text>
+	<g class="dg-node dg-context">
+		<rect x="6" y="82" width="276" height="70" rx="8"></rect>
+		<text x="20" y="108" class="dg-accent dg-mono" font-weight="700">"role": "system"</text>
+		<text x="20" y="134" class="dg-sub">content: system prompt</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="6" y="162" width="276" height="70" rx="8"></rect>
+		<text x="20" y="188" class="dg-accent dg-mono" font-weight="700">"role": "user"</text>
+		<text x="20" y="214" class="dg-sub">content: user message</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="6" y="242" width="276" height="70" rx="8"></rect>
+		<text x="20" y="268" class="dg-accent dg-mono" font-weight="700">"role": "assistant"</text>
+		<text x="20" y="294" class="dg-sub">content: model reply</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="290" y1="197" x2="392" y2="197" marker-end="url(#d2-mtt-arrow)"></line>
+		<text x="341" y="185" text-anchor="middle" class="dg-edge-label">Chat</text>
+		<text x="341" y="224" text-anchor="middle" class="dg-edge-label">Template</text>
+	</g>
+
+	<text x="400" y="68" font-weight="700">Token stream inside the model</text>
+	<g class="dg-node dg-neutral" style="font-variant-ligatures: none">
+		<rect x="400" y="82" width="314" height="230" rx="8"></rect>
+		<text x="414" y="110" class="dg-mono" font-weight="700">&lt;|im_start|&gt;system</text>
+		<text x="414" y="134" class="dg-mono">system prompt&lt;|im_end|&gt;</text>
+		<text x="414" y="178" class="dg-mono" font-weight="700">&lt;|im_start|&gt;user</text>
+		<text x="414" y="202" class="dg-mono">user message&lt;|im_end|&gt;</text>
+		<text x="414" y="246" class="dg-mono" font-weight="700">&lt;|im_start|&gt;assistant</text>
+		<text x="414" y="270" class="dg-mono">model reply&lt;|im_end|&gt;</text>
+		<text x="414" y="298" class="dg-sub">one linear sequence</text>
+	</g>
+
+	<text x="2" y="344" class="dg-sub">&lt;|im_start|&gt; and &lt;|im_end|&gt; tell the model each message's role and boundaries.</text>
+</svg>
