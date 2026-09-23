@@ -144,6 +144,7 @@ def book_flight_workflow(request, user):
 The autonomous version hands the same functions to the model as tools:
 
 ```python title="flight_autonomous.py (illustrative)"
+# each function is wrapped as a tool object exposing .name/.schema/.run
 tools = {t.name: t for t in [search_flights, verify_identity, charge, confirm_booking, ask_user]}
 answer = run_agent(llm, tools, system_prompt=FLIGHT_POLICY,
                    user_request="Book me a flight to Shanghai next Wednesday")
