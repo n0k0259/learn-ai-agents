@@ -1,0 +1,131 @@
+---
+// The same Xfinity trajectory without and with an <agent_status> block at the tail: the model either recounts the calls from raw records or reads the distilled state (redraw of Fig 2-14).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 1068"
+	role="img"
+	aria-labelledby="d2-sba-title d2-sba-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-sba-title">Agent Status Bar architecture</title>
+	<desc id="d2-sba-desc">
+		Two versions of the same trajectory, compared. No status bar: system, System Prompt + Tools; user, "Help me
+		contact Xfinity to negotiate"; assistant, phone_call(Xfinity), 1st attempt; tool, Result: waited 45 minutes, not
+		connected; assistant, web_search("Xfinity deals"); tool, Result: a large amount of search content; assistant,
+		phone_call(Xfinity), 2nd attempt; tool, Result: connected, quoted $65/month; assistant, phone_call(Xfinity), 3rd
+		attempt; tool, Result: confirmed price reduction to $59/month; user, "Can you call again to follow up?". The model
+		needs to scan the entire context to count how many calls were made, and is easy to miscount. Versus: with status
+		bar. The same system prompt, user request and trajectory content, and the same user follow-up, then an
+		agent_status block at the end: phone_call called 3 times (Xfinity: 3); Constraint check: reached limit (3/3), marked
+		with a cross; TODO: Contact Xfinity done, Confirm price reduction done; Current time: 2025-09-14 10:30; Current
+		status: waiting for user confirmation. The model directly reads the refined state, accurately follows the
+		constraints, and makes no more calls.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">Agent Status Bar architecture</text>
+
+	<!-- No status bar -->
+	<g class="dg-container dg-neutral">
+		<rect x="4" y="44" width="712" height="520" rx="12"></rect>
+		<text x="20" y="72" font-weight="700">No status bar</text>
+		<text x="20" y="526" class="dg-sub">→ Model needs to scan entire context to “count”</text>
+		<text x="20" y="548" class="dg-sub">how many calls were made, easy to miscount</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="16" y="88" width="688" height="32" rx="4"></rect>
+		<text x="30" y="110" class="dg-accent" font-weight="700">system:</text>
+		<text x="150" y="110" class="dg-mono">System Prompt + Tools</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="16" y="126" width="688" height="32" rx="4"></rect>
+		<text x="30" y="148" font-weight="700">user:</text>
+		<text x="150" y="148" class="dg-mono">"Help me contact Xfinity to negotiate"</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="16" y="164" width="688" height="32" rx="4"></rect>
+		<text x="30" y="186" class="dg-accent" font-weight="700">assistant:</text>
+		<text x="150" y="186" class="dg-mono">phone_call(Xfinity) → 1st attempt</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="16" y="202" width="688" height="32" rx="4"></rect>
+		<text x="30" y="224" class="dg-accent" font-weight="700">tool:</text>
+		<text x="150" y="224" class="dg-mono">Result: waited 45 minutes, not connected</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="16" y="240" width="688" height="32" rx="4"></rect>
+		<text x="30" y="262" class="dg-accent" font-weight="700">assistant:</text>
+		<text x="150" y="262" class="dg-mono">web_search("Xfinity deals")</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="16" y="278" width="688" height="32" rx="4"></rect>
+		<text x="30" y="300" class="dg-accent" font-weight="700">tool:</text>
+		<text x="150" y="300" class="dg-mono">Result: [large amount of search content...]</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="16" y="316" width="688" height="32" rx="4"></rect>
+		<text x="30" y="338" class="dg-accent" font-weight="700">assistant:</text>
+		<text x="150" y="338" class="dg-mono">phone_call(Xfinity) → 2nd attempt</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="16" y="354" width="688" height="32" rx="4"></rect>
+		<text x="30" y="376" class="dg-accent" font-weight="700">tool:</text>
+		<text x="150" y="376" class="dg-mono">Result: connected, quoted $65/month</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="16" y="392" width="688" height="32" rx="4"></rect>
+		<text x="30" y="414" class="dg-accent" font-weight="700">assistant:</text>
+		<text x="150" y="414" class="dg-mono">phone_call(Xfinity) → 3rd attempt</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="16" y="430" width="688" height="32" rx="4"></rect>
+		<text x="30" y="452" class="dg-accent" font-weight="700">tool:</text>
+		<text x="150" y="452" class="dg-mono">Result: confirmed price reduction to $59/month</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="16" y="468" width="688" height="32" rx="4"></rect>
+		<text x="30" y="490" font-weight="700">user:</text>
+		<text x="150" y="490" class="dg-mono">"Can you call again to follow up?"</text>
+	</g>
+
+	<text x="360" y="598" text-anchor="middle" class="dg-title">VS</text>
+
+	<!-- With status bar -->
+	<g class="dg-container dg-neutral">
+		<rect x="4" y="616" width="712" height="444" rx="12"></rect>
+		<text x="20" y="644" font-weight="700">With status bar</text>
+		<text x="20" y="1022" class="dg-sub">→ Model directly reads the refined state</text>
+		<text x="20" y="1044" class="dg-sub">Accurately follows constraints, no more calls</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="16" y="660" width="688" height="32" rx="4"></rect>
+		<text x="30" y="682" class="dg-accent" font-weight="700">system:</text>
+		<text x="150" y="682" class="dg-mono">System Prompt + Tools</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="16" y="698" width="688" height="32" rx="4"></rect>
+		<text x="30" y="720" font-weight="700">user:</text>
+		<text x="150" y="720" class="dg-mono">"Help me contact Xfinity to negotiate"</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="16" y="736" width="688" height="32" rx="4"></rect>
+		<text x="30" y="758" font-weight="700">...:</text>
+		<text x="150" y="758" class="dg-mono">[ Same trajectory content ]</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="16" y="774" width="688" height="32" rx="4"></rect>
+		<text x="30" y="796" font-weight="700">user:</text>
+		<text x="150" y="796" class="dg-mono">"Can you call again to follow up?"</text>
+	</g>
+	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
+		<rect x="16" y="812" width="688" height="184" rx="4"></rect>
+		<text x="30" y="838" class="dg-accent dg-mono" font-weight="700">&lt;agent_status&gt;</text>
+		<text x="30" y="862" class="dg-mono">phone_call called 3 times (Xfinity: 3)</text>
+		<text x="30" y="886" class="dg-mono">Constraint check: reached limit (3/3) ✗</text>
+		<text x="30" y="910" class="dg-mono">TODO: [✓]Contact Xfinity [✓]Confirm price reduction</text>
+		<text x="30" y="934" class="dg-mono">Current time: 2025-09-14 10:30</text>
+		<text x="30" y="958" class="dg-mono">Current status: waiting for user confirmation</text>
+		<text x="30" y="982" class="dg-accent dg-mono" font-weight="700">&lt;/agent_status&gt;</text>
+	</g>
+</svg>
