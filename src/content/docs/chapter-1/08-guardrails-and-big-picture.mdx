@@ -122,7 +122,7 @@ Within that scope, the five harness elements map cleanly onto Chapters 2 through
 
 | Harness focus | Corresponding chapter | Core content | Security concerns |
 |---|---|---|---|
-| Context Management | Chapter 2 (Context Engineering) | Prompt engineering, agent status bar, context compression, Agent Skills | Prompt injection and context contamination |
+| Context Management | [Chapter 2 (Context Engineering)](/learn-ai-agents/chapter-2/) | Prompt engineering, agent status bar, context compression, Agent Skills | Prompt injection and context contamination |
 | Context Management Across Sessions | Chapter 3 (User Memory and Knowledge Bases) | User memory, RAG, structured indexing, agentic RAG | Sensitive information exposure, privacy protection |
 | Tool Interfaces and Constraints | Chapter 4 (Tools) | Tool classification, permission control, MCP standard, proactive tool discovery | Misoperation, unauthorized access, irreversible operations |
 | Verification and Correction | Chapter 5 (Coding Agents and General-Purpose Agents) | Coding agent's Harness, test-driven development, codified rules | Identity impersonation, responsibility attribution |
@@ -135,7 +135,7 @@ The remaining chapters don't fit the five categories, and forcing them in would 
 
 Security is not partitioned by chapter either. It is a cross-cutting concern, a problem that affects many parts of a system, and it runs through the whole book organized by the three guardrail layers above: context, execution, data. The "Security concerns" column names the main ones each chapter addresses.
 
-Anthropic's practice in building long-running agents shows how Harness design can solve problems the model itself cannot. They split complex tasks between an "Initialization Agent", which sets up the environment and decomposes the task list, and an "Execution Agent", which makes incremental progress each session and leaves clear handover artifacts. The structured Harness tackles the two failure modes of long tasks: running out of context and declaring the task done prematurely. The book then works through the Harness component by component: Chapter 2 starts with the most central one, context engineering, and Chapter 5 lays out the complete practice of Harness engineering in coding agents.
+Anthropic's practice in building long-running agents shows how Harness design can solve problems the model itself cannot. They split complex tasks between an "Initialization Agent", which sets up the environment and decomposes the task list, and an "Execution Agent", which makes incremental progress each session and leaves clear handover artifacts. The structured Harness tackles the two failure modes of long tasks: running out of context and declaring the task done prematurely. The book then works through the Harness component by component: [Chapter 2](/learn-ai-agents/chapter-2/) starts with the most central one, context engineering, and Chapter 5 lays out the complete practice of Harness engineering in coding agents.
 
 ## Five design patterns you'll see again
 

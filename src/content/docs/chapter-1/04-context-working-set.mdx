@@ -33,7 +33,7 @@ The system prompt also carries:
 
 **Tool definitions.** These declare the names, functional descriptions, and parameter formats of the tools available to the agent. Without tool definitions, the agent cannot recognize or call any tools. It does not fall silent either; Experiment 1-1 below shows what it does instead.
 
-Tool definitions and the system prompt together form the **static prefix**, which stays unchanged throughout the conversation. This is the foundational pattern. Since 2026, production frameworks can also load full tool schemas on demand at the end of the context without breaking the prefix (see the tool definitions section of Chapter 2 and Chapter 4 of the book).
+Tool definitions and the system prompt together form the **static prefix**, which stays unchanged throughout the conversation. This is the foundational pattern. Since 2026, production frameworks can also load full tool schemas on demand at the end of the context without breaking the prefix (see [the tool definitions section of Chapter 2](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/) and Chapter 4 of the book).
 
 **User messages.** This is the input from the user. User messages may also contain **external knowledge** retrieved dynamically through RAG (Retrieval-Augmented Generation, covered in Chapter 3 of the book). That knowledge covers information beyond the training data cutoff, or private domain knowledge.
 
@@ -66,8 +66,8 @@ def build_context(system_prompt, tool_definitions, trajectory):
 | System prompt | static prefix | identity, permissions, rules, user memory, injected environment state | Chapters 2–3 |
 | Tool definitions | static prefix | names, descriptions, parameter formats | Chapters 2, 4 |
 | User messages | dynamic history | the request, plus RAG-retrieved knowledge | Chapter 3 |
-| Assistant messages | dynamic history | reasoning, content, tool_calls | Chapter 2 |
-| Tool results | dynamic history | what actually happened | Chapter 2 |
+| Assistant messages | dynamic history | reasoning, content, tool_calls | [Chapter 2](/learn-ai-agents/chapter-2/01-context-and-message-roles/) |
+| Tool results | dynamic history | what actually happened | [Chapter 2](/learn-ai-agents/chapter-2/02-tool-calls-core-loop/) |
 
 ## Experiment 1-1: remove one part at a time
 

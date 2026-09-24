@@ -82,7 +82,7 @@ A model can internalize tool-use policies as native capabilities through reinfor
 <CapabilityUpdateLevels />
 </Figure>
 
-**Contextual adaptation** occurs within the current task. Once examples, state, and retrieval results enter the context, the model can adjust its behavior immediately. None of it changes the persistent state of the next session. Its advantages are speed and low cost. Its limits come from the context window and from how the information is organized. Chapter 2 of the book explains in detail how this form of adaptation works.
+**Contextual adaptation** occurs within the current task. Once examples, state, and retrieval results enter the context, the model can adjust its behavior immediately. None of it changes the persistent state of the next session. Its advantages are speed and low cost. Its limits come from the context window and from how the information is organized. [Chapter 2 of the book](/learn-ai-agents/chapter-2/) explains in detail how this form of adaptation works.
 
 **External artifacts** make changes persist across tasks:
 
@@ -96,7 +96,7 @@ These artifacts are auditable and revisable. The catch is that the agent must st
 
 | Path | Where it lives | Persists across sessions? | Speed / cost | Best for | Covered in |
 |---|---|---|---|---|---|
-| **Contextual adaptation** | The current context (examples, state, retrieval results) | No | Instant and cheap; bounded by the context window | Per-task adjustment | Chapter 2 |
+| **Contextual adaptation** | The current context (examples, state, retrieval results) | No | Instant and cheap; bounded by the context window | Per-task adjustment | [Chapter 2](/learn-ai-agents/chapter-2/) |
 | **External artifacts** | Knowledge docs, prompts/Skills, programs and harness code | Yes; auditable and revisable | Must be loaded through context or tools at run time | Facts, strategies expressible in language, deterministic procedures | Chapters 3–5, 9 |
 | **Model parameters** | Weights, via post-training | Yes; broad generalization | High deployment cost, slow | High-dimensional skills rules can't express (medical images, style, implicit policies) | Chapter 8 |
 
