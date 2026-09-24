@@ -1,0 +1,117 @@
+---
+// The pet store log: lookup is one hop, aggregation needs a full traversal with a count, and a summary written once turns the count into a lookup.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 520"
+	role="img"
+	aria-labelledby="d2-lva-title d2-lva-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-lva-title">Lookup vs aggregation</title>
+	<desc id="d2-lva-desc">
+		A pet store inspection log in the context: cage 1, black cat; cage 2, white cat; cage 3, black cat; cage 4, black
+		cat; cage 5, white cat; and so on through cage 37 to cage 100. 100 cages: 90 black, 10 white. Lookup: the question
+		"Which cat is in cage 37?" takes one hop to cage 37, where attention excels. Aggregation: the question "How many
+		black cats in total?" must traverse all 100 records while keeping a count (black: 1, 1, 2, 3, 3, and so on up to
+		90), which is reasoning, not retrieval. Summarize once: after "Current statistics: 90 black cats, 10 white cats" is
+		written into the context, the same question is answered in one hop, turning reasoning into retrievable knowledge.
+	</desc>
+	<defs>
+		<marker id="d2-lva-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Lookup vs aggregation</text>
+
+	<!-- The log in context -->
+	<g class="dg-container dg-neutral">
+		<rect x="4" y="44" width="712" height="160" rx="12"></rect>
+		<text x="20" y="72" font-weight="700">Context: pet store inspection log</text>
+		<text x="468" y="120" text-anchor="middle">…</text>
+		<text x="590" y="120" text-anchor="middle">…</text>
+		<text x="20" y="186" class="dg-sub">100 cages: 90 black, 10 white</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="16" y="88" width="80" height="60" rx="6"></rect>
+		<text x="56" y="112" text-anchor="middle">Cage 1</text>
+		<text x="56" y="136" text-anchor="middle" font-weight="700">Black</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="104" y="88" width="80" height="60" rx="6"></rect>
+		<text x="144" y="112" text-anchor="middle">Cage 2</text>
+		<text x="144" y="136" text-anchor="middle" font-weight="700">White</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="192" y="88" width="80" height="60" rx="6"></rect>
+		<text x="232" y="112" text-anchor="middle">Cage 3</text>
+		<text x="232" y="136" text-anchor="middle" font-weight="700">Black</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="280" y="88" width="80" height="60" rx="6"></rect>
+		<text x="320" y="112" text-anchor="middle">Cage 4</text>
+		<text x="320" y="136" text-anchor="middle" font-weight="700">Black</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="368" y="88" width="80" height="60" rx="6"></rect>
+		<text x="408" y="112" text-anchor="middle">Cage 5</text>
+		<text x="408" y="136" text-anchor="middle" font-weight="700">White</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="488" y="88" width="80" height="60" rx="6"></rect>
+		<text x="528" y="124" text-anchor="middle">Cage 37</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="612" y="88" width="92" height="60" rx="6"></rect>
+		<text x="658" y="124" text-anchor="middle">Cage 100</text>
+	</g>
+
+	<!-- Lookup -->
+	<g class="dg-node dg-model">
+		<rect x="4" y="224" width="300" height="72" rx="8"></rect>
+		<text x="20" y="252" class="dg-accent" font-weight="700">Lookup</text>
+		<text x="20" y="278">"Which cat is in cage 37?"</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="304" y1="260" x2="336" y2="260" marker-end="url(#d2-lva-arrow)"></line>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="340" y="224" width="376" height="72" rx="8"></rect>
+		<text x="356" y="252">One hop to cage 37</text>
+		<text x="356" y="278" class="dg-sub">Attention excels at lookup</text>
+	</g>
+
+	<!-- Aggregation -->
+	<g class="dg-node dg-model">
+		<rect x="4" y="316" width="300" height="96" rx="8"></rect>
+		<text x="20" y="344" class="dg-accent" font-weight="700">Aggregation</text>
+		<text x="20" y="370">"How many black cats</text>
+		<text x="20" y="394">in total?"</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="304" y1="364" x2="336" y2="364" marker-end="url(#d2-lva-arrow)"></line>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="340" y="316" width="376" height="96" rx="8"></rect>
+		<text x="356" y="344">Traverse all 100 records, keep a count</text>
+		<text x="356" y="370" class="dg-mono">black: 1, 1, 2, 3, 3, … → 90</text>
+		<text x="356" y="394" class="dg-accent" font-weight="700">Reasoning, not retrieval</text>
+	</g>
+
+	<!-- Summarize once -->
+	<g class="dg-node dg-harness">
+		<rect x="4" y="432" width="300" height="80" rx="8"></rect>
+		<text x="20" y="460" class="dg-accent" font-weight="700">Summarize once, in context:</text>
+		<text x="20" y="490">90 black cats, 10 white cats</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="304" y1="472" x2="336" y2="472" marker-end="url(#d2-lva-arrow)"></line>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="340" y="432" width="376" height="80" rx="8"></rect>
+		<text x="356" y="460">Same question: one hop</text>
+		<text x="356" y="490" class="dg-sub">Reasoning becomes retrievable knowledge</text>
+	</g>
+</svg>

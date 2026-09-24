@@ -1,0 +1,197 @@
+---
+title: The Agent Status Bar
+description: Distilling implicit state into explicit facts at the tail of the context — what goes in the bar, why it uses the user role, and replace vs append with its break-even cost.
+sidebar:
+  order: 8
+  label: 2.8 The Agent Status Bar
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md#agent-status-bar-keeping-the-model-aware-of-task-progress
+  sections:
+    - 'Agent Status Bar: Keeping the Model Aware of Task Progress'
+    - 'Theoretical Basis of the Agent Status Bar'
+    - 'Composition of the Agent Status Bar'
+    - 'Specific Position of the Agent Status Bar in the Context'
+    - 'Two Implementations of Status Updates and Their Cache Costs'
+---
+import Figure from '~/components/Figure.astro';
+import StepAnimator from '~/components/StepAnimator.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import StatusBarArchitecture from '~/components/diagrams/chapter-2/StatusBarArchitecture.astro';
+import StatusBarPosition from '~/components/diagrams/chapter-2/StatusBarPosition.astro';
+import StatusReplaceVsAppend from '~/components/diagrams/chapter-2/StatusReplaceVsAppend.astro';
+
+:::tip[TL;DR]
+The model retrieves well from its context but doesn't distill it, so counts, limits and progress get recomputed on every decision. The Agent Status Bar is a framework-generated state summary appended as a `user` message at the end of the context, where it gets attention and leaves the cached prefix intact. Updates either replace or append it, chosen by a rough cost model.
+:::
+
+## A status bar for the model
+
+In production agents, relying solely on the native capabilities of LLMs is often insufficient. Agents executing complex tasks can fall into infinite loops, loss of state and goal drift, often because the model lacks a clear view of the current environment state and task progress. The **Agent Status Bar** addresses this: the framework packages task progress, environment changes and tool-call counts as structured state and injects it into the context.
+
+The analogy is a phone's status bar: time, battery, signal and notification count aren't the app's content, but they give you the device's state at a glance. The Agent Status Bar is likewise not an end-user request, a model output or a tool result. It is a **state summary** the framework injects at the end of the context ("You have made 3 calls," "Current time is 10:30," "2 to-do items remaining"), which the model can use each time it generates a response.
+
+<Figure caption="The same Xfinity trajectory twice. Without a status bar, the model has to scan the whole context to count the phone_call attempts and can easily miscount. With an agent_status block at the tail reporting 3 calls and the reached limit (3/3), it reads the refined state and makes no more calls." credit="Redrawn from Figure 2-14, AI Agent Book by Bojie Li (Apache 2.0).">
+<StatusBarArchitecture />
+</Figure>
+
+## Retrieval without distillation
+
+The status bar works because of a property of attention: in-context learning is more retrieval-like than reasoning-like. The model is good at finding information that already exists in the context, but less reliable at summarizing that context and deriving aggregate state during a single forward pass. This describes how one forward pass consumes existing context; it does not negate the model's ability to reason in multiple steps through chain-of-thought generation.
+
+Attention can often pull the relevant raw records out of thousands of tokens, so every forward pass resembles a lightweight form of retrieval-augmented generation (RAG). What's missing is an automatic **distillation layer**: the context isn't counted, indexed or summarized in place. Any conclusion *about* it (how many items, whether a limit is exceeded, how far along the task is) must be recomputed from the raw records when needed, at a cost that rises as content accumulates.
+
+### The call-counting failure
+
+An agent makes phone calls for business tasks, and the system prompt allows no more than three calls per merchant. After three calls, the agent often miscounts, makes a fourth call, or even loops on the same number. The answer to "How many times have I called?" stays scattered across raw call records in the KV Cache, so each decision spends extra reasoning tokens recounting, which is highly inefficient and error-prone.
+
+Including the repeat count directly in each phone call's tool result ("This is the third call to this merchant") lets the model immediately recognize that the limit is reached and stop calling, significantly reducing error rates. The harness catches loops like this from its side, with stop conditions ([lesson 1.7](/learn-ai-agents/chapter-1/07-orchestration-patterns/)); this fix hands the count to the model itself.
+
+The essence is **distilling implicit states scattered throughout the context into explicit knowledge that can be directly used**. A raw trajectory is highly redundant, so the bar presents, at minimal additional token cost, what would otherwise take scanning thousands of tokens.
+
+### Placement steers attention
+
+In long contexts, attention is spread over more candidate content, so key information may receive insufficient weight: task goals and early constraints can be overwhelmed by later tool results, and the model tends to over-focus on recent context, creating "attention decay" in the middle. The status bar places key meta-information at the end, close to the tokens the model is about to generate, where it is more likely to receive attention. This is attention steering through placement.
+
+:::note[Experiment 2-8: Verifying the Effect of the Agent Status Bar via Attention Visualization]
+**What is tested.** Built on the `attention_visualization` project: a customer service agent handling a refund request has called Xfinity 3 times, interspersed with web searches, when the user asks, "Can you call them again to follow up?" Control Group A has the complete trajectory but no aggregated status. Control Group B appends this at the end:
+
+```xml
+<agent_status>
+Current State:
+- Tool call summary: 'phone_call' has been invoked 3 times (Xfinity: 3 times)
+- Constraint check: Maximum calls to Xfinity reached (3/3)
+</agent_status>
+```
+
+**Result.** In A, attention is widely dispersed, concentrating around the three phone-call records, and the reasoning tokens show the model tallying from raw records. In B, attention is highly concentrated on the status bar, and the reasoning uses the distilled information directly. For a small model like Qwen3-0.6B, A frequently violates the constraint and keeps calling, while B consistently adheres to it.
+
+**Takeaway.** A precomputed count replaces tallying from raw data, and even a small model then follows the constraint.
+:::
+
+The author's research (Li and Shi, 2026) reports that a **precomputed status bar** can bring the accuracy of smaller open models close to that of frontier large models, and can cut the reasoning tokens, latency and cost of each agent iteration by roughly an order of magnitude. Without one, the reasoning each query requires keeps growing as the context gets longer; with one, it becomes roughly constant.
+
+## What goes in the bar
+
+The bar holds three types of information:
+
+- **Task planning.** On long, multi-step tasks the agent tends to focus on the current sub-task and forget the original request, core constraints and remaining work. A to-do list at the end of the trajectory keeps reminding the model of its progress and goals.
+- **Side-channel information for events.** Metadata attached to each event, such as precise time, location, or time since the last agent reply. It travels outside the main data channel but helps the model understand the temporal relationships and environmental context of events.
+- **Current environment observation summary.** Dynamic environment information (system time, working directory), abnormal-operation alerts ("This tool has been called N times repeatedly"), and implicit state turned into explicit observation, the same aim CLIs and GUIs have for human users.
+
+Side-channel information is usually appended together with its event. Task planning and environment state, by contrast, are updated continuously as the task progresses, and how those updates get written into the history bears directly on the KV Cache cost.
+
+## A user message at the tail
+
+At the API level, the status bar is inserted at the end of the context as **a message with the `user` role**, rather than by modifying the initial `system` message. Modifying the system message would invalidate the cache for the entire prefix ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). The `user` role here is a technical choice at the API protocol level, not "input from the user" as [Context: The Working Set](/learn-ai-agents/chapter-1/04-context-working-set/) defines user messages. The harness borrows the `user` message slot to attach state the framework generated; no real user wrote it.
+
+<Figure caption="The system message and tools are the fixed, cached prefix. The conversation rounds and the user follow-up come next, and the agent framework inserts the status bar as the final user message, wrapped in agent_status. It sits adjacent to where the model starts generating, so it receives the highest attention weight." credit="Redrawn from Figure 2-15, AI Agent Book by Bojie Li (Apache 2.0).">
+<StatusBarPosition />
+</Figure>
+
+Here is the message list the framework builds for the Nth API call in the Xfinity scenario:
+
+```text
+messages: [
+  { role: "system",    content: "You are a customer service assistant..." }  ← Fixed (KV Cache cached)
+  { role: "user",      content: "Help me cancel my Xfinity plan" }  ← Original user request
+  { role: "assistant", content: null, tool_calls: [...] }   ← Round 1: model decides to call
+  { role: "tool",      content: "Call log..." }             ← Round 1: call result
+  { role: "assistant", content: null, tool_calls: [...] }   ← Round 2: model decides to call again
+  { role: "tool",      content: "Call log..." }             ← Round 2: call result
+  ...(more rounds)
+  { role: "user",      content: "Can you call them again to follow up?" }  ← User follow-up
+  { role: "user",      content: "<agent_status>             ← Status bar injected by Agent framework
+      Current State:                                           (as a user message)
+      - phone_call invoked 3 times (Xfinity: 3/3 max)
+      - Current time: 2025-09-14 10:30:45
+      - TODO: [1] Cancel plan (in_progress)
+    </agent_status>" }
+]
+```
+
+The last message's content is framework-generated meta-information, wrapped in `<agent_status>` tags so the model can recognize its special nature. Immediately adjacent to the tokens the model is about to generate, it receives the highest attention weight. Because it is appended rather than edited in, all previously cached content stays unaffected: append dynamic information at the end, and keep static information unchanged.
+
+:::note[Engineer's note]
+[Context: The Working Set](/learn-ai-agents/chapter-1/04-context-working-set/) lists "dynamically injected environmental state" among what the system prompt carries. That state belongs at the tail: the system prompt stays fixed, and time, working directory, counts and to-dos go into a status message, as rule 2 of [lesson 2.3](/learn-ai-agents/chapter-2/03-attention-kv-cache-chat-template/) says.
+:::
+
+## Replace or append
+
+"Appending does not break the cache" only holds for a single injection. Status changes over time: to-do items get completed, tool counts rise, and earlier status messages become outdated.
+
+**Implementation 1: replace each round.** Before each API call, remove the previous status message and append the latest one, so only one current status is in the context. Removing the old status invalidates all cached content after its position, the same mechanism as the `{{now}}` incident in [lesson 2.3](/learn-ai-agents/chapter-2/03-attention-kv-cache-chat-template/). But the status sits near the end, so invalidation is limited to messages added since the previous injection, usually one round, rather than the entire prefix.
+
+**Implementation 2: persistent appending.** Each status message stays in the trajectory permanently, and a new one is appended each round. Claude Code's `<system-reminder>` uses this approach: historical status messages are never deleted or modified. It is fully cache-friendly, since the prefix stays stable. The cost is that outdated statuses accumulate, consuming tokens and requiring the model to rely on the latest status while ignoring obsolete ones.
+
+<StepAnimator label="Replace vs append over three status updates">
+<Figure caption="Each row is the context at one status update. Replace removes the previous status, so the messages added after it (R2, then R3) are recomputed, and only one status is ever present. Append leaves every status in place: nothing is invalidated, but S1 and S2 stay on as stale entries. The footer is the rough break-even rule.">
+<StatusReplaceVsAppend />
+</Figure>
+</StepAnimator>
+
+**Choose Implementation 2 when the status is small, many messages are produced between updates, and the session length is bounded**: keeping old statuses is usually cheaper than repeatedly recomputing a long suffix. **Choose Implementation 1 when the status is large, updates are frequent, or the trajectory is long**: it usually invalidates only the short suffix after the previous injection, while preventing stale statuses from accumulating.
+
+### A rough break-even model
+
+Let each status contain S tokens, let R tokens be added between updates, let N be the expected number of updates, and let cached input cost α times regular input. Ignoring costs shared by both approaches:
+
+```text
+C_replace ≈ (N−1)(1−α)R
+C_append  ≈ αS·N(N−1)/2
+```
+
+Replace pays to recompute an R-token suffix at each update after the first; append keeps paying the cached rate for every stale status. Dividing both costs by (N−1) gives the rule: prefer Implementation 2 when `α·S·N/2 < (1−α)·R`, otherwise Implementation 1. This estimate excludes context occupancy and ambiguity from stale states, so the final choice should also reflect your provider's cache pricing and measured hit rate.
+
+:::note[Experiment 2-9: Several Useful Agent Status Bar Techniques]
+**What is tested.** The `agent-status-bar` experimental framework implements five techniques, each independently switchable:
+
+- **Timestamp tracking.** A `[2025-09-14 10:30:45]` prefix on user messages and tool responses (not in the system prompt, which would break the KV Cache), so the agent understands temporal relationships and gets information for debugging and auditing; a time-simulation feature also lets it understand relationships like "yesterday's files" and "today's modifications".
+- **Tool call counter.** Per-tool counts annotated on responses ("Tool call #3 for 'read_file'"). They encourage a change of strategy after repeated failures: check the path, then list the directory, then stop retrying and seek an alternative.
+- **To-do list management.** Inspired by Manus's "manipulating attention through restatement": two tools, `rewrite_todo_list` and `update_todo_status`, maintain items with an ID, content, status and timestamp, serving as external memory.
+- **Detailed error information.** Error type, full parameter JSON, call stack and targeted fix suggestions.
+- **System state awareness.** Time, working directory (updated after each `cd`), OS, shell and Python version, enabling choices such as `apt` on Linux or `brew` on macOS.
+
+**Result.** In the book's experimental data, agents with to-do support complete tasks in an average of 15 iterations, while those without need 21 and often miss subtasks. Detailed error information raises the error-recovery success rate from 60% to 95%: instead of retrying blindly, the agent can diagnose the failure and choose an alternative.
+
+**Takeaway.** The techniques produce an emergent effect: limited individually, unexpectedly powerful combined. With everything enabled, an agent that can't find a file checks the directory, lists the available files, and if it is still missing, marks the task cancelled in the to-do list and adds an alternative.
+:::
+
+## Keeping the bar trustworthy
+
+The meta-information is human-readable, so you can inspect what the agent received and what it decided. More importantly, the approach requires no changes to the model: no fine-tuning, and it works with any language model. Maintaining it needs attention to two points:
+
+1. **Maintain the status bar with code whenever possible.** If an LLM is unavoidable, have it extract items one by one and aggregate them with code; never ask it for a batch count in one shot. Experiments find that models trust the status bar almost unconditionally: write "3 calls made" and the model accepts three without recalculating. LLMs are already prone to counting errors, and this trust is also why the status-bar poisoning risk from [lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/) deserves to be taken seriously.
+2. **Be cautious when deleting the original context.** A status bar is a **lossy projection** of the original context: it precomputes only the dimensions you expected to be queried. If the bar is sufficient, as it is for counting and state tracking, you can delete the raw records and save many tokens. But if even one question falls outside its dimensions, accuracy collapses when only the status bar remains.
+
+The Agent Status Bar is one form of **context compression**; [lesson 2.9](/learn-ai-agents/chapter-2/09-context-compression/) introduces further compression techniques.
+
+<KeyTakeaways>
+- The model has no automatic distillation layer, so counts, limits and progress get recomputed from raw records at every decision, at a cost that grows with the context.
+- The status bar distills that state into explicit facts (task planning, event metadata, an environment summary) at the tail, where they are more likely to receive attention.
+- It is appended as a `user`-role message wrapped in `<agent_status>`: a protocol slot, not end-user input, and the cached prefix stays intact.
+- Replace invalidates only the suffix since the last injection; append is fully cache-friendly but accumulates stale statuses. Roughly, prefer append when `α·S·N/2 < (1−α)·R`.
+- Maintain the bar with code, because models trust it almost unconditionally. It is a lossy projection, so delete raw records only if it covers every question you will ask.
+</KeyTakeaways>
+
+### References
+
+- Li, Bojie and Noah Shi, [*Distill, Don't Retrieve: Inference-Time Context Distillation for LLM Agent Reasoning*](https://01.me/research/context-distillation), 2026.
+
+## Check yourself
+
+<Quiz question="The status bar makes implicit state explicit, but a bug in your tool counter could feed it false information, and the agent may act on it. How do you mitigate this meta-information reliability problem?">
+Start from the fact that models trust the status bar almost unconditionally: write "3 calls made" and the model accepts three without recalculating, so any error in the bar propagates as-is. Maintain the bar with deterministic code. If an LLM is unavoidable, have it extract items one by one and aggregate them in code, never batch-count a long history in one shot. Treat status-bar poisoning as a real risk: if the bar's information can come from a source an attacker manipulates, the attacker can exploit that trust ([lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/)). The book's reference answer adds tracking status-bar accuracy as a first-class production metric.
+</Quiz>
+
+<Quiz question="Your status is S = 200 tokens, R = 5,000 tokens are added between updates, you expect N = 20 updates, and cached input costs α = 0.1 of regular input. Replace or append?">
+Append. Check the rule: α·S·N/2 = 0.1 × 200 × 20 / 2 = 200, and (1−α)·R = 0.9 × 5,000 = 4,500. Since 200 < 4,500, keeping old statuses is far cheaper. The full estimates agree: C_replace ≈ (N−1)(1−α)R = 19 × 0.9 × 5,000 = 85,500, and C_append ≈ αS·N(N−1)/2 = 0.1 × 200 × 20 × 19 / 2 = 3,800, both in regular-input-token equivalents. The model ignores context occupancy and ambiguity from stale statuses, so confirm against your provider's cache pricing and measured hit rate.
+</Quiz>
+
+<Quiz question="The status bar is sent with role: &quot;user&quot;. Is it user input, and why not update the system message instead?">
+It isn't user input. The `user` role is a choice at the API protocol level: the harness borrows the `user` message slot to attach state the framework generated, and wraps it in `<agent_status>` tags so the model can recognize its special nature. Editing the `system` message would invalidate the cache for the entire prefix. Appending a message at the end leaves everything already cached untouched, and puts the state right next to the tokens the model is about to generate, where it receives the highest attention weight.
+</Quiz>
+
+<Quiz question="Your status bar tracks how many times the agent has called each merchant. Can you delete the raw call logs to save tokens?">
+Only if every question the agent will face falls within the bar's dimensions. A status bar is a lossy projection: it precomputes only the dimensions you expected to be queried. For counting and state tracking it is sufficient, and deleting the raw records saves many tokens. But if even one question falls outside, for example what price was quoted on the second call, accuracy collapses when only the status bar remains.
+</Quiz>

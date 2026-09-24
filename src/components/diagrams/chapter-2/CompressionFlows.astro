@@ -1,0 +1,169 @@
+---
+// Experiment 2-10: how each of the six strategies turns a search result into what enters the context, and the outcome (redraw of Fig 2-17).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 628"
+	role="img"
+	aria-labelledby="d2-cf-title d2-cf-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-cf-title">Processing flow of six compression strategies</title>
+	<desc id="d2-cf-desc">
+		Each search returns about 52K characters on average, and each strategy handles them differently. Each row runs
+		from the strategy to what it does to the result, to its outcome. 1, no compression: directly keep; the full
+		original text goes into the context; 166K tokens, 102.1%, failed. 2, individual summary: independent summary;
+		each result independently generates 2–3 paragraph summaries; 277K tokens, 10.9%, 12 rounds. 3, combined summary:
+		merged summary; all results concatenated, then a unified summary; 93K tokens, 4.3%, 10 rounds. 4, context-aware,
+		emphasized with a solid border and a highlighted, bold outcome: intelligent compression; given the query and
+		context, targeted compression; 40K tokens, 3.0%, 7 rounds. 5, context-aware with citations: intelligent plus
+		traceability; compressed content that retains URL citation markers; 223K tokens, 4.1%, 10 rounds. 6, adaptive
+		window: deferred compression; below 80% of the window keep the original text, batch compress when exceeded; 175K
+		tokens, 102.4%, 7 rounds.
+	</desc>
+	<defs>
+		<marker id="d2-cf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Processing flow of six compression strategies</text>
+	<text x="2" y="58" class="dg-sub">Each search returns ~52K characters on average → each strategy handles them differently</text>
+
+	<!-- 1 -->
+	<g class="dg-node dg-harness">
+		<rect x="4" y="76" width="210" height="84" rx="6"></rect>
+		<text x="16" y="112" font-weight="700">① No compression</text>
+		<text x="16" y="136" class="dg-sub">Directly keep</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="214" y1="118" x2="236" y2="118" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="240" y="76" width="226" height="84" rx="6"></rect>
+		<text x="252" y="112">Full original text</text>
+		<text x="252" y="136">into context</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="466" y1="118" x2="488" y2="118" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="492" y="76" width="224" height="84" rx="6"></rect>
+		<text x="604" y="124" text-anchor="middle">166K tok · 102.1% · failed</text>
+	</g>
+
+	<!-- 2 -->
+	<g class="dg-node dg-harness">
+		<rect x="4" y="168" width="210" height="84" rx="6"></rect>
+		<text x="16" y="204" font-weight="700">② Individual summary</text>
+		<text x="16" y="228" class="dg-sub">Independent summary</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="214" y1="210" x2="236" y2="210" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="240" y="168" width="226" height="84" rx="6"></rect>
+		<text x="252" y="192">Each result independently</text>
+		<text x="252" y="216">generates 2–3 paragraph</text>
+		<text x="252" y="240">summaries</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="466" y1="210" x2="488" y2="210" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="492" y="168" width="224" height="84" rx="6"></rect>
+		<text x="604" y="216" text-anchor="middle">277K tok · 10.9% · 12 rounds</text>
+	</g>
+
+	<!-- 3 -->
+	<g class="dg-node dg-harness">
+		<rect x="4" y="260" width="210" height="84" rx="6"></rect>
+		<text x="16" y="296" font-weight="700">③ Combined summary</text>
+		<text x="16" y="320" class="dg-sub">Merged summary</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="214" y1="302" x2="236" y2="302" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="240" y="260" width="226" height="84" rx="6"></rect>
+		<text x="252" y="296">All results concatenated,</text>
+		<text x="252" y="320">then unified summary</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="466" y1="302" x2="488" y2="302" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="492" y="260" width="224" height="84" rx="6"></rect>
+		<text x="604" y="308" text-anchor="middle">93K tok · 4.3% · 10 rounds</text>
+	</g>
+
+	<!-- 4 -->
+	<g class="dg-node dg-harness dg-solid">
+		<rect x="4" y="352" width="210" height="84" rx="6"></rect>
+		<text x="16" y="388" font-weight="700">④ Context-aware</text>
+		<text x="16" y="412" class="dg-sub">Intelligent compression</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="214" y1="394" x2="236" y2="394" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="240" y="352" width="226" height="84" rx="6"></rect>
+		<text x="252" y="388">Given query + context →</text>
+		<text x="252" y="412">targeted compression</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="466" y1="394" x2="488" y2="394" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="492" y="352" width="224" height="84" rx="6"></rect>
+		<text x="604" y="400" text-anchor="middle" font-weight="700">40K tok · 3.0% · 7 rounds</text>
+	</g>
+
+	<!-- 5 -->
+	<g class="dg-node dg-harness">
+		<rect x="4" y="444" width="210" height="84" rx="6"></rect>
+		<text x="16" y="468" font-weight="700">⑤ Context-aware</text>
+		<text x="16" y="492" font-weight="700">+ citation</text>
+		<text x="16" y="516" class="dg-sub">Intelligent + traceability</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="214" y1="486" x2="236" y2="486" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="240" y="444" width="226" height="84" rx="6"></rect>
+		<text x="252" y="468">Compressed content +</text>
+		<text x="252" y="492">retain URL citation</text>
+		<text x="252" y="516">markers</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="466" y1="486" x2="488" y2="486" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="492" y="444" width="224" height="84" rx="6"></rect>
+		<text x="604" y="492" text-anchor="middle">223K tok · 4.1% · 10 rounds</text>
+	</g>
+
+	<!-- 6 -->
+	<g class="dg-node dg-harness">
+		<rect x="4" y="536" width="210" height="84" rx="6"></rect>
+		<text x="16" y="572" font-weight="700">⑥ Adaptive window</text>
+		<text x="16" y="596" class="dg-sub">Deferred compression</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="214" y1="578" x2="236" y2="578" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="240" y="536" width="226" height="84" rx="6"></rect>
+		<text x="252" y="560">&lt; 80% window: keep</text>
+		<text x="252" y="584">original text; batch</text>
+		<text x="252" y="608">compress when exceeded</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="466" y1="578" x2="488" y2="578" marker-end="url(#d2-cf-arrow)"></line>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="492" y="536" width="224" height="84" rx="6"></rect>
+		<text x="604" y="584" text-anchor="middle">175K tok · 102.4% · 7 rounds</text>
+	</g>
+</svg>

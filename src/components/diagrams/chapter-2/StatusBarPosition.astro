@@ -1,0 +1,90 @@
+---
+// The API message list with the status bar: fixed system + tools, the conversation rounds, the user follow-up, then <agent_status> as the final user message, next to where generation starts (redraw of Fig 2-15).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 820"
+	role="img"
+	aria-labelledby="d2-sbp-title d2-sbp-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-sbp-title">Insertion position of the Agent Status Bar in the API message list</title>
+	<desc id="d2-sbp-desc">
+		A messages array, top to bottom. Fixed, in the KV Cache: a system message, "You are a telecom customer service
+		agent...", and the tools list: cancel_plan, query_records and more. Then a user message, "Help me cancel my plan";
+		an assistant message with the tool call cancel_plan; a tool message, "This plan has a contract period..."; and an
+		assistant message, "Your plan is within the contract period...". More conversation turns follow. Then the user
+		follow-up, "Then help me check my call records". Last comes the agent status bar, inserted by the Agent framework:
+		a user message whose content is an agent_status block, "Called 3/3 times, TODO: Cancel plan (in progress)". The
+		array closes, and the model starts generating from there. The status bar is adjacent to the start of model
+		generation and receives the highest attention weight.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">Where the status bar sits in the message list</text>
+	<text x="4" y="62" class="dg-mono" font-weight="700">messages: [</text>
+
+	<!-- Fixed prefix -->
+	<text x="12" y="92" class="dg-sub">fixed (KV Cache)</text>
+	<g class="dg-node dg-context">
+		<rect x="12" y="102" width="704" height="64" rx="6"></rect>
+		<text x="26" y="128" class="dg-mono">{'{ role: "system",'}</text>
+		<text x="46" y="152" class="dg-mono">{'content: "You are a telecom customer service agent..." }'}</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="12" y="172" width="704" height="40" rx="6"></rect>
+		<text x="26" y="198" class="dg-mono">tools: [cancel_plan, query_records, ...]</text>
+	</g>
+
+	<!-- Conversation -->
+	<g class="dg-node dg-neutral">
+		<rect x="12" y="228" width="704" height="40" rx="6"></rect>
+		<text x="26" y="254" class="dg-mono">{'{ role: "user", content: "Help me cancel my plan" }'}</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="12" y="274" width="704" height="40" rx="6"></rect>
+		<text x="26" y="300" class="dg-mono">{'{ role: "assistant", tool_calls: [cancel_plan(...)] }'}</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="12" y="320" width="704" height="40" rx="6"></rect>
+		<text x="26" y="346" class="dg-mono">{'{ role: "tool", content: "This plan has a contract period..." }'}</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="12" y="366" width="704" height="64" rx="6"></rect>
+		<text x="26" y="392" class="dg-mono">{'{ role: "assistant",'}</text>
+		<text x="46" y="416" class="dg-mono">{'content: "Your plan is within the contract period..." }'}</text>
+	</g>
+	<text x="364" y="460" text-anchor="middle" class="dg-sub">... more conversation turns ...</text>
+
+	<!-- User follow-up -->
+	<text x="12" y="494" class="dg-sub">user follow-up</text>
+	<g class="dg-node dg-neutral">
+		<rect x="12" y="504" width="704" height="40" rx="6"></rect>
+		<text x="26" y="530" class="dg-mono">{'{ role: "user", content: "Then help me check my call records" }'}</text>
+	</g>
+
+	<!-- Status bar -->
+	<text x="12" y="578" font-weight="700">Agent framework insertion: agent status bar</text>
+	<g class="dg-node dg-harness" style="font-variant-ligatures: none">
+		<rect x="12" y="588" width="704" height="88" rx="6"></rect>
+		<text x="26" y="614" class="dg-mono">{'{ role: "user", content: "<agent_status>'}</text>
+		<text x="46" y="638" class="dg-mono">Called 3/3 times · TODO: Cancel plan (in progress)</text>
+		<text x="46" y="662" class="dg-mono">{'</agent_status>" }'}</text>
+	</g>
+	<text x="4" y="708" class="dg-mono" font-weight="700">]</text>
+
+	<g class="dg-edge">
+		<line x1="182" y1="678" x2="182" y2="736" marker-end="url(#d2-sbp-arrow)"></line>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="12" y="740" width="340" height="40" rx="6"></rect>
+		<text x="28" y="766" class="dg-accent" font-weight="700">model starts generating from here</text>
+	</g>
+	<text x="12" y="806" class="dg-sub">↑ adjacent to model generation start, receives highest attention weight</text>
+
+	<defs>
+		<marker id="d2-sbp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+</svg>

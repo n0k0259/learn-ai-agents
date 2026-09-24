@@ -1,0 +1,137 @@
+---
+// Attention on "北京 的 天气 怎么样": the query of 怎么样 matched against each Key (book weights), then the 4×4 lower-triangular heatmap (redraw of Fig 2-6).
+// Every heatmap value is printed in the book's figure; the 怎么样 row repeats the upper part's weights.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 560"
+	role="img"
+	aria-labelledby="d2-ai-title d2-ai-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-ai-title">Intuitive understanding of the attention mechanism</title>
+	<desc id="d2-ai-desc">
+		Upper part: while processing the sentence 北京 的 天气 怎么样 (How's the weather in Beijing?), the Query of 怎么样 (how is
+		it) is matched against the Key of each word. The attention weights are 北京 (Beijing) 0.35, 的 (the particle) 0.05,
+		天气 (weather) 0.55, and about 0.05 for 怎么样 itself; the Query–Key scores become weights that sum to 1, and the
+		weighted sum of Values draws mainly on 天气. Lower part: a 4 by 4 attention heatmap with one row per Query and one
+		column per Key. Darker cells mean higher weight. Only cells on or below the diagonal are filled, because each
+		word can attend only to itself and the words before it. Row 北京: 北京 1.00. Row 的: 北京 0.30, 的 0.70. Row 天气: 北京
+		0.20, 的 0.10, 天气 0.70. Row 怎么样: 0.35, 0.05, 0.55 and 0.05.
+	</desc>
+	<defs>
+		<marker id="d2-ai-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Intuitive understanding of the attention mechanism</text>
+
+	<!-- Upper part: one Query matched against every Key -->
+	<g class="dg-node dg-model">
+		<rect x="6" y="96" width="160" height="92" rx="8"></rect>
+		<text x="22" y="122" class="dg-accent" font-weight="700">Query</text>
+		<text x="22" y="148">怎么样</text>
+		<text x="22" y="172" class="dg-sub">how is it</text>
+	</g>
+
+	<g class="dg-edge">
+		<path d="M166,142 C184,142 184,78 208,78" marker-end="url(#d2-ai-arrow)"></path>
+		<path d="M166,142 C184,142 184,122 208,122" marker-end="url(#d2-ai-arrow)"></path>
+		<path d="M166,142 C184,142 184,166 208,166" marker-end="url(#d2-ai-arrow)"></path>
+		<path d="M166,142 C184,142 184,210 208,210" marker-end="url(#d2-ai-arrow)"></path>
+	</g>
+
+	<g class="dg-node dg-context">
+		<rect x="210" y="60" width="220" height="36" rx="6"></rect>
+		<text x="224" y="84">Key: 北京 (Beijing)</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="210" y="104" width="220" height="36" rx="6"></rect>
+		<text x="224" y="128">Key: 的 (particle)</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="210" y="148" width="220" height="36" rx="6"></rect>
+		<text x="224" y="172">Key: 天气 (weather)</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="210" y="192" width="220" height="36" rx="6"></rect>
+		<text x="224" y="216">Key: 怎么样 (itself)</text>
+	</g>
+
+	<!-- Weight bars: length = weight × 240 -->
+	<rect x="444" y="68" width="84" height="20" rx="3" fill="var(--dg-model-stroke)"></rect>
+	<text x="536" y="84" font-weight="700">0.35</text>
+	<rect x="444" y="112" width="12" height="20" rx="3" fill="var(--dg-model-stroke)"></rect>
+	<text x="464" y="128" font-weight="700">0.05</text>
+	<rect x="444" y="156" width="132" height="20" rx="3" fill="var(--dg-model-stroke)"></rect>
+	<text x="584" y="172" font-weight="700">0.55</text>
+	<rect x="444" y="200" width="12" height="20" rx="3" fill="var(--dg-model-stroke)"></rect>
+	<text x="464" y="216" font-weight="700">≈0.05</text>
+
+	<text x="6" y="258" class="dg-sub">Query–Key scores → weights (sum to 1) → weighted sum of Values, mainly 天气</text>
+
+	<!-- Lower part: 4×4 heatmap, rows = Query, columns = Key -->
+	<text x="2" y="300" font-weight="700">Attention heatmap</text>
+	<text x="2" y="322" class="dg-sub">rows: Query · columns: Key · darker = higher weight</text>
+
+	<text x="245" y="360" text-anchor="middle">北京</text>
+	<text x="315" y="360" text-anchor="middle">的</text>
+	<text x="385" y="360" text-anchor="middle">天气</text>
+	<text x="455" y="360" text-anchor="middle">怎么样</text>
+
+	<text x="198" y="398" text-anchor="end">北京</text>
+	<text x="198" y="442" text-anchor="end">的</text>
+	<text x="198" y="486" text-anchor="end">天气</text>
+	<text x="198" y="530" text-anchor="end">怎么样</text>
+
+	<!-- Grid outline: every cell, including the masked upper triangle -->
+	<g fill="none" stroke="var(--dg-neutral-stroke)" stroke-width="1">
+		<rect x="210" y="372" width="70" height="44"></rect>
+		<rect x="280" y="372" width="70" height="44"></rect>
+		<rect x="350" y="372" width="70" height="44"></rect>
+		<rect x="420" y="372" width="70" height="44"></rect>
+		<rect x="210" y="416" width="70" height="44"></rect>
+		<rect x="280" y="416" width="70" height="44"></rect>
+		<rect x="350" y="416" width="70" height="44"></rect>
+		<rect x="420" y="416" width="70" height="44"></rect>
+		<rect x="210" y="460" width="70" height="44"></rect>
+		<rect x="280" y="460" width="70" height="44"></rect>
+		<rect x="350" y="460" width="70" height="44"></rect>
+		<rect x="420" y="460" width="70" height="44"></rect>
+		<rect x="210" y="504" width="70" height="44"></rect>
+		<rect x="280" y="504" width="70" height="44"></rect>
+		<rect x="350" y="504" width="70" height="44"></rect>
+		<rect x="420" y="504" width="70" height="44"></rect>
+	</g>
+
+	<!-- The book's weights: darker = higher (fill-opacity 0.08 + 0.5 × weight) -->
+	<g fill="var(--dg-model-stroke)">
+		<rect x="211" y="373" width="68" height="42" fill-opacity="0.58"></rect>
+		<rect x="211" y="417" width="68" height="42" fill-opacity="0.23"></rect>
+		<rect x="281" y="417" width="68" height="42" fill-opacity="0.43"></rect>
+		<rect x="211" y="461" width="68" height="42" fill-opacity="0.18"></rect>
+		<rect x="281" y="461" width="68" height="42" fill-opacity="0.13"></rect>
+		<rect x="351" y="461" width="68" height="42" fill-opacity="0.43"></rect>
+		<rect x="211" y="505" width="68" height="42" fill-opacity="0.26"></rect>
+		<rect x="281" y="505" width="68" height="42" fill-opacity="0.11"></rect>
+		<rect x="351" y="505" width="68" height="42" fill-opacity="0.36"></rect>
+		<rect x="421" y="505" width="68" height="42" fill-opacity="0.11"></rect>
+	</g>
+	<rect x="210" y="504" width="280" height="44" fill="none" stroke="var(--dg-model-stroke)" stroke-width="3"></rect>
+	<text x="245" y="400" text-anchor="middle" font-weight="700">1.00</text>
+	<text x="245" y="444" text-anchor="middle" font-weight="700">0.30</text>
+	<text x="315" y="444" text-anchor="middle" font-weight="700">0.70</text>
+	<text x="245" y="488" text-anchor="middle" font-weight="700">0.20</text>
+	<text x="315" y="488" text-anchor="middle" font-weight="700">0.10</text>
+	<text x="385" y="488" text-anchor="middle" font-weight="700">0.70</text>
+	<text x="245" y="532" text-anchor="middle" font-weight="700">0.35</text>
+	<text x="315" y="532" text-anchor="middle" font-weight="700">0.05</text>
+	<text x="385" y="532" text-anchor="middle" font-weight="700">0.55</text>
+	<text x="455" y="532" text-anchor="middle" font-weight="700">0.05</text>
+
+	<text x="506" y="398" class="dg-sub">blank: not yet generated</text>
+	<text x="506" y="524" font-weight="700">怎么样 row:</text>
+	<text x="506" y="544" class="dg-sub">weights above</text>
+</svg>

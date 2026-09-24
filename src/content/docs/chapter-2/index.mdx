@@ -1,0 +1,30 @@
+---
+title: "Chapter 2: Context Engineering"
+description: How an agent's context is structured, cached, written and compressed — from API message roles to status bars and sub-agent isolation.
+sidebar:
+  order: 0
+  label: Overview
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md
+  sections: []
+---
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+An agent can only act on the information available to it, and designing and managing that information is called **context engineering**. Context is everything the model actually "sees" on a call: the conversation history, the developer's system instructions, the tool descriptions and other information. In Harness terms, context engineering is a core implementation of the "Context and Tools" layer: it decides what the agent sees at each decision point and how that information is structured. The through-line is explicit information management — the API message structure defines the skeleton, a stable prefix raises the KV Cache hit rate, prompts, Skills and the status bar carry rules, on-demand knowledge and current state, and compression raises the information density of history while preserving decisions, constraints, failures and sources.
+
+## Lessons
+
+Each lesson takes about 5–15 minutes and ends with a short self-check.
+
+<CardGrid>
+	<LinkCard title="2.1 Context & the Four Message Roles" description="Why context sets the ceiling, and how four roles plus tools carry it." href="/learn-ai-agents/chapter-2/01-context-and-message-roles/" />
+	<LinkCard title="2.2 Tool Calls: The Agent's Core Loop" description="The two-call example on the wire and the book's SDK loop." href="/learn-ai-agents/chapter-2/02-tool-calls-core-loop/" />
+	<LinkCard title="2.3 Attention, KV Cache Intuition & Chat Templates" description="The {{now}} incident, attention basics, and how messages become tokens." href="/learn-ai-agents/chapter-2/03-attention-kv-cache-chat-template/" />
+	<LinkCard title="2.4 KV Cache, Prompt Cache & Caching as Architecture" description="Why prefixes must stay stable, and how caching shapes the harness." href="/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/" />
+	<LinkCard title="2.5 System Prompts" description="Tone, structure, SOPs over rule piles, executable rules, and few-shot." href="/learn-ai-agents/chapter-2/05-system-prompts/" />
+	<LinkCard title="2.6 Tool Definitions & Prompt Injection" description="Tool descriptions as manuals, deferred loading, and instruction/data separation." href="/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/" />
+	<LinkCard title="2.7 Dynamic Prompts & Agent Skills" description="Progressive disclosure, trigger paths, and Skills in the cache." href="/learn-ai-agents/chapter-2/07-dynamic-prompts-and-skills/" />
+	<LinkCard title="2.8 The Agent Status Bar" description="Explicit state at the tail of the context, and replace vs append." href="/learn-ai-agents/chapter-2/08-agent-status-bar/" />
+	<LinkCard title="2.9 Why and How to Compress Context" description="Lookup vs aggregation, context rot, and six strategies compared." href="/learn-ai-agents/chapter-2/09-context-compression/" />
+	<LinkCard title="2.10 Compression in Production & Sub-Agent Isolation" description="The five-layer stack, isolation over compression, and the chapter map." href="/learn-ai-agents/chapter-2/10-compression-in-production-and-isolation/" />
+</CardGrid>

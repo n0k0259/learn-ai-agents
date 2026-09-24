@@ -1,0 +1,216 @@
+---
+// Two ways to update the status bar over three updates: replace (old status removed, the suffix after it recomputed) vs persistent append (nothing invalidated, stale statuses pile up), with the break-even rule.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 700"
+	role="img"
+	aria-labelledby="d2-rva-title d2-rva-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-rva-title">Replace each round vs persistent append</title>
+	<desc id="d2-rva-desc">
+		Two lanes of the same trajectory over three status updates. Each row shows the context at one update: a cached
+		prefix, the messages R added between updates, and status messages S. Implementation 1, replace each round: at
+		update 1 the context is prefix, R1 and the new status S1. At update 2, S1 is removed, so R2, which came after it,
+		is recomputed, and the new status S2 is appended. At update 3, S2 is removed, R1 and R2 stay cached, R3 is
+		recomputed, and S3 is appended. Only one current status is ever in the context. Implementation 2, persistent
+		append: at update 1 the context is prefix, R1 and S1. At update 2, S1 stays as a stale status, R2 is cached and S2
+		is appended. At update 3, S1 and S2 are both stale, R3 is cached and S3 is appended. Nothing is invalidated, but
+		stale statuses accumulate. Legend: cached, recomputed, new status, stale status. Footer: prefer append when
+		alpha times S times N over 2 is less than (1 minus alpha) times R, where S is the tokens per status, R the tokens
+		added between updates, N the expected number of updates and alpha the cost of cached input relative to regular
+		input.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">Updating the status: replace vs append</text>
+
+	<g class="dg-container dg-neutral">
+		<rect x="4" y="44" width="712" height="246" rx="12"></rect>
+		<text x="20" y="70" font-weight="700">Implementation 1: replace each round</text>
+		<text x="20" y="92" class="dg-sub">one current status; the suffix after the removed one is recomputed</text>
+	</g>
+	<g class="dg-container dg-neutral">
+		<rect x="4" y="306" width="712" height="246" rx="12"></rect>
+		<text x="20" y="332" font-weight="700">Implementation 2: persistent append</text>
+		<text x="20" y="354" class="dg-sub">prefix stays stable; stale statuses accumulate</text>
+	</g>
+
+	<!-- Update 1 -->
+	<g data-step="1" data-step-label="Update 1: both lanes append the first status S1 after R1">
+		<text x="20" y="138" font-weight="700">Update 1</text>
+		<g class="dg-node dg-context">
+			<rect x="100" y="106" width="76" height="52" rx="6"></rect>
+			<text x="108" y="128" font-weight="700">prefix</text>
+			<text x="108" y="148" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="182" y="106" width="108" height="52" rx="6"></rect>
+			<text x="190" y="128" font-weight="700">R1</text>
+			<text x="190" y="148" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="296" y="106" width="56" height="52" rx="6"></rect>
+			<text x="304" y="128" class="dg-accent" font-weight="700">S1</text>
+			<text x="304" y="148" class="dg-sub">new</text>
+		</g>
+		<text x="20" y="400" font-weight="700">Update 1</text>
+		<g class="dg-node dg-context">
+			<rect x="100" y="368" width="76" height="52" rx="6"></rect>
+			<text x="108" y="390" font-weight="700">prefix</text>
+			<text x="108" y="410" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="182" y="368" width="108" height="52" rx="6"></rect>
+			<text x="190" y="390" font-weight="700">R1</text>
+			<text x="190" y="410" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="296" y="368" width="56" height="52" rx="6"></rect>
+			<text x="304" y="390" class="dg-accent" font-weight="700">S1</text>
+			<text x="304" y="410" class="dg-sub">new</text>
+		</g>
+	</g>
+
+	<!-- Update 2 -->
+	<g data-step="2" data-step-label="Update 2: replace removes S1, so R2 after it is recomputed; append keeps S1 as stale and adds S2">
+		<text x="20" y="198" font-weight="700">Update 2</text>
+		<g class="dg-node dg-context">
+			<rect x="100" y="166" width="76" height="52" rx="6"></rect>
+			<text x="108" y="188" font-weight="700">prefix</text>
+			<text x="108" y="208" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="182" y="166" width="108" height="52" rx="6"></rect>
+			<text x="190" y="188" font-weight="700">R1</text>
+			<text x="190" y="208" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="296" y="166" width="108" height="52" rx="6"></rect>
+			<text x="304" y="188" class="dg-accent" font-weight="700">R2</text>
+			<text x="304" y="208" class="dg-sub">recomputed</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="410" y="166" width="56" height="52" rx="6"></rect>
+			<text x="418" y="188" class="dg-accent" font-weight="700">S2</text>
+			<text x="418" y="208" class="dg-sub">new</text>
+		</g>
+		<text x="478" y="198" class="dg-sub">S1 removed → R2 recomputed</text>
+		<text x="20" y="460" font-weight="700">Update 2</text>
+		<g class="dg-node dg-context">
+			<rect x="100" y="428" width="76" height="52" rx="6"></rect>
+			<text x="108" y="450" font-weight="700">prefix</text>
+			<text x="108" y="470" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="182" y="428" width="108" height="52" rx="6"></rect>
+			<text x="190" y="450" font-weight="700">R1</text>
+			<text x="190" y="470" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="296" y="428" width="56" height="52" rx="6"></rect>
+			<text x="304" y="450" font-weight="700">S1</text>
+			<text x="304" y="470" class="dg-sub">stale</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="358" y="428" width="108" height="52" rx="6"></rect>
+			<text x="366" y="450" font-weight="700">R2</text>
+			<text x="366" y="470" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="472" y="428" width="56" height="52" rx="6"></rect>
+			<text x="480" y="450" class="dg-accent" font-weight="700">S2</text>
+			<text x="480" y="470" class="dg-sub">new</text>
+		</g>
+	</g>
+
+	<!-- Update 3 -->
+	<g data-step="3" data-step-label="Update 3: replace removes S2 and recomputes R3; append now carries two stale statuses">
+		<text x="20" y="258" font-weight="700">Update 3</text>
+		<g class="dg-node dg-context">
+			<rect x="100" y="226" width="76" height="52" rx="6"></rect>
+			<text x="108" y="248" font-weight="700">prefix</text>
+			<text x="108" y="268" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="182" y="226" width="108" height="52" rx="6"></rect>
+			<text x="190" y="248" font-weight="700">R1</text>
+			<text x="190" y="268" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="296" y="226" width="108" height="52" rx="6"></rect>
+			<text x="304" y="248" font-weight="700">R2</text>
+			<text x="304" y="268" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="410" y="226" width="108" height="52" rx="6"></rect>
+			<text x="418" y="248" class="dg-accent" font-weight="700">R3</text>
+			<text x="418" y="268" class="dg-sub">recomputed</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="524" y="226" width="56" height="52" rx="6"></rect>
+			<text x="532" y="248" class="dg-accent" font-weight="700">S3</text>
+			<text x="532" y="268" class="dg-sub">new</text>
+		</g>
+		<text x="592" y="258" class="dg-sub">S2 removed</text>
+		<text x="20" y="520" font-weight="700">Update 3</text>
+		<g class="dg-node dg-context">
+			<rect x="100" y="488" width="76" height="52" rx="6"></rect>
+			<text x="108" y="510" font-weight="700">prefix</text>
+			<text x="108" y="530" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="182" y="488" width="108" height="52" rx="6"></rect>
+			<text x="190" y="510" font-weight="700">R1</text>
+			<text x="190" y="530" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="296" y="488" width="56" height="52" rx="6"></rect>
+			<text x="304" y="510" font-weight="700">S1</text>
+			<text x="304" y="530" class="dg-sub">stale</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="358" y="488" width="108" height="52" rx="6"></rect>
+			<text x="366" y="510" font-weight="700">R2</text>
+			<text x="366" y="530" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-neutral">
+			<rect x="472" y="488" width="56" height="52" rx="6"></rect>
+			<text x="480" y="510" font-weight="700">S2</text>
+			<text x="480" y="530" class="dg-sub">stale</text>
+		</g>
+		<g class="dg-node dg-context">
+			<rect x="534" y="488" width="108" height="52" rx="6"></rect>
+			<text x="542" y="510" font-weight="700">R3</text>
+			<text x="542" y="530" class="dg-sub">cached</text>
+		</g>
+		<g class="dg-node dg-harness">
+			<rect x="648" y="488" width="56" height="52" rx="6"></rect>
+			<text x="656" y="510" class="dg-accent" font-weight="700">S3</text>
+			<text x="656" y="530" class="dg-sub">new</text>
+		</g>
+	</g>
+
+	<!-- Legend -->
+	<g class="dg-node dg-context">
+		<rect x="4" y="568" width="164" height="36" rx="6"></rect>
+		<text x="20" y="592">cached</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="186" y="568" width="164" height="36" rx="6"></rect>
+		<text x="202" y="592">recomputed</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="368" y="568" width="164" height="36" rx="6"></rect>
+		<text x="384" y="592">new status</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="550" y="568" width="166" height="36" rx="6"></rect>
+		<text x="566" y="592">stale status</text>
+	</g>
+
+	<text x="4" y="640" class="dg-mono" font-weight="700">prefer append when α·S·N/2 &lt; (1−α)·R</text>
+	<text x="4" y="664" class="dg-sub">S: tokens per status · R: tokens added between updates</text>
+	<text x="4" y="688" class="dg-sub">N: expected updates · α: cached input cost ÷ regular input cost</text>
+</svg>

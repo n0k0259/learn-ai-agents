@@ -1,0 +1,172 @@
+---
+title: Context & the Four Message Roles
+description: Why context quality sets an agent's ceiling, the ReAct definition of context, and how system, user, assistant and tool messages plus the tools field carry it on a stateless API.
+sidebar:
+  order: 1
+  label: 2.1 Context & Message Roles
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md#context-what-determines-an-agents-capabilities
+  sections:
+    - 'Context: What Determines an Agent’s Capabilities'
+    - 'How Agents Call LLMs: The API-Level Context Structure'
+    - 'The Four Message Roles'
+    - 'Single-Turn Request: The Simplest API Call'
+---
+import Figure from '~/components/Figure.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import ContextWindowComposition from '~/components/diagrams/chapter-2/ContextWindowComposition.astro';
+import SingleTurnCall from '~/components/diagrams/chapter-2/SingleTurnCall.astro';
+
+:::tip[TL;DR]
+The model is the foundation; context quality is the real key to agent capability. Formally, the next action depends on the whole accumulated context cₜ. On a stateless API, the framework rebuilds that context on every call from four message roles (`system`, `user`, `assistant`, `tool`) plus a separate `tools` field.
+:::
+
+## What the model sees
+
+An agent can only act on the information available to it. Designing and managing that information is **context engineering**. Context is all the information the model actually "sees" on each interaction. That goes beyond the conversation history: it also includes the developer-written rules of behavior (system instructions), descriptions of the external capabilities available (tool descriptions), and other information.
+
+From the harness perspective, context engineering is a core implementation of the harness's "Context and Tools" layer (see [Harness Engineering](/learn-ai-agents/chapter-1/06-harness-engineering/)). It decides what the agent sees at each decision point and how that information is structured. Well-designed context gives the agent what it needs to apply its reasoning to a specific task.
+
+<Figure caption="The context window on a call: system prompt, tool definitions, conversation history and the reasoning trace, followed by the position the model is currently generating. Window sizes differ by model: Qwen3 = 32K tokens, Claude = 200K, Gemini = 2M." credit="Redrawn from Figure 2-1, AI Agent Book by Bojie Li (Apache 2.0).">
+<ContextWindowComposition />
+</Figure>
+
+## Context determines capability
+
+Large language models score well on standardized benchmarks but often disappoint in real business settings. Concrete tasks need background a general-purpose model simply does not have: product architecture, business rules, internal conventions.
+
+Picture a highly capable engineer joining a new team. They may have deep theory and strong programming skills, but they don't yet know the product architecture, the business logic, the technical debt or the team norms. If key architectural decisions live only in individual memories and the codebase is poorly documented, even an exceptional engineer will struggle to deliver value quickly. Today's agents face the same problem.
+
+Take a coding agent and the instruction "Help me fix this bug." Whether it can finish the task depends on the quality of three kinds of context:
+
+- **Code context**: codebase structure, module responsibilities, core data structures, coding standards. Without it, the agent may write code that is syntactically correct but clashes with the project's style or architecture.
+- **Process requirements**: Git branching strategy, commit conventions, the review process, CI/CD requirements. Without them, the agent may commit untested code straight to the main branch.
+- **Environment configuration**: the development setup, test database connection strings, test-environment deployment procedures, API key management. Without it, a fix that works locally may fail immediately in the test environment.
+
+Code, process and environment form the *minimum* context an agent needs to work effectively. Note what actually enters the context: an observation, description or configuration of the environment, not the environment itself. The environment stays the external object the agent interacts with.
+
+The model's inherent capability is only the foundation. **Context quality is the real key to agent capability.** A moderately capable model with well-organized context can often outperform a stronger model working with insufficient context.
+
+That makes context engineering central to building effective agents with today's models. It is not a matter of adding more text to a prompt. It means systematically designing, organizing and providing the background knowledge the model needs to complete the task.
+
+## An organizational problem, too
+
+Context engineering is a technical problem, but also an organizational one. In many teams, critical knowledge stays tacit. Architectural decisions live in senior engineers' memories, business rules travel informally, and important context is buried in private chat logs. If the team itself is a poor information environment, even a strong agent will be limited.
+
+Teams that work effectively in remote settings often also provide effective environments for agents. The Linux kernel is an instructive example: developers spread across the world have maintained it for more than thirty years. That works because the project has a transparent, documentation-driven communication culture. Discussions are public, decisions are recorded, and newcomers can follow the code's evolution by reading its history.
+
+The same working style produces an AI-friendly environment, one where information is public, retrievable and structured. Treat an agent as a new team member each time it starts a task. With enough background it can do high-quality work; without it, much of its intelligence is wasted. Building an AI-native team is therefore primarily a documentation effort, not only a matter of deploying new tools.
+
+OpenAI researcher Jiayi Weng put it plainly: **"For both humans and models, the most important thing is Context."** Reflecting on his own work, he said: "My work at OpenAI isn't that difficult. If someone else had all my context, they could do it too." Weng also observed that the central problem in teamwork is inconsistency of context, and that one reason AI cannot replace humans in the short term is that AI and humans don't share the same environment.
+
+For agents, the same principle means the value an agent delivers in a business often depends not on model size but on the completeness and precision of the context at each decision point. Context engineering addresses exactly that: how to systematically deliver the structured background an agent needs to the model.
+
+## The ReAct definition of context
+
+The ReAct paper is widely regarded as one of the foundational works on building agents with LLMs. Its opening sentence ties together agent, environment, context and action:
+
+> Consider a general setup of an agent interacting with an environment for task solving. At time step *t*, an agent receives an observation oₜ ∈ 𝒪 from the environment and takes an action aₜ ∈ 𝒜 following some policy π(aₜ | cₜ), where cₜ = (o₁, a₁, …, oₜ₋₁, aₜ₋₁, oₜ) is the context to the agent.
+
+The symbols matter less than the claim behind them: **the agent's next action depends on the complete interaction context accumulated so far, not only on the input immediately in front of it.**
+
+Map this onto an LLM agent. User messages and tool results are observations returned by the environment. Model replies and tool-call requests are actions taken by the agent (the vocabulary of [What an Agent Actually Is](/learn-ai-agents/chapter-1/01-what-is-an-agent/) and [Observation & Action Spaces, Tools](/learn-ai-agents/chapter-1/02-observation-action-tools/)). Observations and actions alternate and accumulate into the interaction history. An actual API request also places the system prompt and tool definitions before that history, and together they form the context the model receives in the current round.
+
+Model APIs are stateless, so the agent framework must reconstruct a sufficient context for every call. The most direct lossless approach is to include the complete message history so far. Production systems may summarize and compress it, but they must not silently discard information needed to determine the next action.
+
+Every later technique in this chapter, including context layouts, status bars and compression, can be viewed as an answer to one question: how do you give the model a sufficiently informative cₜ at lower cost?
+
+:::note[Engineer's note]
+Because the API is stateless, conversation state belongs to your framework. Whatever you leave out of the next request, the model does not have. When you summarize or trim history, check that nothing the next action depends on was dropped silently.
+:::
+
+## How agents call LLMs
+
+The next question is how that context reaches the model at the technical level. This lesson uses OpenAI's Chat Completions API as the concrete example. Anthropic, Google and other providers differ in details, but their agent-facing APIs follow a similar pattern: each model call is built from a structured conversation history plus a set of available tool definitions. That structure is the foundation for every context engineering technique later in this chapter.
+
+### The four message roles
+
+In Chat Completions-style APIs, the core input is a **message list**, usually named `messages`. Each message has a `role` field that tells the model how to interpret the message and where it came from.
+
+The `system` message holds the developer's instructions: the agent's identity, behavior, constraints and workflow. The model treats it as a high-priority instruction. In most conversations it appears once, at the beginning of the list.
+
+A `user` message is input from the end user: the request the agent has to handle. An `assistant` message is a previous model output, either a natural-language reply or a tool-call request. In multi-turn interactions these go back into later requests, so the next stateless call has access to the prior trajectory.
+
+A `tool` message is a result the agent framework got back after executing a tool. Each one links to its tool call through `tool_call_id`, so the model can associate every result with the request that produced it.
+
+Tool definitions are not messages. They go in a separate `tools` field, which declares the tools available to the model and the parameters each one accepts.
+
+This is the same request structure as the five components of context from [Context: The Working Set](/learn-ai-agents/chapter-1/04-context-working-set/), classified from a different angle. The four roles cover four of the components; the remaining one, tool definitions, travels in the top-level `tools` field instead of a role. So "four message roles + the `tools` field" exactly covers the five components:
+
+| Role / field | What it carries | Chapter 1 component |
+|---|---|---|
+| `system` | Developer-written identity, behavior, constraints, workflow | System prompt |
+| `user` | The end user's request | User messages |
+| `assistant` | Earlier replies and tool-call requests | Assistant messages |
+| `tool` | Tool results, linked by `tool_call_id` | Tool results |
+| `tools` field (not a message) | Available tools and their parameters | Tool definitions |
+
+## A single-turn request
+
+Start with the simplest case, without tool calls. The user asks "Hello, who are you?", and the example uses a locally deployed Qwen3-0.6B model.
+
+<Figure caption="A single-turn call: the framework sends a system message and a user message; the model returns one assistant message." credit="Redrawn from Figure 2-2, AI Agent Book by Bojie Li (Apache 2.0).">
+<SingleTurnCall />
+</Figure>
+
+```jsonc
+// ═══ Request constructed by the Agent framework ═══
+{
+  "model": "Qwen3-0.6B",
+  "messages": [
+    {
+      "role": "system",                           // ← Written by developer
+      "content": "You are a helpful coding assistant. Follow user instructions."
+    },
+    {
+      "role": "user",                              // ← User input
+      "content": "Hello, who are you?"
+    }
+  ]
+}
+```
+
+```jsonc
+// ═══ Response returned by the API ═══
+{
+  "choices": [{
+    "message": {
+      "role": "assistant",                         // ← Generated by model
+      "content": "Hi! I'm a coding assistant. I can help you write code, debug issues, and explain technical concepts. How can I help?"
+    }
+  }]
+}
+```
+
+The request holds just two messages: a system message with the developer's rules and a user message with the user's input. The model replies with an assistant message. This is the most basic LLM API interaction pattern: **each call is stateless, so the request's message list must contain all the information the model needs.**
+
+<KeyTakeaways>
+- Context is everything the model sees on a call: system instructions, tool descriptions, conversation history and other information. Context engineering is a core part of the harness's Context and Tools layer.
+- Context quality is the real key to agent capability; a moderately capable model with well-organized context can often outperform a stronger one with insufficient context. For a coding agent, code, process and environment are the minimum.
+- Context engineering is also organizational: teams with public, recorded, documentation-driven cultures often make AI-friendly environments.
+- In the ReAct definition, the action follows π(aₜ | cₜ), where cₜ is the accumulated interaction history. Because APIs are stateless, the framework must rebuild a sufficient cₜ on every call without silently dropping what the next action needs.
+- The `system`, `user`, `assistant` and `tool` roles plus the top-level `tools` field exactly cover the five context components.
+</KeyTakeaways>
+
+### References
+
+- Yao, Shunyu, et al. "ReAct: Synergizing Reasoning and Acting in Language Models." *ICLR*, 2023. https://arxiv.org/abs/2210.03629
+
+## Check yourself
+
+<Quiz question="Chapter 1 lists five context components, but the API has four message roles. Where does the fifth go?">
+Tool definitions aren't messages. They go in the separate top-level `tools` field, which declares the available tools and the parameters each accepts. Four roles plus the `tools` field exactly cover the five components.
+</Quiz>
+
+<Quiz question="Why must the request's message list contain every piece of information the model needs, even in a one-turn chat?">
+Every call is stateless. The model keeps nothing between calls, so the agent framework must reconstruct a sufficient context each time, most directly by including the complete message history so far.
+</Quiz>
+
+<Quiz question="Your coding agent's fix works locally and fails immediately in the test environment. Which context category was missing?">
+Environment configuration: the development setup, test database connection strings, test-environment deployment procedures, and API key management practices.
+</Quiz>

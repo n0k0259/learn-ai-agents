@@ -1,0 +1,58 @@
+---
+// Experiment 2-1: user request → local LLM service → model inference → local tool execution, with tool results returned to the model (redraw of Fig 2-5).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 420"
+	role="img"
+	aria-labelledby="d2-ltc-title d2-ltc-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-ltc-title">Local LLM tool calling architecture</title>
+	<desc id="d2-ltc-desc">
+		Four stages in order. The user request, for example "Help me contact Xfinity to negotiate", goes to the local LLM
+		service, vLLM or Ollama, which is OpenAI compatible. Model inference decides and generates a tool_call. Local tool
+		execution calls a function or an external API. A dashed arrow returns the tool results to the model, which then
+		generates the final response.
+	</desc>
+	<defs>
+		<marker id="d2-ltc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Local LLM tool calling architecture</text>
+
+	<g class="dg-node dg-env">
+		<rect x="6" y="48" width="394" height="64" rx="8"></rect>
+		<text x="203" y="74" text-anchor="middle" class="dg-accent" font-weight="700">User request</text>
+		<text x="203" y="98" text-anchor="middle" class="dg-sub">"Help me contact Xfinity to negotiate"</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="6" y="144" width="394" height="64" rx="8"></rect>
+		<text x="203" y="170" text-anchor="middle" font-weight="700">Local LLM service</text>
+		<text x="203" y="194" text-anchor="middle" class="dg-sub">vLLM/Ollama (OpenAI compatible)</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="6" y="240" width="394" height="64" rx="8"></rect>
+		<text x="203" y="266" text-anchor="middle" class="dg-accent" font-weight="700">Model inference</text>
+		<text x="203" y="290" text-anchor="middle" class="dg-sub">Decide and generate tool_call</text>
+	</g>
+	<g class="dg-node dg-tools">
+		<rect x="6" y="336" width="394" height="64" rx="8"></rect>
+		<text x="203" y="362" text-anchor="middle" class="dg-accent" font-weight="700">Local tool execution</text>
+		<text x="203" y="386" text-anchor="middle" class="dg-sub">Call function / external API</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="203" y1="112" x2="203" y2="142" marker-end="url(#d2-ltc-arrow)"></line>
+		<line x1="203" y1="208" x2="203" y2="238" marker-end="url(#d2-ltc-arrow)"></line>
+		<line x1="203" y1="304" x2="203" y2="334" marker-end="url(#d2-ltc-arrow)"></line>
+		<path d="M400,368 H436 V272 H402" stroke-dasharray="8 4" marker-end="url(#d2-ltc-arrow)"></path>
+	</g>
+	<text x="448" y="296" class="dg-edge-label">Return tool results</text>
+	<text x="448" y="318" class="dg-edge-label">to the model, then</text>
+	<text x="448" y="340" class="dg-edge-label">generate the final</text>
+	<text x="448" y="362" class="dg-edge-label">response</text>
+</svg>

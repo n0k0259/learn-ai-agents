@@ -1,0 +1,111 @@
+---
+// Instructions vs. data: trusted channels (system, user) carry authority over the agent; untrusted external content is wrapped in a source tag before entering the context; Skills and status-bar sources are new surfaces loaded as instructions or trusted, with their own defenses; the context layer is only the first line of defense.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 616"
+	role="img"
+	aria-labelledby="d2-idb-title d2-idb-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-idb-title">Separating instructions from data</title>
+	<desc id="d2-idb-desc">
+		Top left: trusted channels, the system prompt and the user's direct request, sent in their own Chat Template roles.
+		Top right: untrusted external content, each item wrapped in an external_content tag that annotates its source: web
+		page hidden text, email, PDF metadata and image EXIF metadata. Below them, new surfaces that are loaded as
+		instructions or trusted, so source tagging does not neutralize them: a third-party Skill, which must be reviewed
+		before install, and a status-bar source, which should come only from controlled sources. All three flow into the
+		context: the trusted channels through structured roles, the external content through the tool role and input
+		sanitization, which is auxiliary only. In the context, instructions carry authority and data is only material to
+		be processed. A banner notes that the context layer is only the first line of defense; the execution and data
+		layers are in lesson 1.8 and later chapters.
+	</desc>
+	<defs>
+		<marker id="d2-idb-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Separating instructions from data</text>
+
+	<!-- Top left: trusted channels -->
+	<g class="dg-container dg-harness">
+		<rect x="2" y="44" width="220" height="190" rx="12"></rect>
+		<text x="14" y="72" font-weight="700">Trusted channels</text>
+		<text x="14" y="94" class="dg-sub">may direct behavior</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="14" y="104" width="196" height="56" rx="8"></rect>
+		<text x="30" y="126" class="dg-accent" font-weight="700">system</text>
+		<text x="30" y="148" class="dg-sub">system prompt</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="14" y="168" width="196" height="56" rx="8"></rect>
+		<text x="30" y="190" class="dg-accent" font-weight="700">user</text>
+		<text x="30" y="212" class="dg-sub">direct user request</text>
+	</g>
+
+	<!-- Top right: untrusted content, wrapped in source tags -->
+	<g class="dg-container dg-guard">
+		<rect x="246" y="44" width="472" height="190" rx="12"></rect>
+		<text x="258" y="72" font-weight="700">&lt;external_content source="…"&gt;</text>
+		<text x="258" y="94" class="dg-sub">untrusted: material, not instructions</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="258" y="110" width="220" height="48" rx="8"></rect>
+		<text x="274" y="140">Web page hidden text</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="490" y="110" width="216" height="48" rx="8"></rect>
+		<text x="506" y="140">Email</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="258" y="170" width="220" height="48" rx="8"></rect>
+		<text x="274" y="200">PDF metadata</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="490" y="170" width="216" height="48" rx="8"></rect>
+		<text x="506" y="200">Image EXIF metadata</text>
+	</g>
+
+	<!-- Middle: new surfaces that source tagging does not cover -->
+	<g class="dg-container dg-env">
+		<rect x="162" y="272" width="470" height="148" rx="12"></rect>
+		<text x="174" y="300" font-weight="700">New surfaces: loaded as instructions or trusted</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="174" y="314" width="446" height="44" rx="8"></rect>
+		<text x="190" y="342"><tspan font-weight="700">Third-party Skill:</tspan> review before install</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="174" y="366" width="446" height="44" rx="8"></rect>
+		<text x="190" y="394"><tspan font-weight="700">Status-bar source:</tspan> trust only controlled sources</text>
+	</g>
+
+	<!-- Context -->
+	<g class="dg-node dg-context">
+		<rect x="2" y="450" width="716" height="72" rx="10"></rect>
+		<text x="18" y="478" class="dg-accent" font-weight="700">Context</text>
+		<text x="18" y="504" class="dg-sub">instructions carry authority; data is only material to be processed</text>
+	</g>
+
+	<g class="dg-edge">
+		<line x1="80" y1="234" x2="80" y2="448" marker-end="url(#d2-idb-arrow)"></line>
+		<text x="92" y="256" class="dg-edge-label">structured roles</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="680" y1="234" x2="680" y2="448" marker-end="url(#d2-idb-arrow)"></line>
+		<text x="668" y="256" text-anchor="end" class="dg-edge-label">tool role · sanitization (auxiliary)</text>
+	</g>
+	<g class="dg-edge">
+		<line x1="397" y1="420" x2="397" y2="448" marker-end="url(#d2-idb-arrow)"></line>
+	</g>
+
+	<!-- Banner -->
+	<g class="dg-node dg-neutral">
+		<rect x="2" y="540" width="716" height="72" rx="10"></rect>
+		<text x="18" y="568" font-weight="700">Context layer = first line of defense only</text>
+		<text x="18" y="594" class="dg-sub">Execution and data layers: lesson 1.8 and later chapters</text>
+	</g>
+</svg>

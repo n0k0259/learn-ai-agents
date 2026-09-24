@@ -1,0 +1,104 @@
+---
+// How the messages list grows across the two calls: three snapshots, with each round's new rows colored and tagged by who adds them.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 488"
+	role="img"
+	aria-labelledby="d2-mg-title d2-mg-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-mg-title">How the messages list grows</title>
+	<desc id="d2-mg-desc">
+		Three snapshots of the messages list. Initial state, before the first call: a system message written by the
+		developer and the user's question. After call 1, three rows are added: an assistant message with two tool_calls,
+		added from the model's output, and two tool messages, call_abc with the time and call_def with the weather, added
+		by the framework after executing the tools. After call 2, one row is added: the model's final assistant reply,
+		and the loop ends. Rows carried over from the previous snapshot are drawn plain.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">How the messages list grows</text>
+
+	<g class="dg-container dg-neutral">
+		<rect x="4" y="48" width="232" height="426" rx="12"></rect>
+		<text x="16" y="76" font-weight="700">Initial state</text>
+	</g>
+	<g class="dg-node dg-harness">
+		<rect x="14" y="92" width="212" height="54" rx="8"></rect>
+		<text x="26" y="114" class="dg-accent dg-mono" font-weight="700">system</text>
+		<text x="26" y="136" class="dg-sub">written by developer</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="14" y="154" width="212" height="54" rx="8"></rect>
+		<text x="26" y="176" class="dg-accent dg-mono" font-weight="700">user</text>
+		<text x="26" y="198" class="dg-sub">What's the current time…</text>
+	</g>
+	<g class="dg-container dg-neutral">
+		<rect x="244" y="48" width="232" height="426" rx="12"></rect>
+		<text x="256" y="76" font-weight="700">After call 1</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="254" y="92" width="212" height="54" rx="8"></rect>
+		<text x="266" y="114" class="dg-mono" font-weight="700">system</text>
+		<text x="266" y="136" class="dg-sub">…</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="254" y="154" width="212" height="54" rx="8"></rect>
+		<text x="266" y="176" class="dg-mono" font-weight="700">user</text>
+		<text x="266" y="198" class="dg-sub">What's the current time…</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="254" y="216" width="212" height="54" rx="8"></rect>
+		<text x="266" y="238" class="dg-accent dg-mono" font-weight="700">assistant</text>
+		<text x="454" y="238" text-anchor="end" class="dg-accent" font-weight="700">+ model</text>
+		<text x="266" y="260" class="dg-sub">tool_calls ×2</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="254" y="278" width="212" height="54" rx="8"></rect>
+		<text x="266" y="300" class="dg-accent dg-mono" font-weight="700">tool</text>
+		<text x="454" y="300" text-anchor="end" class="dg-accent" font-weight="700">+ framework</text>
+		<text x="266" y="322" class="dg-sub">call_abc: &#123;time...&#125;</text>
+	</g>
+	<g class="dg-node dg-env">
+		<rect x="254" y="340" width="212" height="54" rx="8"></rect>
+		<text x="266" y="362" class="dg-accent dg-mono" font-weight="700">tool</text>
+		<text x="454" y="362" text-anchor="end" class="dg-accent" font-weight="700">+ framework</text>
+		<text x="266" y="384" class="dg-sub">call_def: &#123;weather...&#125;</text>
+	</g>
+	<g class="dg-container dg-neutral">
+		<rect x="484" y="48" width="232" height="426" rx="12"></rect>
+		<text x="496" y="76" font-weight="700">After call 2</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="494" y="92" width="212" height="54" rx="8"></rect>
+		<text x="506" y="114" class="dg-mono" font-weight="700">system</text>
+		<text x="506" y="136" class="dg-sub">…</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="494" y="154" width="212" height="54" rx="8"></rect>
+		<text x="506" y="176" class="dg-mono" font-weight="700">user</text>
+		<text x="506" y="198" class="dg-sub">What's the current time…</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="494" y="216" width="212" height="54" rx="8"></rect>
+		<text x="506" y="238" class="dg-mono" font-weight="700">assistant</text>
+		<text x="506" y="260" class="dg-sub">tool_calls ×2</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="494" y="278" width="212" height="54" rx="8"></rect>
+		<text x="506" y="300" class="dg-mono" font-weight="700">tool</text>
+		<text x="506" y="322" class="dg-sub">call_abc: &#123;time...&#125;</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="494" y="340" width="212" height="54" rx="8"></rect>
+		<text x="506" y="362" class="dg-mono" font-weight="700">tool</text>
+		<text x="506" y="384" class="dg-sub">call_def: &#123;weather...&#125;</text>
+	</g>
+	<g class="dg-node dg-model">
+		<rect x="494" y="402" width="212" height="54" rx="8"></rect>
+		<text x="506" y="424" class="dg-accent dg-mono" font-weight="700">assistant</text>
+		<text x="694" y="424" text-anchor="end" class="dg-accent" font-weight="700">+ model</text>
+		<text x="506" y="446" class="dg-sub">final reply</text>
+	</g>
+</svg>

@@ -1,0 +1,117 @@
+---
+title: Compression in Production, Sub-Agent Isolation & the Big Picture
+description: The five-layer production compression stack, four design principles, isolating exploration in sub-agents instead of compressing it, and a map of the whole chapter.
+sidebar:
+  order: 10
+  label: 2.10 Isolation & Big Picture
+source:
+  url: https://github.com/bojieli/ai-agent-book/blob/main/book-en/chapter2.md#production-grade-hierarchical-compression-mechanism
+  sections:
+    - 'Production-Grade Hierarchical Compression Mechanism'
+    - 'Design Principles for Compression Strategies'
+    - 'Isolation Over Compression: Sub-Agent Context Isolation'
+    - 'Chapter Summary'
+    - 'Thought Questions'
+---
+import Figure from '~/components/Figure.astro';
+import KeyTakeaways from '~/components/KeyTakeaways.astro';
+import Quiz from '~/components/Quiz.astro';
+import ContextEngineeringMap from '~/components/diagrams/chapter-2/ContextEngineeringMap.astro';
+
+:::tip[TL;DR]
+Mature agent systems typically layer several compression strategies, matched to how long each kind of information stays useful, with full LLM compression as the last resort. Design compression around information value, semantic integrity and the task, and save progress to documents, because compression most easily loses early decisions. A more direct approach keeps bulky exploration out of the main context: a sub-agent explores in its own context and returns only a short summary.
+:::
+
+## Five layers in production
+
+Mature agent systems in production typically don't rely on a single compression strategy. They combine several into a hierarchical compression mechanism. Different types of information remain useful for different lengths of time, so the compression strategy should match the expected lifecycle of the information.
+
+Using Claude Code's approach as a reference, a mature context management system usually includes the five layers below. Together they expand the one-line "multi-layer context compression" of [lesson 1.6](/learn-ai-agents/chapter-1/06-harness-engineering/).
+
+| Layer | What it does | Why it's built this way |
+|---|---|---|
+| 1. Tool result budget control | Stores large tool outputs on disk; the model only sees a preview summary | Replacement decisions are frozen once made, to keep the cache consistent |
+| 2. Direct noise deletion | Removes low-value content without summarizing it, for example a large set of search results of which only a few lines were used | Summarizing noise wastes tokens |
+| 3. API-level micro-compression | Uses the API's context editing to have the server remove specific tool results from the prefix, while the local message list stays unchanged | Zero local implementation cost, since the server handles it in one pass. But by prefix invariance ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)) the cache after the removal point becomes invalid and must be rebuilt, so use it when the context is about to overflow and the rebuild must be paid anyway, not frequently |
+| 4. Archival summarization | Summarizes round by round in a structured way, like `git log` (an independent record per round) rather than `git squash` (everything merged into one) | Preserves the logical thread of the conversation |
+| 5. Full compression | LLM-driven complete compression, the last resort, in two stages: first try to compress the session memory, and if that fails, compress everything | A circuit breaker stops retrying after a number of consecutive failures: production data shows that many sessions get stuck in loops of repeated compression failures |
+
+## Four design principles
+
+[Lesson 2.9](/learn-ai-agents/chapter-2/09-context-compression/) gave three motivations for compression (controlling length, improving reasoning quality, and mitigating context anxiety) and the mechanism behind them: in-context learning is essentially retrieval. Four principles for designing a compression strategy follow from that. They concern compression that serves the current task; consolidating trajectories from many tasks offline into persistent experience is a problem of continuous evolution, covered in Chapter 9 of the book.
+
+- **Information value is unevenly distributed.** Key decision points, such as personnel lists, are worth more than supporting evidence, such as news details. Supporting evidence, in turn, is worth more than redundant noise, such as navigation bars and footer ads.
+- **Semantic integrity.** "Sutskever left OpenAI in May 2024" cannot be compressed to "Sutskever left": the time and the company name are critical, non-negotiable information.
+- **Task relevance.** The same content should compress differently for different tasks, such as "find the list of founders" versus "learn about personal background". More generally, retrieval tasks need breadth, analytical tasks need depth, and creative tasks need material that sparks ideas. Ideally, the agent adapts its compression strategy to the task.
+- **Compression is understanding.** Effective compression takes deep semantic understanding, so the model doing it should be close to the main model in capability. That creates a recursive architecture in which one model calls another, and the resulting summaries can be reviewed and reused across sessions.
+
+Each compression is an extra LLM call, so compression adds computational overhead. Its return on investment, though, can be extremely high relative to the token-cost savings and the gains in task success: experiments show that context-aware compression reduces token usage by over 75%.
+
+### Save progress to documents
+
+What compression loses most easily is early architectural decisions, the reasons behind constraints, and failed paths. So **the agent should frequently save progress in documents** rather than scatter everything through its execution history.
+
+Important company information belongs in documents rather than chat logs, and an agent likewise needs the habit of writing and updating documentation. If your model lacks that habit, reinforce it through prompts and Skills ([lesson 2.7](/learn-ai-agents/chapter-2/07-dynamic-prompts-and-skills/)).
+
+## Isolation over compression
+
+Compression removes information *after* it has entered the context. A more direct approach keeps bulky intermediate information out of the main context in the first place. This is **sub-agent context isolation**: the main agent delegates a task that generates a lot of intermediate content, such as "perform a broad search in the codebase", to an independent sub-agent. The sub-agent explores in its own context and returns only a concise summary of a few hundred tokens.
+
+Take one task, "find the function that handles payment callbacks in the codebase", done both ways:
+
+| Approach | What enters the main context | Cost |
+|---|---|---|
+| The main agent searches itself | It might bring in dozens of files and tens of thousands of tokens of raw code. Once the target is found, most of it stays in the window as permanent noise | The noise must later be removed through compression |
+| Delegate to a search sub-agent | Two messages: the task description and the conclusion ("The function is `handle_callback` in `src/payment/callbacks.py`, with two other call sites"). The intermediate tokens are discarded along with the sub-agent's context | The sub-agent doesn't see the main agent's full context, so the task description must be self-contained and the goal clear |
+
+This is essentially **replacing compression with isolation**. Compression is a lossy, post-hoc remedy that needs extra LLM calls. Isolation keeps noise out of the main context from the start and leaves the main agent's KV Cache prefix unaffected.
+
+An isolated sub-agent doesn't inherit the parent's context, so the byte-for-byte alignment rule of [lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/) doesn't apply to it: that rule covers sub-agents that inherit the parent's context. What does carry over is the chapter's central theme. Context sets the capability ceiling, and that holds for sub-agents as well.
+
+Claude Code's Task tool and the retrieval sub-agents in Deep Research systems are production implementations of this pattern. This is the sub-agent isolation that the stretch quiz in [lesson 1.5](/learn-ai-agents/chapter-1/05-react-loop/) mentioned. Chapter 4 of the book discusses the complete design of sub-agents as collaborative tools (introduced in [lesson 1.2](/learn-ai-agents/chapter-1/02-observation-action-tools/)), and Chapter 10 covers the context architecture of multi-agent systems.
+
+## The whole chapter on one page
+
+The through-line of context engineering is explicit information management. The API message structure defines the skeleton, and a stable prefix raises the KV Cache hit rate. Prompts, Skills and the status bar carry rules, on-demand knowledge and current state respectively. Compression raises the information density of history while preserving decisions, constraints, failures and sources.
+
+<Figure caption="The request, region by region, each labelled with the lesson that teaches it. The static prefix (system prompt, tool definitions) stays frozen and cached. The trajectory grows by appending messages, compressed history, tool results, Skills and deferred tool schemas, interleaved in the order they arrive; only the status bar has a fixed position, the tail. On the right: the layout rules, and a sub-agent that explores in its own context and returns only a summary.">
+<ContextEngineeringMap />
+</Figure>
+
+All of this addresses state updates and context degradation **within a single task**. Chapter 3 of the book moves beyond one context window to persistent knowledge systems that span tasks: user memory and knowledge bases. These let the agent accumulate experience over time and gradually become an assistant that understands the user better, or a domain expert with more specialized knowledge.
+
+## Chapter 2 cheat sheet
+
+- **Context sets the ceiling** ([lesson 2.1](/learn-ai-agents/chapter-2/01-context-and-message-roles/)). The next action depends on the whole accumulated context cₜ. The API is stateless, so the framework rebuilds that context on every call from four message roles plus a separate `tools` field.
+- **The loop maintains `messages`** ([lesson 2.2](/learn-ai-agents/chapter-2/02-tool-calls-core-loop/)). The model requests tool calls, the framework executes them and appends the results, and the loop ends when a response carries no `tool_calls`. Each request is a static prefix followed by a growing trajectory.
+- **Cache reuse stops at the first changed token** ([lesson 2.3](/learn-ai-agents/chapter-2/03-attention-kv-cache-chat-template/), [lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). Freeze the system prompt and tools and append dynamic information at the end. In production, caching is an architectural constraint, and with preserved thinking, "append only, never rewrite" becomes a correctness requirement.
+- **Write the system prompt for a capable new team member** ([lesson 2.5](/learn-ai-agents/chapter-2/05-system-prompts/)). Organize it as an SOP rather than a pile of rules, layer XML semantics under Markdown hierarchy, and when the output is hard to describe with rules, two or three few-shot examples are often better.
+- **Tool definitions are operating manuals** ([lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/)). Deferred schemas are appended once at the end of the context. Context-level defenses help the model tell instructions from data, but they are only the first line of defense against prompt injection.
+- **Load knowledge on demand** ([lesson 2.7](/learn-ai-agents/chapter-2/07-dynamic-prompts-and-skills/)). Skills keep a small catalog visible, load the full `SKILL.md` when selected, and read sub-documents only when needed, appending each to the trajectory.
+- **Hand the model computed state** ([lesson 2.8](/learn-ai-agents/chapter-2/08-agent-status-bar/)). The status bar is a framework-generated summary appended as the last `user` message, where it gets attention and leaves the cached prefix intact.
+- **Compress between calls, near a threshold** ([lesson 2.9](/learn-ai-agents/chapter-2/09-context-compression/)). Distilled knowledge is easier for the model to use than raw records. Compress tool results between API calls, batched near a threshold, so the static prefix stays cached.
+- **Layer compression and isolate exploration.** Mature production systems typically stack compression, from tool-result previews to full compression as the last resort, and sub-agents keep bulky exploration out of the main context.
+
+Each of the chapter's nine thought questions appears as a "Check yourself" quiz in one of the Chapter 2 lessons.
+
+<KeyTakeaways>
+- Mature systems typically combine strategies in layers matched to how long information stays useful: tool-result budgets, noise deletion, API-level micro-compression, archival summaries, and full compression as a last resort with a circuit breaker.
+- API-level micro-compression still invalidates the cache after the removal point, so it suits a context that is about to overflow, not frequent use.
+- Compress by value, keep semantic integrity (times, company names), adapt to the task, and use a compressor close to the main model in capability. Save early decisions, the reasons behind constraints, and failed paths to documents, since compression loses them most easily.
+- Isolation keeps noise out of the main context from the start: a sub-agent returns a few hundred tokens and the main agent's KV Cache prefix is unaffected. The cost is a self-contained task description.
+- An isolated sub-agent doesn't inherit the parent's context, so byte-for-byte prefix alignment doesn't apply to it.
+</KeyTakeaways>
+
+## Check yourself
+
+<Quiz question="A sliding window of history makes the agent repeat the same tool calls (Experiment 2-3), while keeping the full history makes the context grow without bound. Design a strategy that avoids information loss, controls context length, and doesn't break the KV Cache prefix.">
+The book's reference answer combines three moves. First, replace discarding with compression: messages are only appended, never deleted or edited, and when the context approaches a threshold (such as 80% of the window) old tool results are batch-compressed between API calls, so the static prefix stays cached ([lesson 2.9](/learn-ai-agents/chapter-2/09-context-compression/)). Second, layer it: persist large outputs to disk with only a preview in context, delete noise outright, and keep round-by-round archival summaries that preserve the thread. Third, isolate exploration in sub-agents so intermediate content never enters the main context. To limit loss further, keep source citations as a lossless index, and have the agent save early decisions, the reasons behind constraints, and failed paths to documents.
+</Quiz>
+
+<Quiz question="A main agent needs the function that handles payment callbacks. What enters its context if it delegates the search to a sub-agent, and what does delegation cost?">
+Only two messages: the task description and the conclusion, such as "The function is `handle_callback` in `src/payment/callbacks.py`, with two other call sites". The tens of thousands of tokens of intermediate search are discarded with the sub-agent's context, and the main agent's KV Cache prefix is unaffected. The cost is that the sub-agent doesn't see the main agent's full context, so the task description must be self-contained and the goal clear.
+</Quiz>
+
+<Quiz question="Why does full compression, the last-resort layer, need a circuit breaker?">
+Production data shows that many sessions get stuck in loops of repeated compression failures. The circuit breaker automatically stops retrying after a certain number of consecutive failures, which prevents unnecessary spending on those sessions.
+</Quiz>

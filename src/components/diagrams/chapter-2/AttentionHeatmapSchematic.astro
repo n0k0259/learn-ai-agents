@@ -1,0 +1,321 @@
+---
+// Schematic of the Experiment 2-2 heatmap patterns: a 12×12 lower-triangular grid banded system/tools | user | <think> | answer,
+// with callouts for the attention sink, reasoning triangle, output triangle and position bias (redraw of Fig 2-7; not measured values).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 604"
+	role="img"
+	aria-labelledby="d2-ahs-title d2-ahs-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-ahs-title">Attention heatmap patterns (schematic)</title>
+	<desc id="d2-ahs-desc">
+		A schematic lower-triangular attention heatmap, not measured values. Rows are Queries and columns are Keys, and
+		both axes are divided into four bands in sequence order: system prompt and tools, user message, the model's
+		reasoning inside think tags, and the answer. Darker cells mean more attention. Four patterns are called out.
+		Attention sink: the first column is dark in every row, because the first token often absorbs an abnormally high
+		share of attention weight. Reasoning triangle: the think rows attend to earlier reasoning and to the tool
+		definitions. Output triangle: the answer rows form another triangle and attend to the reasoning trace. Position
+		bias: recall is higher for information at the beginning and end of the context, and information in the middle is
+		more likely to be overlooked.
+	</desc>
+	<defs>
+		<marker id="d2-ahs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+			<path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path>
+		</marker>
+	</defs>
+
+	<text x="2" y="28" class="dg-title">Attention heatmap patterns (schematic)</text>
+	<text x="2" y="52" class="dg-sub">schematic, not measured values · rows: Query · columns: Key · darker = more attention</text>
+
+	<!-- Column bands -->
+	<text x="195" y="78" text-anchor="middle">system/tools</text>
+	<text x="270" y="96" text-anchor="middle">user</text>
+	<text x="360" y="78" text-anchor="middle" class="dg-mono">&lt;think&gt;</text>
+	<text x="465" y="96" text-anchor="middle">answer</text>
+	<rect x="150" y="102" width="90" height="6" fill="var(--dg-context-stroke)"></rect>
+	<rect x="240" y="102" width="60" height="6" fill="var(--dg-env-stroke)"></rect>
+	<rect x="300" y="102" width="120" height="6" fill="var(--dg-model-stroke)"></rect>
+	<rect x="420" y="102" width="90" height="6" fill="var(--dg-neutral-stroke)"></rect>
+
+	<!-- Row bands -->
+	<text x="130" y="163" text-anchor="end">system/tools</text>
+	<text x="130" y="238" text-anchor="end">user</text>
+	<text x="130" y="328" text-anchor="end" class="dg-mono">&lt;think&gt;</text>
+	<text x="130" y="433" text-anchor="end">answer</text>
+	<rect x="138" y="112" width="6" height="90" fill="var(--dg-context-stroke)"></rect>
+	<rect x="138" y="202" width="6" height="60" fill="var(--dg-env-stroke)"></rect>
+	<rect x="138" y="262" width="6" height="120" fill="var(--dg-model-stroke)"></rect>
+	<rect x="138" y="382" width="6" height="90" fill="var(--dg-neutral-stroke)"></rect>
+
+	<!-- Grid outline, including the empty upper triangle -->
+	<g fill="none" stroke="var(--dg-neutral-stroke)" stroke-width="1" stroke-opacity="0.5">
+		<rect x="150" y="112" width="30" height="30"></rect>
+		<rect x="180" y="112" width="30" height="30"></rect>
+		<rect x="210" y="112" width="30" height="30"></rect>
+		<rect x="240" y="112" width="30" height="30"></rect>
+		<rect x="270" y="112" width="30" height="30"></rect>
+		<rect x="300" y="112" width="30" height="30"></rect>
+		<rect x="330" y="112" width="30" height="30"></rect>
+		<rect x="360" y="112" width="30" height="30"></rect>
+		<rect x="390" y="112" width="30" height="30"></rect>
+		<rect x="420" y="112" width="30" height="30"></rect>
+		<rect x="450" y="112" width="30" height="30"></rect>
+		<rect x="480" y="112" width="30" height="30"></rect>
+		<rect x="150" y="142" width="30" height="30"></rect>
+		<rect x="180" y="142" width="30" height="30"></rect>
+		<rect x="210" y="142" width="30" height="30"></rect>
+		<rect x="240" y="142" width="30" height="30"></rect>
+		<rect x="270" y="142" width="30" height="30"></rect>
+		<rect x="300" y="142" width="30" height="30"></rect>
+		<rect x="330" y="142" width="30" height="30"></rect>
+		<rect x="360" y="142" width="30" height="30"></rect>
+		<rect x="390" y="142" width="30" height="30"></rect>
+		<rect x="420" y="142" width="30" height="30"></rect>
+		<rect x="450" y="142" width="30" height="30"></rect>
+		<rect x="480" y="142" width="30" height="30"></rect>
+		<rect x="150" y="172" width="30" height="30"></rect>
+		<rect x="180" y="172" width="30" height="30"></rect>
+		<rect x="210" y="172" width="30" height="30"></rect>
+		<rect x="240" y="172" width="30" height="30"></rect>
+		<rect x="270" y="172" width="30" height="30"></rect>
+		<rect x="300" y="172" width="30" height="30"></rect>
+		<rect x="330" y="172" width="30" height="30"></rect>
+		<rect x="360" y="172" width="30" height="30"></rect>
+		<rect x="390" y="172" width="30" height="30"></rect>
+		<rect x="420" y="172" width="30" height="30"></rect>
+		<rect x="450" y="172" width="30" height="30"></rect>
+		<rect x="480" y="172" width="30" height="30"></rect>
+		<rect x="150" y="202" width="30" height="30"></rect>
+		<rect x="180" y="202" width="30" height="30"></rect>
+		<rect x="210" y="202" width="30" height="30"></rect>
+		<rect x="240" y="202" width="30" height="30"></rect>
+		<rect x="270" y="202" width="30" height="30"></rect>
+		<rect x="300" y="202" width="30" height="30"></rect>
+		<rect x="330" y="202" width="30" height="30"></rect>
+		<rect x="360" y="202" width="30" height="30"></rect>
+		<rect x="390" y="202" width="30" height="30"></rect>
+		<rect x="420" y="202" width="30" height="30"></rect>
+		<rect x="450" y="202" width="30" height="30"></rect>
+		<rect x="480" y="202" width="30" height="30"></rect>
+		<rect x="150" y="232" width="30" height="30"></rect>
+		<rect x="180" y="232" width="30" height="30"></rect>
+		<rect x="210" y="232" width="30" height="30"></rect>
+		<rect x="240" y="232" width="30" height="30"></rect>
+		<rect x="270" y="232" width="30" height="30"></rect>
+		<rect x="300" y="232" width="30" height="30"></rect>
+		<rect x="330" y="232" width="30" height="30"></rect>
+		<rect x="360" y="232" width="30" height="30"></rect>
+		<rect x="390" y="232" width="30" height="30"></rect>
+		<rect x="420" y="232" width="30" height="30"></rect>
+		<rect x="450" y="232" width="30" height="30"></rect>
+		<rect x="480" y="232" width="30" height="30"></rect>
+		<rect x="150" y="262" width="30" height="30"></rect>
+		<rect x="180" y="262" width="30" height="30"></rect>
+		<rect x="210" y="262" width="30" height="30"></rect>
+		<rect x="240" y="262" width="30" height="30"></rect>
+		<rect x="270" y="262" width="30" height="30"></rect>
+		<rect x="300" y="262" width="30" height="30"></rect>
+		<rect x="330" y="262" width="30" height="30"></rect>
+		<rect x="360" y="262" width="30" height="30"></rect>
+		<rect x="390" y="262" width="30" height="30"></rect>
+		<rect x="420" y="262" width="30" height="30"></rect>
+		<rect x="450" y="262" width="30" height="30"></rect>
+		<rect x="480" y="262" width="30" height="30"></rect>
+		<rect x="150" y="292" width="30" height="30"></rect>
+		<rect x="180" y="292" width="30" height="30"></rect>
+		<rect x="210" y="292" width="30" height="30"></rect>
+		<rect x="240" y="292" width="30" height="30"></rect>
+		<rect x="270" y="292" width="30" height="30"></rect>
+		<rect x="300" y="292" width="30" height="30"></rect>
+		<rect x="330" y="292" width="30" height="30"></rect>
+		<rect x="360" y="292" width="30" height="30"></rect>
+		<rect x="390" y="292" width="30" height="30"></rect>
+		<rect x="420" y="292" width="30" height="30"></rect>
+		<rect x="450" y="292" width="30" height="30"></rect>
+		<rect x="480" y="292" width="30" height="30"></rect>
+		<rect x="150" y="322" width="30" height="30"></rect>
+		<rect x="180" y="322" width="30" height="30"></rect>
+		<rect x="210" y="322" width="30" height="30"></rect>
+		<rect x="240" y="322" width="30" height="30"></rect>
+		<rect x="270" y="322" width="30" height="30"></rect>
+		<rect x="300" y="322" width="30" height="30"></rect>
+		<rect x="330" y="322" width="30" height="30"></rect>
+		<rect x="360" y="322" width="30" height="30"></rect>
+		<rect x="390" y="322" width="30" height="30"></rect>
+		<rect x="420" y="322" width="30" height="30"></rect>
+		<rect x="450" y="322" width="30" height="30"></rect>
+		<rect x="480" y="322" width="30" height="30"></rect>
+		<rect x="150" y="352" width="30" height="30"></rect>
+		<rect x="180" y="352" width="30" height="30"></rect>
+		<rect x="210" y="352" width="30" height="30"></rect>
+		<rect x="240" y="352" width="30" height="30"></rect>
+		<rect x="270" y="352" width="30" height="30"></rect>
+		<rect x="300" y="352" width="30" height="30"></rect>
+		<rect x="330" y="352" width="30" height="30"></rect>
+		<rect x="360" y="352" width="30" height="30"></rect>
+		<rect x="390" y="352" width="30" height="30"></rect>
+		<rect x="420" y="352" width="30" height="30"></rect>
+		<rect x="450" y="352" width="30" height="30"></rect>
+		<rect x="480" y="352" width="30" height="30"></rect>
+		<rect x="150" y="382" width="30" height="30"></rect>
+		<rect x="180" y="382" width="30" height="30"></rect>
+		<rect x="210" y="382" width="30" height="30"></rect>
+		<rect x="240" y="382" width="30" height="30"></rect>
+		<rect x="270" y="382" width="30" height="30"></rect>
+		<rect x="300" y="382" width="30" height="30"></rect>
+		<rect x="330" y="382" width="30" height="30"></rect>
+		<rect x="360" y="382" width="30" height="30"></rect>
+		<rect x="390" y="382" width="30" height="30"></rect>
+		<rect x="420" y="382" width="30" height="30"></rect>
+		<rect x="450" y="382" width="30" height="30"></rect>
+		<rect x="480" y="382" width="30" height="30"></rect>
+		<rect x="150" y="412" width="30" height="30"></rect>
+		<rect x="180" y="412" width="30" height="30"></rect>
+		<rect x="210" y="412" width="30" height="30"></rect>
+		<rect x="240" y="412" width="30" height="30"></rect>
+		<rect x="270" y="412" width="30" height="30"></rect>
+		<rect x="300" y="412" width="30" height="30"></rect>
+		<rect x="330" y="412" width="30" height="30"></rect>
+		<rect x="360" y="412" width="30" height="30"></rect>
+		<rect x="390" y="412" width="30" height="30"></rect>
+		<rect x="420" y="412" width="30" height="30"></rect>
+		<rect x="450" y="412" width="30" height="30"></rect>
+		<rect x="480" y="412" width="30" height="30"></rect>
+		<rect x="150" y="442" width="30" height="30"></rect>
+		<rect x="180" y="442" width="30" height="30"></rect>
+		<rect x="210" y="442" width="30" height="30"></rect>
+		<rect x="240" y="442" width="30" height="30"></rect>
+		<rect x="270" y="442" width="30" height="30"></rect>
+		<rect x="300" y="442" width="30" height="30"></rect>
+		<rect x="330" y="442" width="30" height="30"></rect>
+		<rect x="360" y="442" width="30" height="30"></rect>
+		<rect x="390" y="442" width="30" height="30"></rect>
+		<rect x="420" y="442" width="30" height="30"></rect>
+		<rect x="450" y="442" width="30" height="30"></rect>
+		<rect x="480" y="442" width="30" height="30"></rect>
+	</g>
+
+	<!-- Schematic shading on and below the diagonal -->
+	<g fill="var(--dg-model-stroke)">
+		<rect x="151" y="113" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="151" y="143" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="143" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="151" y="173" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="173" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="211" y="173" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="151" y="203" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="203" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="211" y="203" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="241" y="203" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="151" y="233" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="233" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="211" y="233" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="241" y="233" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="271" y="233" width="28" height="28" fill-opacity="0.12"></rect>
+		<rect x="151" y="263" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="263" width="28" height="28" fill-opacity="0.34"></rect>
+		<rect x="211" y="263" width="28" height="28" fill-opacity="0.34"></rect>
+		<rect x="241" y="263" width="28" height="28" fill-opacity="0.1"></rect>
+		<rect x="271" y="263" width="28" height="28" fill-opacity="0.1"></rect>
+		<rect x="301" y="263" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="151" y="293" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="293" width="28" height="28" fill-opacity="0.34"></rect>
+		<rect x="211" y="293" width="28" height="28" fill-opacity="0.34"></rect>
+		<rect x="241" y="293" width="28" height="28" fill-opacity="0.1"></rect>
+		<rect x="271" y="293" width="28" height="28" fill-opacity="0.1"></rect>
+		<rect x="301" y="293" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="331" y="293" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="151" y="323" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="323" width="28" height="28" fill-opacity="0.34"></rect>
+		<rect x="211" y="323" width="28" height="28" fill-opacity="0.34"></rect>
+		<rect x="241" y="323" width="28" height="28" fill-opacity="0.1"></rect>
+		<rect x="271" y="323" width="28" height="28" fill-opacity="0.1"></rect>
+		<rect x="301" y="323" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="331" y="323" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="361" y="323" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="151" y="353" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="353" width="28" height="28" fill-opacity="0.34"></rect>
+		<rect x="211" y="353" width="28" height="28" fill-opacity="0.34"></rect>
+		<rect x="241" y="353" width="28" height="28" fill-opacity="0.1"></rect>
+		<rect x="271" y="353" width="28" height="28" fill-opacity="0.1"></rect>
+		<rect x="301" y="353" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="331" y="353" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="361" y="353" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="391" y="353" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="151" y="383" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="383" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="211" y="383" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="241" y="383" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="271" y="383" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="301" y="383" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="331" y="383" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="361" y="383" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="391" y="383" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="421" y="383" width="28" height="28" fill-opacity="0.44"></rect>
+		<rect x="151" y="413" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="413" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="211" y="413" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="241" y="413" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="271" y="413" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="301" y="413" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="331" y="413" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="361" y="413" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="391" y="413" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="421" y="413" width="28" height="28" fill-opacity="0.44"></rect>
+		<rect x="451" y="413" width="28" height="28" fill-opacity="0.44"></rect>
+		<rect x="151" y="443" width="28" height="28" fill-opacity="0.62"></rect>
+		<rect x="181" y="443" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="211" y="443" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="241" y="443" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="271" y="443" width="28" height="28" fill-opacity="0.08"></rect>
+		<rect x="301" y="443" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="331" y="443" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="361" y="443" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="391" y="443" width="28" height="28" fill-opacity="0.4"></rect>
+		<rect x="421" y="443" width="28" height="28" fill-opacity="0.44"></rect>
+		<rect x="451" y="443" width="28" height="28" fill-opacity="0.44"></rect>
+		<rect x="481" y="443" width="28" height="28" fill-opacity="0.44"></rect>
+	</g>
+
+	<!-- Callouts -->
+	<g class="dg-node dg-neutral">
+		<rect x="528" y="150" width="186" height="106" rx="8"></rect>
+		<text x="540" y="174" font-weight="700">Reasoning triangle</text>
+		<text x="540" y="198" class="dg-sub">attends to earlier</text>
+		<text x="540" y="220" class="dg-sub">reasoning and tool</text>
+		<text x="540" y="242" class="dg-sub">definitions</text>
+	</g>
+	<g class="dg-edge">
+		<path d="M528,230 L345,335" marker-end="url(#d2-ahs-arrow)"></path>
+	</g>
+
+	<g class="dg-node dg-neutral">
+		<rect x="528" y="370" width="186" height="84" rx="8"></rect>
+		<text x="540" y="394" font-weight="700">Output triangle</text>
+		<text x="540" y="418" class="dg-sub">answer uses the</text>
+		<text x="540" y="440" class="dg-sub">reasoning trace</text>
+	</g>
+	<g class="dg-edge">
+		<path d="M528,392 L464,450" marker-end="url(#d2-ahs-arrow)"></path>
+	</g>
+
+	<g class="dg-node dg-neutral">
+		<rect x="6" y="500" width="262" height="96" rx="8"></rect>
+		<text x="18" y="524" font-weight="700">Attention sink</text>
+		<text x="18" y="548" class="dg-sub">first token often absorbs</text>
+		<text x="18" y="570" class="dg-sub">residual attention weight</text>
+	</g>
+	<g class="dg-edge">
+		<path d="M165,500 L165,476" marker-end="url(#d2-ahs-arrow)"></path>
+	</g>
+
+	<g class="dg-node dg-neutral">
+		<rect x="284" y="500" width="430" height="96" rx="8"></rect>
+		<text x="296" y="524" font-weight="700">Position bias</text>
+		<text x="296" y="548" class="dg-sub">higher recall at the beginning and end;</text>
+		<text x="296" y="570" class="dg-sub">the middle is more likely to be overlooked</text>
+	</g>
+</svg>

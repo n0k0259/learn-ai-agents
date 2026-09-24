@@ -1,0 +1,201 @@
+---
+// A change at token k propagates through every layer: states before k stay reusable, states from k onward are recomputed, one layer after another.
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 486"
+	role="img"
+	aria-labelledby="d2-pcp-title d2-pcp-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-pcp-title">A prefix change at token k invalidates everything after it</title>
+	<desc id="d2-pcp-desc">
+		A grid with tokens as columns and Transformer layers as rows: tokens 1, 2, 3, k, k+1, k+2 and k+3, and layers 1,
+		2, 3 and N. Token k changes, for example because one character in the system prompt changes. Each layer's
+		output is the next layer's input, so the change propagates: in layer 1, then layer 2, then layer 3, through
+		layer N, the states from token k onward change and must be recomputed. In every layer, the states of tokens 1
+		to 3, before k, are unaffected and stay reusable. The cache can be reused only through the token before the
+		first difference.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">A prefix change at token k invalidates everything after it</text>
+
+	<!-- Token header row -->
+	<text x="6" y="100" font-weight="700">Token</text>
+	<g class="dg-node dg-neutral">
+		<rect x="120" y="72" width="76" height="46" rx="6"></rect>
+		<text x="158" y="101" text-anchor="middle" font-weight="700">1</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="204" y="72" width="76" height="46" rx="6"></rect>
+		<text x="242" y="101" text-anchor="middle" font-weight="700">2</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="288" y="72" width="76" height="46" rx="6"></rect>
+		<text x="326" y="101" text-anchor="middle" font-weight="700">3</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="456" y="72" width="76" height="46" rx="6"></rect>
+		<text x="494" y="101" text-anchor="middle" font-weight="700">k+1</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="540" y="72" width="76" height="46" rx="6"></rect>
+		<text x="578" y="101" text-anchor="middle" font-weight="700">k+2</text>
+	</g>
+	<g class="dg-node dg-neutral">
+		<rect x="624" y="72" width="76" height="46" rx="6"></rect>
+		<text x="662" y="101" text-anchor="middle" font-weight="700">k+3</text>
+	</g>
+	<g data-step="1" data-step-label="Token k changes, for example one character in the system prompt">
+		<g class="dg-node dg-guard">
+			<rect x="372" y="72" width="76" height="46" rx="6"></rect>
+			<text x="410" y="101" text-anchor="middle" class="dg-accent" font-weight="700">k</text>
+		</g>
+		<text x="410" y="60" text-anchor="middle" class="dg-sub">changed</text>
+	</g>
+
+	<!-- Layer 1 -->
+	<text x="6" y="164" font-weight="700">Layer 1</text>
+	<g class="dg-node dg-context">
+		<rect x="120" y="134" width="76" height="46" rx="6"></rect>
+		<text x="158" y="165" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="204" y="134" width="76" height="46" rx="6"></rect>
+		<text x="242" y="165" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="288" y="134" width="76" height="46" rx="6"></rect>
+		<text x="326" y="165" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g data-step="2" data-step-label="Layer 1: from token k onward, its representations change">
+		<g class="dg-node dg-guard">
+			<rect x="372" y="134" width="76" height="46" rx="6"></rect>
+			<text x="410" y="165" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="456" y="134" width="76" height="46" rx="6"></rect>
+			<text x="494" y="165" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="540" y="134" width="76" height="46" rx="6"></rect>
+			<text x="578" y="165" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="624" y="134" width="76" height="46" rx="6"></rect>
+			<text x="662" y="165" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+	</g>
+
+	<!-- Layer 2 -->
+	<text x="6" y="222" font-weight="700">Layer 2</text>
+	<g class="dg-node dg-context">
+		<rect x="120" y="192" width="76" height="46" rx="6"></rect>
+		<text x="158" y="223" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="204" y="192" width="76" height="46" rx="6"></rect>
+		<text x="242" y="223" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="288" y="192" width="76" height="46" rx="6"></rect>
+		<text x="326" y="223" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g data-step="3" data-step-label="Layer 2 takes layer 1's changed output, so it changes from k onward">
+		<g class="dg-node dg-guard">
+			<rect x="372" y="192" width="76" height="46" rx="6"></rect>
+			<text x="410" y="223" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="456" y="192" width="76" height="46" rx="6"></rect>
+			<text x="494" y="223" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="540" y="192" width="76" height="46" rx="6"></rect>
+			<text x="578" y="223" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="624" y="192" width="76" height="46" rx="6"></rect>
+			<text x="662" y="223" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+	</g>
+
+	<!-- Layer 3 -->
+	<text x="6" y="280" font-weight="700">Layer 3</text>
+	<g class="dg-node dg-context">
+		<rect x="120" y="250" width="76" height="46" rx="6"></rect>
+		<text x="158" y="281" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="204" y="250" width="76" height="46" rx="6"></rect>
+		<text x="242" y="281" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="288" y="250" width="76" height="46" rx="6"></rect>
+		<text x="326" y="281" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g data-step="4" data-step-label="Layer 3 inherits the change from layer 2">
+		<g class="dg-node dg-guard">
+			<rect x="372" y="250" width="76" height="46" rx="6"></rect>
+			<text x="410" y="281" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="456" y="250" width="76" height="46" rx="6"></rect>
+			<text x="494" y="281" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="540" y="250" width="76" height="46" rx="6"></rect>
+			<text x="578" y="281" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="624" y="250" width="76" height="46" rx="6"></rect>
+			<text x="662" y="281" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+	</g>
+
+	<!-- Layer N -->
+	<text x="6" y="338" font-weight="700">Layer N</text>
+	<g class="dg-node dg-context">
+		<rect x="120" y="308" width="76" height="46" rx="6"></rect>
+		<text x="158" y="339" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="204" y="308" width="76" height="46" rx="6"></rect>
+		<text x="242" y="339" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g class="dg-node dg-context">
+		<rect x="288" y="308" width="76" height="46" rx="6"></rect>
+		<text x="326" y="339" text-anchor="middle" class="dg-ok">✓</text>
+	</g>
+	<g data-step="5" data-step-label="Through the last layer: reuse stops at the token before k">
+		<g class="dg-node dg-guard">
+			<rect x="372" y="308" width="76" height="46" rx="6"></rect>
+			<text x="410" y="339" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="456" y="308" width="76" height="46" rx="6"></rect>
+			<text x="494" y="339" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="540" y="308" width="76" height="46" rx="6"></rect>
+			<text x="578" y="339" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+		<g class="dg-node dg-guard">
+			<rect x="624" y="308" width="76" height="46" rx="6"></rect>
+			<text x="662" y="339" text-anchor="middle" class="dg-fail">✗</text>
+		</g>
+	</g>
+
+	<!-- Legend -->
+	<g class="dg-node dg-context">
+		<rect x="6" y="374" width="340" height="46" rx="6"></rect>
+		<text x="22" y="404"><tspan class="dg-ok">✓</tspan> before k: unaffected, reused</text>
+	</g>
+	<g class="dg-node dg-guard">
+		<rect x="360" y="374" width="354" height="46" rx="6"></rect>
+		<text x="376" y="404"><tspan class="dg-fail">✗</tspan> from k onward: recomputed</text>
+	</g>
+	<text x="6" y="452" class="dg-sub">Each layer's output is the next layer's input, so the change reaches every layer.</text>
+	<text x="6" y="476" class="dg-sub">The earlier token k sits, the more tokens typically need to be recomputed.</text>
+</svg>

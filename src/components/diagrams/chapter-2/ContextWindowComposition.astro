@@ -1,0 +1,71 @@
+---
+// What fills the context window: system prompt, tool definitions, conversation history and reasoning trace, up to the current generation position (redraw of Fig 2-1).
+---
+
+<svg
+	class="dg"
+	viewBox="0 0 720 650"
+	role="img"
+	aria-labelledby="d2-cwc-title d2-cwc-desc"
+	style="min-width: 630px"
+>
+	<title id="d2-cwc-title">Overview of the context window composition</title>
+	<desc id="d2-cwc-desc">
+		Five stacked blocks together form the context window. System prompt: "You are a helpful assistant. You MUST
+		answer concisely. Use tools when the user asks for real-time information." Tool definitions: a web_search tool
+		that searches the web and takes a string query. Conversation history: the user asks what the weather in Beijing
+		is today, the assistant makes a tool call to get_weather for Beijing, and the tool returns 23°C and clear.
+		Reasoning trace: inside think tags, the model notes that it already has the tool result and can summarize and
+		respond without calling the tool again. Current generation position: the assistant reply "Beijing is clear
+		today, temperature 23°C..." is what the LLM is generating. Window size: Qwen3 = 32K tokens, Claude = 200K,
+		Gemini = 2M. All content is serialized into a token stream and processed by the Transformer attention mechanism.
+	</desc>
+
+	<text x="2" y="28" class="dg-title">Overview of the context window composition</text>
+
+	<g class="dg-node dg-context" style="font-variant-ligatures: none">
+		<rect x="6" y="48" width="600" height="84" rx="8"></rect>
+		<text x="20" y="72" class="dg-accent" font-weight="700">System Prompt</text>
+		<text x="20" y="96" class="dg-mono">"You are a helpful assistant. You MUST answer concisely."</text>
+		<text x="20" y="118" class="dg-mono">"Use tools when the user asks for real-time information."</text>
+	</g>
+	<g class="dg-node dg-context" style="font-variant-ligatures: none">
+		<rect x="6" y="140" width="600" height="84" rx="8"></rect>
+		<text x="20" y="164" class="dg-accent" font-weight="700">Tool Definitions</text>
+		<text x="20" y="188" class="dg-mono">&#123;"name": "web_search", "description": "Search the web",</text>
+		<text x="20" y="210" class="dg-mono">&nbsp;"parameters": &#123;"query": &#123;"type": "string"&#125;&#125;&#125;</text>
+	</g>
+	<g class="dg-node dg-context" style="font-variant-ligatures: none">
+		<rect x="6" y="232" width="600" height="106" rx="8"></rect>
+		<text x="20" y="256" class="dg-accent" font-weight="700">Conversation History</text>
+		<text x="20" y="280" class="dg-mono">user: "What's the weather in Beijing today?"</text>
+		<text x="20" y="302" class="dg-mono">assistant: [tool_call] → get_weather("Beijing")</text>
+		<text x="20" y="324" class="dg-mono">tool: &#123;"temp": "23°C", "conditions": "clear"&#125;</text>
+	</g>
+	<g class="dg-node dg-model" style="font-variant-ligatures: none">
+		<rect x="6" y="346" width="600" height="106" rx="8"></rect>
+		<text x="20" y="370" class="dg-accent" font-weight="700">Reasoning Trace</text>
+		<text x="20" y="394" class="dg-mono">&lt;think&gt;The user asks about the weather. I already</text>
+		<text x="20" y="416" class="dg-mono">have the tool result, so I can directly summarize</text>
+		<text x="20" y="438" class="dg-mono">and respond without calling the tool again.&lt;/think&gt;</text>
+	</g>
+	<g class="dg-node dg-model" style="font-variant-ligatures: none">
+		<rect x="6" y="460" width="600" height="62" rx="8"></rect>
+		<text x="20" y="484" class="dg-accent" font-weight="700">Current generation position →</text>
+		<text x="590" y="484" text-anchor="end" class="dg-sub">← LLM is generating</text>
+		<text x="20" y="508" class="dg-mono">assistant: "Beijing is clear today, temperature 23°C..."</text>
+	</g>
+
+	<g class="dg-edge">
+		<path d="M612,48 H620 V522 H612 M620,285 H628"></path>
+	</g>
+	<text x="634" y="279" font-weight="700">Context</text>
+	<text x="634" y="301" font-weight="700">Window</text>
+
+	<g class="dg-node dg-neutral">
+		<rect x="6" y="538" width="708" height="100" rx="8"></rect>
+		<text x="360" y="568" text-anchor="middle">Window size: Qwen3 = 32K tokens | Claude = 200K | Gemini = 2M</text>
+		<text x="360" y="594" text-anchor="middle" class="dg-sub">All content serialized into token stream →</text>
+		<text x="360" y="618" text-anchor="middle" class="dg-sub">processed by Transformer attention mechanism</text>
+	</g>
+</svg>

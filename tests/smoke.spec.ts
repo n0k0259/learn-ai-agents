@@ -23,3 +23,19 @@ test('chapter overview links to all 8 lessons', async ({ page }) => {
 	// :not([rel]) excludes the prev/next pagination links
 	await expect(page.locator('main a[href*="/chapter-1/0"]:not([rel])')).toHaveCount(8);
 });
+
+test('chapter 2 overview links to all 10 lessons', async ({ page }) => {
+	await page.goto('chapter-2/');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Chapter 2: Context Engineering');
+	await expect(page.locator('main a[href*="/chapter-2/"]:not([rel])')).toHaveCount(10);
+});
+
+test('sidebar shows the chapter 2 group', async ({ page }) => {
+	await page.goto('chapter-2/01-context-and-message-roles/');
+	await expect(page.locator('nav[aria-label="Main"]')).toContainText('Chapter 2: Context Engineering');
+});
+
+test('home page links to chapter 2', async ({ page }) => {
+	await page.goto('');
+	await expect(page.locator('main a[href="/learn-ai-agents/chapter-2/"]').first()).toBeVisible();
+});
