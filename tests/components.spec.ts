@@ -16,6 +16,8 @@ test('key takeaways box is labelled for assistive tech', async ({ page }) => {
 test('lessons carry no per-page attribution; credits live on the About page', async ({ page }) => {
 	await page.goto('chapter-1/01-what-is-an-agent/');
 	await expect(page.getByText('Read the original section')).toHaveCount(0);
+	await page.goto('chapter-2/01-context-and-message-roles/');
+	await expect(page.getByText('Read the original section')).toHaveCount(0);
 	await page.goto('about/');
 	await expect(page.locator('main')).toContainText('Bojie Li');
 	await expect(page.locator('main a[href*="apache.org/licenses/LICENSE-2.0"]')).toHaveCount(1);

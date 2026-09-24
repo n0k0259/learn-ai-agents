@@ -22,7 +22,7 @@ Each LLM call sees a static prefix (system prompt + tool definitions) plus a gro
 
 Context is the working set of information available to an agent at each decision point. A person making a decision needs the right materials on the table: task instructions, reference manuals, earlier correspondence, the latest data. An agent's context window plays the same role. It is the information the agent can use.
 
-From the API's perspective (detailed in Chapter 2 of the book), the context of each LLM call consists of five parts.
+From the API's perspective ([detailed in Chapter 2 of the book](/learn-ai-agents/chapter-2/01-context-and-message-roles/)), the context of each LLM call consists of five parts.
 
 **System prompt.** The developer writes it, and it stays fixed for the whole conversation. That distinguishes it from the prompts users enter during a conversation. It is the agent's "job description", defining its identity, permissions, and rules of conduct. Careful prompt engineering of the system prompt is how you shape the agent's operating behavior.
 
