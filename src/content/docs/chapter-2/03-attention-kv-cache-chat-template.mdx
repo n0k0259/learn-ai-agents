@@ -54,7 +54,7 @@ The book says you can skip the attention and KV Cache internals if you remember 
 Rule 3 is about reasoning quality, not caching. Caching depends only on the resulting token sequence, so a manually concatenated prefix can still be cached if it stays byte-for-byte stable. The cache is invalidated only when that prefix changes, for example when dynamic content is inserted into it.
 
 :::note[Engineer's note]
-[Context: The Working Set](/learn-ai-agents/chapter-1/04-context-working-set/) lists "dynamically injected environmental state" among what the system prompt carries. Rule 2 refines where that state goes: appended as a new message at the end, not edited into the system prompt, so the prefix stays cacheable. [Lesson 2.8](/learn-ai-agents/chapter-2/08-agent-status-bar/) (the Agent Status Bar) covers the mechanism.
+Dynamic state like this belongs at the tail of the context, as the status bar, not in the system prompt. [Lesson 2.8](/learn-ai-agents/chapter-2/08-agent-status-bar/) has the full reconciliation with 1.4.
 :::
 
 ## How attention works

@@ -107,7 +107,7 @@ Anthropic recommends one of two approaches. Either compress the entire session i
 
 **Strategy 6: adaptive windowing.** Early in a task, context space is abundant, so there's no need to rush compression. A threshold trigger activates compression only when the prompt token count exceeds 80% of the window. Batch compression then compresses every unmarked tool result at once (for example, all 10 uncompressed tool messages after the context crosses the 102,400-token threshold), and a `[COMPRESSED]` marker prevents compressed content from being processed again.
 
-**Result.** Context-aware compression used the fewest tokens; the book's Figure 2-16 puts it at 76% fewer than no compression, tied with adaptive windowing for the fewest iterations. Adaptive windowing's total token usage was relatively high (174,601), but its first few iterations keep the complete original information, which gives maximum flexibility for broad initial information gathering.
+**Result.** Per Figure 2-16, context-aware compression used the fewest tokens, at 76% fewer than no compression, tied with adaptive windowing for the fewest iterations. Adaptive windowing's total token usage was relatively high (174,601), but its first few iterations keep the complete original information, which gives maximum flexibility for broad initial information gathering.
 
 **Takeaway.** Bringing the query intent and the accumulated information into the compression decision produced targeted summaries, where non-task-aware summaries couldn't tell relevant information from irrelevant. Deferring compression keeps the original information longer, at a higher total token cost.
 :::

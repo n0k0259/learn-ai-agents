@@ -45,7 +45,7 @@ Attention can often pull the relevant raw records out of thousands of tokens, so
 
 An agent makes phone calls for business tasks, and the system prompt allows no more than three calls per merchant. After three calls, the agent often miscounts, makes a fourth call, or even loops on the same number. The answer to "How many times have I called?" stays scattered across raw call records in the KV Cache, so each decision spends extra reasoning tokens recounting, which is highly inefficient and error-prone.
 
-Including the repeat count directly in each phone call's tool result ("This is the third call to this merchant") lets the model immediately recognize that the limit is reached and stop calling, significantly reducing error rates. The harness catches loops like this from its side, with stop conditions ([lesson 1.7](/learn-ai-agents/chapter-1/07-orchestration-patterns/)) and repeated-call detection; this fix hands the count to the model itself.
+Including the repeat count directly in each phone call's tool result ("This is the third call to this merchant") lets the model immediately recognize that the limit is reached and stop calling, significantly reducing error rates. The harness catches loops like this from its side, with stop conditions ([lesson 1.7](/learn-ai-agents/chapter-1/07-orchestration-patterns/)); this fix hands the count to the model itself.
 
 The essence is **distilling implicit states scattered throughout the context into explicit knowledge that can be directly used**. A raw trajectory is highly redundant, so the bar presents, at minimal additional token cost, what would otherwise take scanning thousands of tokens.
 
@@ -146,7 +146,7 @@ Replace pays to recompute an R-token suffix at each update after the first; appe
 :::note[Experiment 2-9: Several Useful Agent Status Bar Techniques]
 **What is tested.** The `agent-status-bar` experimental framework implements five techniques, each independently switchable:
 
-- **Timestamp tracking.** A `[2025-09-14 10:30:45]` prefix on user messages and tool responses (not in the system prompt, which would break the KV Cache), so the agent understands temporal relationships; a time-simulation feature adds ones like "yesterday's files".
+- **Timestamp tracking.** A `[2025-09-14 10:30:45]` prefix on user messages and tool responses (not in the system prompt, which would break the KV Cache), so the agent understands temporal relationships and gets information for debugging and auditing; a time-simulation feature also lets it understand relationships like "yesterday's files" and "today's modifications".
 - **Tool call counter.** Per-tool counts annotated on responses ("Tool call #3 for 'read_file'"). They encourage a change of strategy after repeated failures: check the path, then list the directory, then stop retrying and seek an alternative.
 - **To-do list management.** Inspired by Manus's "manipulating attention through restatement": two tools, `rewrite_todo_list` and `update_todo_status`, maintain items with an ID, content, status and timestamp, serving as external memory.
 - **Detailed error information.** Error type, full parameter JSON, call stack and targeted fix suggestions.

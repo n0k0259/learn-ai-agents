@@ -193,7 +193,7 @@ If the user wants more, say "What about Tokyo?", the framework appends the follo
 
 ## The core loop in code
 
-With the JSON structure clear, the steps connect into a single Python loop. This is a deliberate difference from lesson 1.5, where the loop is Python-style pseudocode. The book includes this chapter's loop as the full API loop, a reference for the protocol, and it uses the real OpenAI SDK. Other chapters use simplified Python-style code to explain individual mechanisms.
+With the JSON structure clear, the steps connect into a single Python loop. This is a deliberate difference from [lesson 1.5](/learn-ai-agents/chapter-1/05-react-loop/), where the loop is Python-style pseudocode. The book includes this chapter's loop as the full API loop, a reference for the protocol, and it uses the real OpenAI SDK. Other chapters use simplified Python-style code to explain individual mechanisms.
 
 ```python
 from openai import OpenAI
@@ -376,5 +376,5 @@ The model. The framework sends the same static `tools` list whatever the user as
 </Quiz>
 
 <Quiz question="The book's loop is while True. What does production code need to add, and why?">
-A `max_iterations` cap (like `MAX_ROUNDS` in lesson 1.5), because agents can become stuck repeating the same tool calls forever. The cap is a stop condition, covered in lesson 1.7.
+A `max_iterations` cap (like `MAX_ROUNDS` in [lesson 1.5](/learn-ai-agents/chapter-1/05-react-loop/)), because agents can become stuck repeating the same tool calls forever. The cap is a stop condition, covered in [lesson 1.7](/learn-ai-agents/chapter-1/07-orchestration-patterns/).
 </Quiz>
