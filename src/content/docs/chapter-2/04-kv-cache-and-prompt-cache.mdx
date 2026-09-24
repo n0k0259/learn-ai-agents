@@ -78,7 +78,7 @@ These two are easily confused:
 Both rely on prefix stability. In practice, the API provider matches the request prefix: if requests share the same prefix, it reuses the previously computed KV Cache instead of recomputing those key-value states.
 
 <StepAnimator label="Prompt Cache across requests">
-<Figure caption="Request 1 computes the 1,200-token system prompt and tools and caches their KV. Request 2 shares that prefix, so it hits the cache and computes only the new user message. Request 3 puts a timestamp before the system prompt, misses, and recomputes everything after the change. The bottom panel compares a hit and a miss for a 3,000-token context, with illustrative TTFT values." credit="Redrawn from Figure 2-10, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Request 1 computes the 1,200-token system prompt and tools and caches their KV. Request 2 shares that prefix, so it hits the cache and computes only the new user message. Request 3 puts a timestamp before the system prompt, misses, and recomputes everything after the change. The bottom panel compares a hit and a miss for a 3,000-token context, with illustrative TTFT values." credit="Redrawn from Figure 2-10.">
 <PromptCacheReuse />
 </Figure>
 </StepAnimator>
@@ -155,7 +155,7 @@ The next question is what goes into the context and how to organize it, along th
 ### References
 
 - Anthropic, ["Preserved thinking"](https://platform.claude.com/docs/en/build-with-claude/preserved-thinking), Claude API documentation.
-- Li, Bojie. *Models Take Notes at Prefill: KV Cache Can Be Editable and Composable.* arXiv:2606.17107, 2026.
+- *Models Take Notes at Prefill: KV Cache Can Be Editable and Composable.* arXiv:2606.17107, 2026.
 
 ## Check yourself
 

@@ -12,7 +12,7 @@ export default defineConfig({
 		sitemap({ filter: (page) => !page.includes('/style-guide/') }),
 		starlight({
 			title: 'Learn AI Agents',
-			description: 'An engineer-focused guided tutorial of AI Agent Book by Bojie Li.',
+			description: 'An engineer-focused guided tutorial on building AI agents.',
 			// No og:image exists, so use the small card.
 			head: [{ tag: 'meta', attrs: { name: 'twitter:card', content: 'summary' } }],
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/n0k0259/learn-ai-agents' }],

@@ -31,7 +31,7 @@ Real agent workflows are usually more complex than a single-turn Q&A like the on
 This is the same loop as [The ReAct Loop](/learn-ai-agents/chapter-1/05-react-loop/), seen at the wire level.
 
 <StepAnimator label="Two model API calls">
-<Figure caption="The Vancouver example: API call 1 returns two tool_calls, the framework runs both tools in parallel and appends the results, and API call 2 returns the final reply with no tool call." credit="Redrawn from Figure 2-3, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="The Vancouver example: API call 1 returns two tool_calls, the framework runs both tools in parallel and appends the results, and API call 2 returns the final reply with no tool call." credit="Redrawn from Figure 2-3.">
 <TwoCallSequence />
 </Figure>
 </StepAnimator>
@@ -295,7 +295,7 @@ This process shows that **one central responsibility of an agent framework is ma
 
 Put the pieces together and you get the complete composition of context each time the agent calls the model.
 
-<Figure caption="Every call carries a static prefix (system prompt + tool definitions) that stays unchanged, followed by the trajectory, which grows with each interaction." credit="Redrawn from Figure 2-4, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Every call carries a static prefix (system prompt + tool definitions) that stays unchanged, followed by the trajectory, which grows with each interaction." credit="Redrawn from Figure 2-4.">
 <ContextPerCall />
 </Figure>
 
@@ -353,7 +353,7 @@ Three guidelines follow from it. Keep the system prompt and core tool definition
 **Takeaway.** A 0.6B model with reasonable prompt design can complete tool calls reliably. Model size matters, but it is not the only determining factor. Some high-end mobile devices can already run 0.6B-level models, and on-device agents are closer than many people expect.
 :::
 
-<Figure caption="Experiment 2-1: a user request goes to a local LLM service (vLLM/Ollama, OpenAI compatible). The model decides and generates a tool_call, the tool executes locally, and the results return to the model, which then generates the final response." credit="Redrawn from Figure 2-5, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Experiment 2-1: a user request goes to a local LLM service (vLLM/Ollama, OpenAI compatible). The model decides and generates a tool_call, the tool executes locally, and the results return to the model, which then generates the final response." credit="Redrawn from Figure 2-5.">
 <LocalToolCalling />
 </Figure>
 

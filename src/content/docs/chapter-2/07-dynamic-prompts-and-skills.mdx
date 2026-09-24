@@ -40,7 +40,7 @@ The core idea of Agent Skills (Anthropic, "Equipping Agents for the Real World w
 
 This is **Progressive Disclosure**: show a table-of-contents summary first, and load the full content only when it's needed. [Guardrails, Safety & the Big Picture](/learn-ai-agents/chapter-1/08-guardrails-and-big-picture/) names it as one of the book's recurring design patterns and calls Agent Skills its archetype.
 
-<Figure caption="Layer 1, the metadata catalog, is loaded at startup (about 300 tokens). A task such as &quot;Generate PPT from paper&quot; loads Layer 2, the SKILL.md core flow (about 2K tokens). A need for a detailed method loads only the relevant Layer 3 sub-document or script. Fixed metadata keeps the prefix cache-friendly, and dynamic content is appended." credit="Redrawn from Figure 2-11, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Layer 1, the metadata catalog, is loaded at startup (about 300 tokens). A task such as &quot;Generate PPT from paper&quot; loads Layer 2, the SKILL.md core flow (about 2K tokens). A need for a detailed method loads only the relevant Layer 3 sub-document or script. Fixed metadata keeps the prefix cache-friendly, and dynamic content is appended." credit="Redrawn from Figure 2-11.">
 <SkillsDisclosure />
 </Figure>
 
@@ -118,12 +118,12 @@ When you assess what a Skill costs in context, separate the metadata catalog fro
 
 Harnesses evolve quickly, so these concrete representations may change. The stable principle is **a small catalog kept discoverable and the full body loaded on demand**, which is what lets Skills combine dynamic loading with controlled context cost.
 
-<Figure caption="The model-triggered case in Claude Code. The system prompt and tools are the fixed prefix. The Skill listing (ⓐ, about 300 tokens) arrives once as a meta user message; the Skill tool call returns only a placeholder, and the Skill content (ⓑ, about 2k tokens) follows as a separate meta user message. Later tool calls and results are appended after it." credit="Redrawn from Figure 2-12, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="The model-triggered case in Claude Code. The system prompt and tools are the fixed prefix. The Skill listing (ⓐ, about 300 tokens) arrives once as a meta user message; the Skill tool call returns only a placeholder, and the Skill content (ⓑ, about 2k tokens) follows as a separate meta user message. Later tool calls and results are appended after it." credit="Redrawn from Figure 2-12.">
 <SkillsTrajectory />
 </Figure>
 
 <StepAnimator label="KV Cache as the trajectory grows">
-<Figure caption="Each column is the cache state after one turn. Turn 1 loads the PPTX Skill and writes everything, about 2.5k tokens. Turn 2 reads the PDF: the first seven slots hit, and only the new call and result are written, about 0.5k tokens. Turn 3 writes HTML, about 0.4k tokens. No slot moves; new content is only appended." credit="Redrawn from Figure 2-13, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Each column is the cache state after one turn. Turn 1 loads the PPTX Skill and writes everything, about 2.5k tokens. Turn 2 reads the PDF: the first seven slots hit, and only the new call and result are written, about 0.5k tokens. Turn 3 writes HTML, about 0.4k tokens. No slot moves; new content is only appended." credit="Redrawn from Figure 2-13.">
 <KVCacheGrowth />
 </Figure>
 </StepAnimator>

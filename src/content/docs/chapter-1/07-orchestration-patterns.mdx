@@ -112,7 +112,7 @@ The agent therefore has to plan for itself, choosing its own execution steps. It
 In implementation terms, an autonomous agent is an LLM using tools in a loop, continuously taking in environmental feedback to make progress on the task. This is the ReAct loop from [lesson 1.5 (The ReAct Loop)](/learn-ai-agents/chapter-1/05-react-loop/). Common exit conditions are calling a final output tool, the model returning a response with no tool calls, and hitting an error or the maximum number of rounds.
 
 <StepAnimator label="Autonomous agent loop">
-<Figure caption="The autonomous agent loop: think, act, observe, then check the exit conditions. Any one condition ends the loop." credit="Redrawn from Figure 1-6, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="The autonomous agent loop: think, act, observe, then check the exit conditions. Any one condition ends the loop." credit="Redrawn from Figure 1-6.">
 <AutonomousLoop />
 </Figure>
 </StepAnimator>
@@ -160,7 +160,7 @@ In practice, workflows and autonomous agents are not mutually exclusive, and man
 
 n8n, for example, is a mature open-source workflow automation framework. Developers build agents by arranging functional components on a visual canvas, and workflow nodes and autonomous agent nodes can coexist in the same system.
 
-<Figure caption="An n8n workflow: deterministic nodes handle the Telegram message, and an AI agent node with its own model, memory, and tools writes the reply." credit="Redrawn from Figure 1-7 (n8n screenshot), AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="An n8n workflow: deterministic nodes handle the Telegram message, and an AI agent node with its own model, memory, and tools writes the reply." credit="Redrawn from Figure 1-7 (n8n screenshot).">
 <N8nWorkflow />
 </Figure>
 

@@ -112,11 +112,11 @@ Anthropic recommends one of two approaches. Either compress the entire session i
 **Takeaway.** Bringing the query intent and the accumulated information into the compression decision produced targeted summaries, where non-task-aware summaries couldn't tell relevant information from irrelevant. Deferring compression keeps the original information longer, at a higher total token cost.
 :::
 
-<Figure caption="Experiment 2-10 by strategy: total tokens, compression ratio (compressed / original), iterations and result, with bars scaled to token usage. Awareness + citation is strategy 5, context-aware with citations. Context-aware compression, highlighted, uses the fewest tokens." credit="Redrawn from Figure 2-16, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Experiment 2-10 by strategy: total tokens, compression ratio (compressed / original), iterations and result, with bars scaled to token usage. Awareness + citation is strategy 5, context-aware with citations. Context-aware compression, highlighted, uses the fewest tokens." credit="Redrawn from Figure 2-16.">
 <CompressionComparison />
 </Figure>
 
-<Figure caption="What each strategy does with a search result of about 52K characters on average, and the outcome: keep it whole, summarize it alone, merge it with the rest, compress it against the query and current context (strategy 4, emphasized with a solid border and a highlighted outcome), do the same while keeping URL citations (strategy 5, context-aware with citations), or keep it until 80% of the window and then batch-compress." credit="Redrawn from Figure 2-17, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="What each strategy does with a search result of about 52K characters on average, and the outcome: keep it whole, summarize it alone, merge it with the rest, compress it against the query and current context (strategy 4, emphasized with a solid border and a highlighted outcome), do the same while keeping URL citations (strategy 5, context-aware with citations), or keep it until 80% of the window and then batch-compress." credit="Redrawn from Figure 2-17.">
 <CompressionFlows />
 </Figure>
 

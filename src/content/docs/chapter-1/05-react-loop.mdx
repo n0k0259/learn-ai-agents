@@ -111,7 +111,7 @@ The system prompt and tool schemas are passed on every call but never appended t
 Take a concrete task: aggregate a company's quarterly revenue across four currencies.
 
 <StepAnimator label="Trajectory, round by round">
-<Figure caption="The multi-currency trajectory, round by round. Every LLM call sees the static prefix plus the full trajectory so far." credit="Redrawn from Figure 1-4, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="The multi-currency trajectory, round by round. Every LLM call sees the static prefix plus the full trajectory so far." credit="Redrawn from Figure 1-4.">
 <TrajectoryRounds />
 </Figure>
 </StepAnimator>
@@ -223,7 +223,7 @@ The experiment is not tied to one vendor. Without OpenAI credits, you can reprod
 
 The figure shows the architecture of native tool calling under "Model as Agent", with the ReAct execution of Kimi K3 and GPT-5.6 on a real task. The book's original figure says "no hand-written ReAct loop on the client"; that holds only for the Responses API path. On both paths the model decides when to call which tool and the tools execute server-side; on the Kimi path, the loop is still driven by the client.
 
-<Figure caption="Model as Agent: the model decides the tool calls and native tools run server-side. The loop runs on the server only on the Responses API path." credit="Redrawn from Figure 1-5, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Model as Agent: the model decides the tool calls and native tools run server-side. The loop runs on the server only on the Responses API path." credit="Redrawn from Figure 1-5.">
 <ModelAsAgent />
 </Figure>
 
