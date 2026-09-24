@@ -19,7 +19,7 @@ import Quiz from '~/components/Quiz.astro';
 import ContextEngineeringMap from '~/components/diagrams/chapter-2/ContextEngineeringMap.astro';
 
 :::tip[TL;DR]
-Mature agent systems typically layer several compression strategies, matched to how long each kind of information stays useful, with full LLM compression as the last resort. Design compression around information value, semantic integrity and the task, and save progress to documents, because compression most easily loses early decisions. Better still, keep bulky exploration out of the main context: a sub-agent explores in its own context and returns only a short summary.
+Mature agent systems typically layer several compression strategies, matched to how long each kind of information stays useful, with full LLM compression as the last resort. Design compression around information value, semantic integrity and the task, and save progress to documents, because compression most easily loses early decisions. A more direct approach keeps bulky exploration out of the main context: a sub-agent explores in its own context and returns only a short summary.
 :::
 
 ## Five layers in production
@@ -68,13 +68,13 @@ This is essentially **replacing compression with isolation**. Compression is a l
 
 An isolated sub-agent doesn't inherit the parent's context, so the byte-for-byte alignment rule of [lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/) doesn't apply to it: that rule covers sub-agents that inherit the parent's context. What does carry over is the chapter's central theme. Context sets the capability ceiling, and that holds for sub-agents as well.
 
-Claude Code's Task tool and the retrieval sub-agents in Deep Research systems are production implementations of this pattern. This is the sub-agent isolation that the stretch quiz in [lesson 1.5](/learn-ai-agents/chapter-1/05-react-loop/) mentioned. Chapter 4 of the book discusses the complete design of sub-agents as collaborative tools, and Chapter 10 covers the context architecture of multi-agent systems.
+Claude Code's Task tool and the retrieval sub-agents in Deep Research systems are production implementations of this pattern. This is the sub-agent isolation that the stretch quiz in [lesson 1.5](/learn-ai-agents/chapter-1/05-react-loop/) mentioned. Chapter 4 of the book discusses the complete design of sub-agents as collaborative tools (introduced in [lesson 1.2](/learn-ai-agents/chapter-1/02-observation-action-tools/)), and Chapter 10 covers the context architecture of multi-agent systems.
 
 ## The whole chapter on one page
 
 The through-line of context engineering is explicit information management. The API message structure defines the skeleton, and a stable prefix raises the KV Cache hit rate. Prompts, Skills and the status bar carry rules, on-demand knowledge and current state respectively. Compression raises the information density of history while preserving decisions, constraints, failures and sources.
 
-<Figure caption="The request, region by region, each labelled with the lesson that teaches it. The static prefix (system prompt, tool definitions) stays frozen and cached. The trajectory grows by appending messages, compressed history, tool results, Skills and deferred tool schemas, with the status bar as the last user message. On the right: the layout rules, and a sub-agent that explores in its own context and returns only a summary.">
+<Figure caption="The request, region by region, each labelled with the lesson that teaches it. The static prefix (system prompt, tool definitions) stays frozen and cached. The trajectory grows by appending messages, compressed history, tool results, Skills and deferred tool schemas, interleaved in the order they arrive; only the status bar has a fixed position, the tail. On the right: the layout rules, and a sub-agent that explores in its own context and returns only a summary.">
 <ContextEngineeringMap />
 </Figure>
 
@@ -90,7 +90,7 @@ All of this addresses state updates and context degradation **within a single ta
 - **Load knowledge on demand** ([lesson 2.7](/learn-ai-agents/chapter-2/07-dynamic-prompts-and-skills/)). Skills keep a small catalog visible, load the full `SKILL.md` when selected, and read sub-documents only when needed, appending each to the trajectory.
 - **Hand the model computed state** ([lesson 2.8](/learn-ai-agents/chapter-2/08-agent-status-bar/)). The status bar is a framework-generated summary appended as the last `user` message, where it gets attention and leaves the cached prefix intact.
 - **Compress between calls, near a threshold** ([lesson 2.9](/learn-ai-agents/chapter-2/09-context-compression/)). Distilled knowledge is easier for the model to use than raw records. Compress tool results between API calls, batched near a threshold, so the static prefix stays cached.
-- **Layer compression and isolate exploration.** Production systems stack compression from cheap previews to full compression, and sub-agents keep bulky exploration out of the main context.
+- **Layer compression and isolate exploration.** Mature production systems typically stack compression, from tool-result previews to full compression as the last resort, and sub-agents keep bulky exploration out of the main context.
 
 Each of the chapter's nine thought questions appears as a "Check yourself" quiz in one of the Chapter 2 lessons.
 

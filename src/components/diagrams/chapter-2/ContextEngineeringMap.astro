@@ -13,7 +13,7 @@
 	<desc id="d2-cem-desc">
 		The request top to bottom, each region labelled with its lesson. The static prefix, cached: the system prompt (SOP
 		flow, XML under Markdown, few-shot examples; lesson 2.5) and the tool definitions (operating manuals in a fixed
-		order; lesson 2.6). Then the trajectory, which grows by appending: user and assistant messages (roles, rebuilt on
+		order; lesson 2.6). Then the trajectory, which grows by appending, with these regions interleaved in the order they arrive; only the status bar has a fixed position, the tail: user and assistant messages (roles, rebuilt on
 		every stateless call; lessons 2.1 to 2.2); compressed history (summaries replace raw tool results; lessons 2.9 to
 		2.10); tool results (external content, data not instructions; lesson 2.6); the Skill catalog and loaded SKILL.md
 		bodies (lesson 2.7); deferred tool schemas, appended once when needed (lesson 2.6); and the status bar as the last
