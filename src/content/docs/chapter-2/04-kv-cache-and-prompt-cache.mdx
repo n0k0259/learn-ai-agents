@@ -142,7 +142,7 @@ The next question is what goes into the context and how to organize it, along th
 
 - **Prompts, injection and Agent Skills.** Writing the system prompt ([lesson 2.5](/learn-ai-agents/chapter-2/05-system-prompts/)); tool definitions and defending the context against hijacking by external content ([lesson 2.6](/learn-ai-agents/chapter-2/06-tool-definitions-and-prompt-injection/)); and, since one system prompt for everything wastes tokens and dilutes attention, Agent Skills that load knowledge on demand ([lesson 2.7](/learn-ai-agents/chapter-2/07-dynamic-prompts-and-skills/)).
 - **The Agent Status Bar** ([lesson 2.8](/learn-ai-agents/chapter-2/08-agent-status-bar/)). Dynamic meta-information such as task progress and the tool call count, injected at the end of the context.
-- **Context compression** ([lesson 2.9](/learn-ai-agents/chapter-2/09-context-compression/)–2.10). When to compress, how, and how compression coexists with the KV Cache.
+- **Context compression** ([lesson 2.9](/learn-ai-agents/chapter-2/09-context-compression/)–[2.10](/learn-ai-agents/chapter-2/10-compression-in-production-and-isolation/)). When to compress, how, and how compression coexists with the KV Cache.
 
 <KeyTakeaways>
 - Without a cache, every new token recomputes K and V for the whole prefix, and cumulative work grows with N². With KV Cache, each token's K and V are computed once, but each decode step still reads all of them, so memory and bandwidth become the bottleneck.
