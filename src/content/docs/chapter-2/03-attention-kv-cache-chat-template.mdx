@@ -75,7 +75,7 @@ Each new word scores the preceding words by relevance, then uses the most releva
 2. The Query is compared with the Key of each preceding word using a dot product, producing a relevance score; higher scores mean stronger matches.
 3. The scores become attention weights, which are used to compute a weighted sum of the Values. Words with higher weights contribute more to the final representation.
 
-<Figure caption="Top: the Query of 怎么样 matched against each Key, with the book's weights: 天气 0.55, 北京 0.35, 的 0.05, and about 0.05 for 怎么样 itself. Bottom: the 4×4 lower-triangular heatmap, rows as Queries and columns as Keys, with the weights the book's figure prints for every row." credit="Redrawn from Figure 2-6, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Top: the Query of 怎么样 matched against each Key, with the book's weights: 天气 0.55, 北京 0.35, 的 0.05, and about 0.05 for 怎么样 itself. Bottom: the 4×4 lower-triangular heatmap, rows as Queries and columns as Keys, with the weights the book's figure prints for every row." credit="Redrawn from Figure 2-6.">
 <AttentionIntuition />
 </Figure>
 
@@ -100,7 +100,7 @@ An **attention heatmap** arranges these weights into a matrix. Each row is a Que
 **Takeaway.** Long chain-of-thought generation and tool calling both depend heavily on **in-context learning**: the model's ability to adapt to a task from the instructions and examples in its input, without retraining.
 :::
 
-<Figure caption="Schematic, not measured values: a lower-triangular grid banded system/tools, user, <think> and answer, with callouts for the attention sink, the reasoning triangle, the output triangle and position bias." credit="Redrawn from Figure 2-7, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Schematic, not measured values: a lower-triangular grid banded system/tools, user, <think> and answer, with callouts for the attention sink, the reasoning triangle, the output triangle and position bias." credit="Redrawn from Figure 2-7.">
 <AttentionHeatmapSchematic />
 </Figure>
 
@@ -108,7 +108,7 @@ An **attention heatmap** arranges these weights into a matrix. Each row is a Que
 
 The book calls the Chat Template a foundational concept: it affects KV Cache behavior, multi-turn tool calls, chain-of-thought retention and status bar injection. The token sequences in the attention experiment, with special tokens like `<|im_start|>` and `<|im_end|>`, look very different from the JSON messages in [lesson 2.2](/learn-ai-agents/chapter-2/02-tool-calls-core-loop/). Structured API messages must be converted into a linear token stream the model can process, and the Chat Template is the component that does it.
 
-<Figure caption="Structured API messages become one linear token stream: each message is wrapped in <|im_start|> plus the role, then the content, then <|im_end|>. The stream ends at <|im_start|>assistant, where the reply is still to be generated." credit="Redrawn from Figure 2-8, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Structured API messages become one linear token stream: each message is wrapped in <|im_start|> plus the role, then the content, then <|im_end|>. The stream ends at <|im_start|>assistant, where the reply is still to be generated." credit="Redrawn from Figure 2-8.">
 <ChatTemplateTokens />
 </Figure>
 
@@ -116,7 +116,7 @@ Think of it as an **envelope format**: the API message is the letter, and the Ch
 
 With the Qwen model series as the example, the same conversation looks completely different at the API level and inside the model:
 
-<Figure caption="Left: the structured JSON messages, a system and a user message. Right: the linear Qwen token stream the model processes, where <|im_start|> and <|im_end|> mark each message's role and boundaries; the model starts generating after <|im_start|>assistant." credit="Redrawn from Figure 2-9, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="Left: the structured JSON messages, a system and a user message. Right: the linear Qwen token stream the model processes, where <|im_start|> and <|im_end|> mark each message's role and boundaries; the model starts generating after <|im_start|>assistant." credit="Redrawn from Figure 2-9.">
 <MessagesToTokens />
 </Figure>
 

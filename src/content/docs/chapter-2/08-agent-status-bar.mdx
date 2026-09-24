@@ -31,7 +31,7 @@ In production agents, relying solely on the native capabilities of LLMs is often
 
 The analogy is a phone's status bar: time, battery, signal and notification count aren't the app's content, but they give you the device's state at a glance. The Agent Status Bar is likewise not an end-user request, a model output or a tool result. It is a **state summary** the framework injects at the end of the context ("You have made 3 calls," "Current time is 10:30," "2 to-do items remaining"), which the model can use each time it generates a response.
 
-<Figure caption="The same Xfinity trajectory twice. Without a status bar, the model has to scan the whole context to count the phone_call attempts and can easily miscount. With an agent_status block at the tail reporting 3 calls and the reached limit (3/3), it reads the refined state and makes no more calls." credit="Redrawn from Figure 2-14, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="The same Xfinity trajectory twice. Without a status bar, the model has to scan the whole context to count the phone_call attempts and can easily miscount. With an agent_status block at the tail reporting 3 calls and the reached limit (3/3), it reads the refined state and makes no more calls." credit="Redrawn from Figure 2-14.">
 <StatusBarArchitecture />
 </Figure>
 
@@ -85,7 +85,7 @@ Side-channel information is usually appended together with its event. Task plann
 
 At the API level, the status bar is inserted at the end of the context as **a message with the `user` role**, rather than by modifying the initial `system` message. Modifying the system message would invalidate the cache for the entire prefix ([lesson 2.4](/learn-ai-agents/chapter-2/04-kv-cache-and-prompt-cache/)). The `user` role here is a technical choice at the API protocol level, not "input from the user" as [Context: The Working Set](/learn-ai-agents/chapter-1/04-context-working-set/) defines user messages. The harness borrows the `user` message slot to attach state the framework generated; no real user wrote it.
 
-<Figure caption="The system message and tools are the fixed, cached prefix. The conversation rounds and the user follow-up come next, and the agent framework inserts the status bar as the final user message, wrapped in agent_status. It sits adjacent to where the model starts generating, so it receives the highest attention weight." credit="Redrawn from Figure 2-15, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="The system message and tools are the fixed, cached prefix. The conversation rounds and the user follow-up come next, and the agent framework inserts the status bar as the final user message, wrapped in agent_status. It sits adjacent to where the model starts generating, so it receives the highest attention weight." credit="Redrawn from Figure 2-15.">
 <StatusBarPosition />
 </Figure>
 
@@ -176,7 +176,7 @@ The Agent Status Bar is one form of **context compression**; [lesson 2.9](/learn
 
 ### References
 
-- Li, Bojie and Noah Shi, [*Distill, Don't Retrieve: Inference-Time Context Distillation for LLM Agent Reasoning*](https://01.me/research/context-distillation), 2026.
+- [*Distill, Don't Retrieve: Inference-Time Context Distillation for LLM Agent Reasoning*](https://01.me/research/context-distillation), 2026.
 
 ## Check yourself
 

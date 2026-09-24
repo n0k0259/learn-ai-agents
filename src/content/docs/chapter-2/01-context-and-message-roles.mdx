@@ -28,7 +28,7 @@ An agent can only act on the information available to it. Designing and managing
 
 From the harness perspective, context engineering is a core implementation of the harness's "Context and Tools" layer (see [Harness Engineering](/learn-ai-agents/chapter-1/06-harness-engineering/)). It decides what the agent sees at each decision point and how that information is structured. Well-designed context gives the agent what it needs to apply its reasoning to a specific task.
 
-<Figure caption="The context window on a call: system prompt, tool definitions, conversation history and the reasoning trace, followed by the position the model is currently generating. Window sizes differ by model: Qwen3 = 32K tokens, Claude = 200K, Gemini = 2M." credit="Redrawn from Figure 2-1, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="The context window on a call: system prompt, tool definitions, conversation history and the reasoning trace, followed by the position the model is currently generating. Window sizes differ by model: Qwen3 = 32K tokens, Claude = 200K, Gemini = 2M." credit="Redrawn from Figure 2-1.">
 <ContextWindowComposition />
 </Figure>
 
@@ -110,7 +110,7 @@ This is the same request structure as the five components of context from [Conte
 
 Start with the simplest case, without tool calls. The user asks "Hello, who are you?", and the example uses a locally deployed Qwen3-0.6B model.
 
-<Figure caption="A single-turn call: the framework sends a system message and a user message; the model returns one assistant message." credit="Redrawn from Figure 2-2, AI Agent Book by Bojie Li (Apache 2.0).">
+<Figure caption="A single-turn call: the framework sends a system message and a user message; the model returns one assistant message." credit="Redrawn from Figure 2-2.">
 <SingleTurnCall />
 </Figure>
 

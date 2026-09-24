@@ -22,3 +22,14 @@ test('lessons carry no per-page attribution; credits live on the About page', as
 	await expect(page.locator('main')).toContainText('Bojie Li');
 	await expect(page.locator('main a[href*="apache.org/licenses/LICENSE-2.0"]')).toHaveCount(1);
 });
+
+test('the author name appears only on the About page', async ({ request }) => {
+	const sitemap = await (await request.get('sitemap-0.xml')).text();
+	const paths = [...sitemap.matchAll(/<loc>[^<]*\/learn-ai-agents\/([^<]*)<\/loc>/g)].map((m) => m[1]);
+	expect(paths.length).toBeGreaterThan(20);
+	for (const path of [...paths, '404.html']) {
+		if (path === 'about/') continue;
+		const html = await (await request.get(path)).text();
+		expect(html, path).not.toMatch(/Bojie|AI Agent Book/);
+	}
+});
