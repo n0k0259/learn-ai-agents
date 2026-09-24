@@ -29,7 +29,7 @@ Prompt engineering determines what to write, Skills determine what to load on de
 
 ## Three reasons to compress
 
-**Length and cost.** This is the most intuitive reason. The context window is limited (for example, 128K tokens), tool results routinely run to tens of thousands of characters, and the trajectory grows with every round ([lesson 1.5](/learn-ai-agents/chapter-1/05-react-loop/)), so a few rounds can fill the window and cut the task short. More tokens also mean higher API costs and sharply higher inference latency.
+**Length and cost.** This is the most intuitive reason. The context window is limited (for example, 128K tokens), tool results routinely run to tens of thousands of characters, and a few rounds of interaction can fill the window and cut the task short. More tokens also mean higher API costs and sharply higher inference latency.
 
 **Reasoning quality.** This runs deeper and is more easily overlooked: summarized knowledge is more usable by the model than its raw form. Even when the window is large enough, piling in all the raw information isn't optimal. The raw results of a dozen search rounds end up scattered through the context, so at every decision the model searches repeatedly through tens of thousands of tokens for the relevant fragments, its attention is dispersed, and key information is easily missed.
 
@@ -84,7 +84,7 @@ The resolution is the **timing and location** of compression. It never modifies 
 2. **The target is the tool results in the conversation history.** When the framework replaces an original tool output with a compressed summary, the cache after the replacement point becomes invalid, but the cache before it stays valid.
 3. **It's a conscious trade-off.** Without compression, the context expands beyond the window and the task fails outright. With it, some cache is lost, but context length stays under control and information density rises.
 
-So weigh how often you compress: frequent compression frequently breaks the cache. It's best to batch-compress when the context approaches a threshold, rather than compressing every round.
+So weigh how often you compress: frequent compression frequently breaks the cache. It's best to batch-compress when the context approaches a threshold, rather than compressing every round. This is the batching that the stretch quiz in [lesson 1.5](/learn-ai-agents/chapter-1/05-react-loop/) hinted at.
 
 ### When thinking is bound to the prefix
 
@@ -122,7 +122,7 @@ Anthropic recommends one of two approaches. Either compress the entire session i
 
 <KeyTakeaways>
 - Compress for three reasons: length and cost, reasoning quality (distilled knowledge is easier to use than raw records), and context anxiety.
-- Attention handles lookup, not aggregation. Compression replaces raw records with computed conclusions, turning reasoning into retrievable knowledge; the status bar adds them.
+- In a single forward pass, attention handles lookup, not aggregation. Compression replaces raw records with computed conclusions, turning reasoning into retrievable knowledge; the status bar adds them.
 - Context rot is "it fits but cannot be found": it degrades decisions long before overflow, as irrelevant content dominates.
 - Compress between API calls, on tool results only. The static prefix stays cached and only the cache after the replacement point is lost, so batch near a threshold instead of every round.
 - With thinking bound to the prefix, summarize the whole session into one message or use server-side compaction, not "summarize old turns, keep recent ones verbatim".
